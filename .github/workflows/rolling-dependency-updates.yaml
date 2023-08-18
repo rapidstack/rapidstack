@@ -1,0 +1,38 @@
+name: Rolling Dependency Update Branch
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - development
+
+jobs:
+  create-branch:
+    # TODO: change 'development' to 'main' once we merge the development branch into main
+    if: github.event.pull_request.merged && github.event.pull_request.base.ref == 'development' && github.event.pull_request.head.ref == 'dependabot-staging' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: "0"
+      - name: Create Branch
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Actions"
+          git checkout -b dependabot-staging origin/development
+          git commit --allow-empty -m "chore: Dependency Updates (Staging)"
+          git push origin dependabot-staging
+      - name: Create Draft PR for Updates
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "Dependency Updates",
+              head: "dependabot-staging",
+              base: "development",
+              body: "Dependency Updates for npm packages and GitHub Actions",
+              draft: true,
+              maintainer_can_modify: true
+            })

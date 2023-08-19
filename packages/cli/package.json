@@ -2,10 +2,31 @@
   "name": "@rapidstack/cli",
   "version": "0.0.0",
   "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "build": "tsup"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "devDependencies": {
     "@types/glob": "8.1.0",
-    "@types/inquirer": "9.0.3"
+    "@types/inquirer": "9.0.3",
+    "@types/node": "^20.5.1"
   },
+  "files": [
+    "dist/*",
+    "!dist/commands/private/**",
+    "!**/*.spec.*",
+    "!**/*.test.*",
+    "!**/tests/*.*",
+    "!**/tests/*.ts.map"
+  ],
   "dependencies": {
     "chalk": "5.3.0",
     "commander": "11.0.0",

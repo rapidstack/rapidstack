@@ -32,6 +32,8 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
+          with:
+            config-file: ./.github/codeql/codeql-config.yaml
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2

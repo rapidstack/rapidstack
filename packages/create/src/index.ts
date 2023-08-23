@@ -1,5 +1,3 @@
 #!/usr/bin/env node
 
-import { cli } from '@rapidstack/cli';
-
-cli();
+export { create } from '@rapidstack/cli';

@@ -5,7 +5,7 @@ const PKG_VERSION = '0.0.0';
 const SST_VERSION = '0.0.0';
 
 export const description =
-  'A CLI to make working with rapidstack project easy!';
+  'A CLI to make working with rapidstack projects easy!';
 
 /**
  * String macro instructing user the next steps after project generation.

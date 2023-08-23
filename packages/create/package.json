@@ -6,15 +6,9 @@
     "test": "vitest",
     "build": "tsup"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
-    }
+  "bin": {
+    "create-rapidstack": "./bin/create.mjs"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
   "dependencies": {
     "@rapidstack/cli": "*"
   }

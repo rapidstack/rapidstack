@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@rapidstack/cli':
+        specifier: '*'
+        version: link:packages/cli
       '@types/eslint':
         specifier: 8.44.2
         version: 8.44.2

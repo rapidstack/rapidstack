@@ -1,0 +1,69 @@
+name: PR Checks
+
+permissions: write-all
+
+on:
+  pull_request:
+    types: [assigned, labeled, unlabeled, opened, synchronize, reopened, closed]
+    paths:
+      [
+        '**.ts',
+        '**.js',
+        '**/package*.json',
+        '**/workflows/on-merge-main.yaml',
+        '**/workflows/active-pr-checks.yaml',
+        'qodana.yaml',
+        '.github/qodana.sarif.json',
+      ]
+
+# Allow a subsequently queued workflow run to interrupt a previous run
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    # if: ${{ !github.event.issue.draft && !github.event.pull_request.merged }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Ensure Project Builds
+        run: npm run build
+
+      - name: Run Unit Tests
+        run: pnpm test

@@ -1,4 +1,4 @@
-name: "Code Quality Checks"
+name: 'Code Quality Checks'
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "31 7 * * 3"
+    - cron: '31 7 * * 3'
 
 jobs:
   analyze:
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["TypeScript"]
+        language: ['TypeScript', 'JavaScript']
 
     steps:
       - name: Checkout repository
@@ -32,7 +32,7 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
-          source-root: src
+          config-file: ./.github/codeql/codeql-config.yaml
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2

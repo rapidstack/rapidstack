@@ -7,6 +7,9 @@
     { "column": 8, "color": "#ff000020" },
     { "column": 80, "color": "#77777750" }
   ],
+  "[json]": { "editor.rulers": [] },
+  "[jsonc]": { "editor.rulers": [] },
+  "[yaml]": { "editor.rulers": [] },
   "eslint.probe": [
     "javascript",
     "javascriptreact",

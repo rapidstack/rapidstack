@@ -7,5 +7,6 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
     },
     name: '@rapidstack/cli',
+    passWithNoTests: true,
   },
 });

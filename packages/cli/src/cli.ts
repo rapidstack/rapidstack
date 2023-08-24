@@ -1,24 +1,32 @@
 import { Command } from 'commander';
-import { readdir } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { logger } from './utils/index.js';
 import { appStr, description, versionStr } from './utils/macros.js';
+
+if (process.argv.includes('--debug') || process.argv.includes('-d'))
+  process.env.DEBUG_LOGGING = 'true';
 
 const program = new Command()
   .name(appStr)
   .version(versionStr)
-  .description(description);
+  .description(description)
+  .option('-d, --debug', 'output extra debug logging');
 
 const commandsDir = join(__dirname, 'commands');
 const commandDirs = await readdir(commandsDir);
 
 const fns = commandDirs.map(async (commandDir) => {
+  if (!(await stat(join(commandsDir, commandDir))).isDirectory()) return;
+
   const sumCommandPath = join(commandsDir, commandDir, 'index.js');
   const subcommand = await import(sumCommandPath).then(
     ({ default: command }) => command as Command
   );
 
   program.addCommand(subcommand);
+  logger.debug(`loaded command: ${commandDir.replace('-private', '')}`);
 });
 
 await Promise.all(fns);

@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-export { create } from '@rapidstack/cli';
+export { default as create } from '@rapidstack/cli/create';

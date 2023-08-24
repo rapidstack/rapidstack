@@ -1,5 +1,7 @@
 import chalk from 'chalk';
 
+import { orange, subtle } from './logger.js';
+
 // import { PKG_VERSION, SST_VERSION } from '../_version.js';
 const PKG_VERSION = '0.0.0';
 const SST_VERSION = '0.0.0';
@@ -22,15 +24,18 @@ export function nextSteps(appDir: string): string {
     4: npm run dev`;
 }
 
-export const appStr = chalk.bold.ansi256(166)('rapidstack');
+export const appStr = orange('rapidstack');
 
-export const versionStr = `v${PKG_VERSION} ${chalk.italic.gray(
+export const versionStr = `v${PKG_VERSION} ${subtle(
   `(utilizing sst@${SST_VERSION})`
 )}`;
 
 export const reactStr =
-  'Adds a Vite React app to the project with the specified name. Can create several React apps by passing in multiple names separated by spaces.';
+  'Adds a Vite React app to the project with the specified name. \
+  Can create several React apps by passing in multiple names separated \
+  by spaces.';
 
 export const reactFailure = chalk.red(
-  'The react project cannot be named "base", "core", or "root"! It would conflict with existing npm workspace names.'
+  'The react project cannot be named "base", "core", or "root"! \
+  It would conflict with existing npm workspace names.'
 );

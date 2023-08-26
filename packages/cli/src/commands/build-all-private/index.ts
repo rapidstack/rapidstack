@@ -6,4 +6,5 @@ export default new Command()
   .description(
     `Builds all of the rapidstack packages. ${chalk.red('[Internal]')}`
   )
+  .option('-d, --debug', 'output extra debug logging')
   .action(() => console.log('hello!'));

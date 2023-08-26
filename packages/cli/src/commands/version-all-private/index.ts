@@ -12,6 +12,7 @@ export default new Command()
     `Versions all of the rapidstack npm packages. ${chalk.red('[Internal]')}`
   )
   .argument('<version>', 'The version to set for all packages.')
+  .option('-d, --debug', 'output extra debug logging')
   .action(async (version: string) => {
     logger.debug(`running 'version-all' called with version: ${version}`);
 

@@ -5,8 +5,13 @@ import { join } from 'node:path';
 import { logger } from './utils/index.js';
 import { appStr, description, versionStr } from './utils/macros.js';
 
-if (process.argv.includes('--debug') || process.argv.includes('-d'))
-  process.env.DEBUG_LOGGING = 'true';
+if (
+  process.argv.includes('--debug') ||
+  process.argv.some((arg) => /^-([a-ce-z]*d[a-ce-z]*)$/i.test(arg))
+) {
+  process.env.DEBUG_LOGGING = '1';
+  logger.debug('cli arguments: ', process.argv);
+}
 
 const program = new Command()
   .name(appStr)

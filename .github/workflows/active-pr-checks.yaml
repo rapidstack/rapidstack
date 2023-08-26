@@ -83,8 +83,8 @@ jobs:
         with:
           node-version: 18
 
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: latest
           run_install: false
@@ -94,8 +94,8 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -111,5 +111,9 @@ jobs:
       - name: Qodana Scan
         uses: JetBrains/qodana-action@v2023.2.1
         with:
-          args: '--baseline,${{ runner.temp }}/.github/codeql/qodana.sarif.json'
           pr-mode: true
+
+      - name: Qodana Scan
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json

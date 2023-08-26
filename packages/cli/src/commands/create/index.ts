@@ -9,7 +9,7 @@ if (
     process.argv.some((arg) => /^-([a-ce-z]*d[a-ce-z]*)$/i.test(arg)))
 ) {
   process.env.DEBUG_LOGGING = '1';
-  logger.debug('cli arguments: ', process.argv);
+  logger.debug('cli arguments: ', JSON.stringify(process.argv));
 }
 
 export default new Command()

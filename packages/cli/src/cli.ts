@@ -5,19 +5,19 @@ import { join } from 'node:path';
 import { logger } from './utils/index.js';
 import { appStr, description, versionStr } from './utils/macros.js';
 
-if (
-  process.argv.includes('--debug') ||
-  process.argv.some((arg) => /^-([a-ce-z]*d[a-ce-z]*)$/i.test(arg))
-) {
-  process.env.DEBUG_LOGGING = '1';
-  logger.debug('cli arguments: ', process.argv);
-}
+// if (
+//   process.argv.includes('--debug') ||
+//   process.argv.some((arg) => /^-([a-ce-z]*d[a-ce-z]*)$/i.test(arg))
+// ) {
+//   process.env.DEBUG_LOGGING = '1';
+//   logger.debug('cli arguments: ', JSON.stringify(process.argv));
+// }
 
 const program = new Command()
   .name(appStr)
   .version(versionStr)
-  .description(description)
-  .option('-d, --debug', 'output extra debug logging');
+  .description(description);
+// .option('-d, --debug', 'output extra debug logging');
 
 const commandsDir = join(__dirname, 'commands');
 const commandDirs = await readdir(commandsDir);

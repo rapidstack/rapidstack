@@ -2,15 +2,15 @@ import { glob } from 'glob';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { logger } from '../../index.js';
+import { log } from '../../index.js';
 import { resolveVersion, updateOrgPackageDependencies } from './tasks.js';
 
 /**
- * Desc
- * @param version verstr
+ * The action to be run when the `version-all` command is called.
+ * @param version The version to set for all packages.
  */
 export const action = async (version: string): Promise<void> => {
-  logger.debug(`running 'version-all' called with version: ${version}`);
+  log.debug(`running 'version-all' called with version: ${version}`);
 
   const newVersion = resolveVersion(version);
 
@@ -21,13 +21,13 @@ export const action = async (version: string): Promise<void> => {
 
   packageJsonFiles.map(async (file) => {
     const filePath = join(process.cwd(), file);
-    logger.debug(`found package.json at: ${filePath}`);
+    log.debug(`found package.json at: ${filePath}`);
 
     const packageJson = JSON.parse(await readFile(filePath, 'utf8'));
     const oldVersion = packageJson.version;
 
     // Update the top level version for the package.json
-    logger.log(
+    log.msg(
       `{root}/${file}`,
       `modifying version: ${oldVersion} → ${newVersion}`
     );
@@ -50,7 +50,7 @@ export const action = async (version: string): Promise<void> => {
       const updatedOrgDevDeps = updateOrgPackageDependencies(
         packageJson.devDependencies,
         newVersion,
-        'dep'
+        'devDep'
       );
       packageJson.devDependencies = {
         ...packageJson.devDependencies,
@@ -62,4 +62,6 @@ export const action = async (version: string): Promise<void> => {
   });
 
   await Promise.all(packageJsonFiles);
+
+  console.log('hello!');
 };

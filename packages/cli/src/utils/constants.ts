@@ -7,3 +7,5 @@ export const semverRegex = new RegExp(
   ].join(''),
   'i'
 );
+
+export const debugFlagRegex = /^-([a-ce-z]*d[a-ce-z]*)$/i;

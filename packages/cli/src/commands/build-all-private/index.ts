@@ -1,9 +1,20 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { red } from '../../utils/index.js';
+import { handleExit } from '../../index.js';
 
-export default new Command()
-  .name('build-all')
-  .description(`Builds all of the rapidstack packages. ${red('[Internal]')}`)
-  .option('-d, --debug', 'output extra debug logging')
-  .action(() => console.log('hello!'));
+/**
+ * Builds the `build-all` command. An internal command to build all of the
+ * rapidstack packages.
+ * @returns The commander command.
+ */
+export function buildAllCommand(): Command {
+  return new Command()
+    .name('build-all')
+    .description(
+      `builds all of the rapidstack packages. ${chalk.red('[Internal]')}`
+    )
+    .option('-d, --debug', 'output extra debug logging')
+    .action(() => console.log('hello!'))
+    .exitOverride(handleExit);
+}

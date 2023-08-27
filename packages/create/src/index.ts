@@ -1,3 +1,2 @@
-#!/usr/bin/env node
-
-export { default as create } from '@rapidstack/cli/create';
+import { buildCreateCommand } from '@rapidstack/cli/create';
+export const create = buildCreateCommand();

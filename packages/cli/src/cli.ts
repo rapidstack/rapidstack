@@ -1,40 +1,53 @@
 import { Command } from 'commander';
-import { readdir, stat } from 'node:fs/promises';
-import { join } from 'node:path';
 
-import { logger } from './utils/index.js';
+import { buildAllCommand } from './commands/build-all-private/index.js';
+import { buildCreateCommand } from './commands/create/index.js';
+import { buildVersionCommand } from './commands/version-all-private/index.js';
+import { debugFlagRegex, handleExit, isLocal, log } from './utils/index.js';
 import { appStr, description, versionStr } from './utils/macros.js';
 
-// if (
-//   process.argv.includes('--debug') ||
-//   process.argv.some((arg) => /^-([a-ce-z]*d[a-ce-z]*)$/i.test(arg))
-// ) {
-//   process.env.DEBUG_LOGGING = '1';
-//   logger.debug('cli arguments: ', JSON.stringify(process.argv));
-// }
+const commands: {
+  private: { [key: string]: Command };
+  public: { [key: string]: Command };
+} = {
+  private: {
+    'build-all': buildAllCommand(),
+    'version-all': buildVersionCommand(),
+  },
+  public: {
+    create: buildCreateCommand(),
+  },
+};
+
+if (
+  process.argv.includes('--debug') ||
+  process.argv.some((arg) => debugFlagRegex.test(arg))
+) {
+  process.env.DEBUG_LOGGING = '1';
+  log.debug('cli arguments: ', JSON.stringify(process.argv));
+}
 
 const program = new Command()
   .name(appStr)
   .version(versionStr)
-  .description(description);
-// .option('-d, --debug', 'output extra debug logging');
+  .description(description)
+  .option('-d, --debug', 'output extra debug logging')
+  .exitOverride(handleExit);
 
-const commandsDir = join(__dirname, 'commands');
-const commandDirs = await readdir(commandsDir);
+// Only load private commands if running in the context of the rapidstack repo
+if (await isLocal()) {
+  const privateCommands = Object.entries(commands.private);
+  privateCommands.forEach(([name, command]) => {
+    program.addCommand(command);
+    log.debug(`added private command: ${name}`);
+  });
+}
 
-const fns = commandDirs.map(async (commandDir) => {
-  if (!(await stat(join(commandsDir, commandDir))).isDirectory()) return;
-
-  const sumCommandPath = join(commandsDir, commandDir, 'index.js');
-  const subcommand = await import(sumCommandPath).then(
-    ({ default: command }) => command as Command
-  );
-
-  program.addCommand(subcommand);
-  logger.debug(`loaded command: ${commandDir.replace('-private', '')}`);
+const publicCommands = Object.entries(commands.public);
+publicCommands.forEach(([name, command]) => {
+  program.addCommand(command);
+  log.debug(`added public command: ${name}`);
 });
-
-await Promise.all(fns);
 
 /**
  * The Rapidstack CLI

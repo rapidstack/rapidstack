@@ -1,11 +1,22 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { red } from '../../index.js';
-// import { action } from './action.js';
+import { handleExit } from '../../index.js';
+import { action } from './action.js';
 
-export default new Command()
-  .name('version-all')
-  .description(`Versions all of the rapidstack packages. ${red('[Internal]')}`)
-  .argument('<version>', 'The version to set for all packages.')
-  .option('-d, --debug', 'output extra debug logging')
-  .action(() => console.log('hello'));
+/**
+ * Builds the `version-all` command. An internal command to version all of the
+ * rapidstack package's package.json files.
+ * @returns The commander command.
+ */
+export function buildVersionCommand(): Command {
+  return new Command()
+    .name('version-all')
+    .description(
+      `versions all of the rapidstack packages. ${chalk.red('[Internal]')}`
+    )
+    .argument('<version>', 'The version to set for all packages.')
+    .option('-d, --debug', 'output extra debug logging')
+    .action(action)
+    .exitOverride(handleExit);
+}

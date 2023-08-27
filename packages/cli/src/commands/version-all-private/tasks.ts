@@ -1,4 +1,4 @@
-import { logger, orgName, semverRegex } from '../../index.js';
+import { log, orgName, semverRegex } from '../../index.js';
 
 /**
  * Scans the dependencies or devDependencies object from a package.json for
@@ -14,14 +14,14 @@ export function updateOrgPackageDependencies(
   newVersion: string,
   type: 'dep' | 'devDep'
 ): Record<string, string> {
-  const deps = (Object.entries(dependencies) as [string, string][]).filter(
-    ([name]) => name.startsWith(orgName)
+  const deps = Object.entries(dependencies).filter(([name]) =>
+    name.startsWith(orgName)
   );
 
   return deps.reduce(
     (acc, [name, oldVersion], index) => {
       acc[name] = newVersion;
-      logger.log(
+      log.msg(
         deps.length === index ? '├───' : '└───',
         `${name}:${oldVersion}`,
         '→',
@@ -43,7 +43,7 @@ export function resolveVersion(version: string): string {
   const newVersion = version.replace('v', '');
 
   if (!semverRegex.test(newVersion)) {
-    logger.error('Invalid version! Please use a valid semver version.');
+    log.error('Invalid version! Please use a valid semver version.');
     process.exit(1);
   }
 

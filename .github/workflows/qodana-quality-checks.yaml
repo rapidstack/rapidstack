@@ -1,4 +1,4 @@
-name: PR Checks
+name: 'Qodana Quality Checks'
 
 permissions: write-all
 
@@ -29,7 +29,6 @@ jobs:
       contents: read
       security-events: write
     runs-on: ubuntu-latest
-    needs: tests
     # if: ${{ !github.event.issue.draft }}
     steps:
       - name: Checkout Code

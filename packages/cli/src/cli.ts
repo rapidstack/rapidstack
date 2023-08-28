@@ -2,6 +2,7 @@ import { Command } from 'commander';
 
 import { buildAllCommand } from './commands/build-all-private/index.js';
 import { buildCreateCommand } from './commands/create/index.js';
+import { buildCreatePluginCommand } from './commands/create-plugin/index.js';
 import { buildVersionCommand } from './commands/version-all-private/index.js';
 import { debugFlagRegex, handleExit, isLocal, log } from './utils/index.js';
 import { appStr, description, versionStr } from './utils/macros.js';
@@ -15,7 +16,8 @@ const commands: {
     'version-all': buildVersionCommand(),
   },
   public: {
-    create: buildCreateCommand(),
+    'create': buildCreateCommand(),
+    'create-plugin': buildCreatePluginCommand(),
   },
 };
 

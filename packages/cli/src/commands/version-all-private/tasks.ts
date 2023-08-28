@@ -1,21 +1,25 @@
-import { log, orgName, semverRegex } from '../../index.js';
+import chalk from 'chalk';
+
+import { RapidstackCliError, log, semverRegex } from '../../index.js';
 
 /**
  * Scans the dependencies or devDependencies object from a package.json for
  * entries from the org and returns a new object with all the org dependencies
  * updated to the given version.
  * @param dependencies the dependencies object from a package.json
+ * @param org the org prefix to update
  * @param newVersion the new semver to update to
  * @param type whether it's a dep or devDep
  * @returns a new object with the org dependencies updated to the given version
  */
 export function updateOrgPackageDependencies(
   dependencies: Record<string, string>,
+  org: string,
   newVersion: string,
-  type: 'dep' | 'devDep'
+  type: 'dependencies' | 'devDependencies'
 ): Record<string, string> {
   const deps = Object.entries(dependencies).filter(([name]) =>
-    name.startsWith(orgName)
+    name.startsWith(org)
   );
 
   return deps.reduce(
@@ -26,7 +30,7 @@ export function updateOrgPackageDependencies(
         `${name}:${oldVersion}`,
         '→',
         newVersion,
-        `(${type})`
+        chalk.gray.italic(`(${type.substring(0, 3)})`)
       );
       return acc;
     },
@@ -39,12 +43,16 @@ export function updateOrgPackageDependencies(
  * @param version the raw CLI input version
  * @returns a valid semver version
  */
-export function resolveVersion(version: string): string {
+export function validateVersion(version: string): string {
   const newVersion = version.replace('v', '');
 
   if (!semverRegex.test(newVersion)) {
-    log.error('Invalid version! Please use a valid semver version.');
-    process.exit(1);
+    throw new RapidstackCliError(
+      'Invalid version! Please use a valid semver format:' +
+        `\n\t- <semver>: 1.2.3` +
+        `\n\t- v?<semver>: v1.2.3` +
+        `\n\t- v?<semver>-<stage>.<7-char-sha>: v1.2.3-rc.1230def`
+    );
   }
 
   return newVersion;

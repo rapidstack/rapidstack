@@ -99,6 +99,9 @@ importers:
       '@types/node':
         specifier: 20.5.1
         version: 20.5.1
+      vitest:
+        specifier: 0.34.2
+        version: 0.34.2
 
   packages/create:
     dependencies:

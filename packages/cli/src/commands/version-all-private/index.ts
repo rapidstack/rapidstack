@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { handleExit } from '../../index.js';
+import { actionRunner, handleExit } from '../../index.js';
 import { action } from './action.js';
 
 /**
@@ -17,6 +17,6 @@ export function buildVersionCommand(): Command {
     )
     .argument('<version>', 'The version to set for all packages.')
     .option('-d, --debug', 'output extra debug logging')
-    .action(action)
+    .action(actionRunner(action))
     .exitOverride(handleExit);
 }

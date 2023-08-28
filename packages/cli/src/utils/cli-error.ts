@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { type CommanderError } from 'commander';
 
 import { log } from './logger.js';
@@ -18,4 +21,48 @@ export function handleExit(error: CommanderError): void {
 
   log.error(error.message);
   process.exit(1);
+}
+
+/**
+ * Handles errors thrown from a commander action function in a standard way.
+ * @param error An error thrown from a commander action function
+ */
+function actionErrorHandler(error: unknown) {
+  if (error instanceof RapidstackCliError) {
+    log.error(error.message);
+    process.exit(1);
+  }
+
+  if (error instanceof Error) {
+    log.error('An unexpected error occurred:', error.message);
+    log.error('Use the -d or --debug flag to see more details.');
+
+    log.debug('Full error details:', error);
+    process.exit(1);
+  }
+
+  log.error('An unexpected error occurred:', error);
+}
+
+/**
+ * Wrapper function for the commander action function that will catch any
+ * errors, log them to the console, and exit(1)
+ * @param fn The action function to run
+ * @returns Promise<void>
+ */
+export function actionRunner(fn: (...args: any[]) => Promise<any>) {
+  return (...args: any[]) => fn(...args).catch(actionErrorHandler);
+}
+
+/**
+ * An error to throw when the CLI encounters an error that should be handled
+ * gracefully.
+ * @param message The error message
+ * @returns RapidstackCliError
+ */
+export class RapidstackCliError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RapidstackCliError';
+  }
 }

@@ -8,7 +8,7 @@ export const log = {
       console.log(chalk.bold.magenta('[rapidstack]'), ...args);
   },
   error: (...args: any): void => {
-    console.error('\n' + chalk.bold.red('[rapidstack]'), ...args);
+    console.error(chalk.bold.red('[rapidstack]'), ...args);
   },
   msg: (...args: any): void => {
     console.log(chalk.bold.ansi256(166)('[rapidstack]'), ...args);

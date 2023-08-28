@@ -1,9 +1,9 @@
 import { glob } from 'glob';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile /* writeFile */ } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { log } from '../../index.js';
-import { resolveVersion, updateOrgPackageDependencies } from './tasks.js';
+import { log, orgName } from '../../index.js';
+import { updateOrgPackageDependencies, validateVersion } from './tasks.js';
 
 /**
  * The action to be run when the `version-all` command is called.
@@ -12,14 +12,14 @@ import { resolveVersion, updateOrgPackageDependencies } from './tasks.js';
 export const action = async (version: string): Promise<void> => {
   log.debug(`running 'version-all' called with version: ${version}`);
 
-  const newVersion = resolveVersion(version);
+  const newVersion = validateVersion(version);
 
   const packageJsonFiles = await glob('**/package.json', {
     cwd: process.cwd(),
     ignore: 'node_modules',
   });
 
-  packageJsonFiles.map(async (file) => {
+  const fileUpdates = packageJsonFiles.map(async (file) => {
     const filePath = join(process.cwd(), file);
     log.debug(`found package.json at: ${filePath}`);
 
@@ -33,35 +33,23 @@ export const action = async (version: string): Promise<void> => {
     );
     packageJson.version = newVersion;
 
-    // Update any @org/* dependencies/devDependencies to that version
-    if (packageJson.dependencies) {
-      const updatedOrgDeps = updateOrgPackageDependencies(
-        packageJson.dependencies,
-        newVersion,
-        'dep'
-      );
-      packageJson.dependencies = {
-        ...packageJson.dependencies,
-        ...updatedOrgDeps,
-      };
-    }
+    ['dependencies', 'devDependencies'].forEach((depType) => {
+      if (packageJson[depType]) {
+        const updatedDeps = updateOrgPackageDependencies(
+          packageJson[depType],
+          orgName,
+          newVersion,
+          depType as 'dependencies' | 'devDependencies'
+        );
+        packageJson[depType] = {
+          ...packageJson[depType],
+          ...updatedDeps,
+        };
+      }
+    });
 
-    if (packageJson.devDependencies) {
-      const updatedOrgDevDeps = updateOrgPackageDependencies(
-        packageJson.devDependencies,
-        newVersion,
-        'devDep'
-      );
-      packageJson.devDependencies = {
-        ...packageJson.devDependencies,
-        ...updatedOrgDevDeps,
-      };
-    }
-
-    await writeFile(file, JSON.stringify(packageJson, null, 2));
+    // await writeFile(file, JSON.stringify(packageJson, null, 2));
   });
 
-  await Promise.all(packageJsonFiles);
-
-  console.log('hello!');
+  await Promise.all(fileUpdates);
 };

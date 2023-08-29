@@ -1,4 +1,4 @@
-name: PR Checks
+name: 'Qodana Quality Checks'
 
 permissions: write-all
 
@@ -22,26 +22,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
+  analyze:
+    name: Analyze
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    runs-on: ubuntu-latest
     # if: ${{ !github.event.issue.draft }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node-version: [18, 20]
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.ref }}
+          fetch-depth: 0
 
       - name: Setup Project
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 18
 
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: latest
           run_install: false
@@ -51,8 +52,8 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -65,5 +66,23 @@ jobs:
       - name: Build Project
         run: npm run build
 
-      - name: Run Tests
-        run: pnpm test
+      - name: Lint Project
+        run: npm run ci:lint
+        continue-on-error: true
+
+      - name: Upload Linting Results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: eslint.sarif
+          wait-for-processing: true
+
+      - name: Qodana Scan
+        uses: JetBrains/qodana-action@v2023.2.1
+        with:
+          pr-mode: true
+
+      - name: Upload Results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+          wait-for-processing: true

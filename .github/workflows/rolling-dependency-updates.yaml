@@ -5,6 +5,7 @@ on:
       - closed
     branches:
       - development
+  workflow_dispatch:
 
 jobs:
   create-branch:

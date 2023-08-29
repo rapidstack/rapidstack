@@ -25,11 +25,12 @@
   "devDependencies": {
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.3",
-    "@types/node": "20.5.1"
+    "@types/node": "20.5.1",
+    "vitest": "0.34.2"
   },
   "files": [
     "dist/*",
-    "!dist/commands/private/**",
+    "!dist/local.*",
     "!**/*.spec.*",
     "!**/*.test.*",
     "!**/tests/*.*",

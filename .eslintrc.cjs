@@ -54,6 +54,7 @@ module.exports = {
         message: 'Use const objects over TS Enums',
       },
     ],
+    'max-params': ['error', 3],
 
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [

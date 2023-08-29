@@ -47,6 +47,12 @@
       "filename": true,
       "extensions": ["tsup.config.ts"],
       "format": "svg"
+    },
+    {
+      "icon": "nsri",
+      "filename": true,
+      "extensions": ["qodana.yaml", "qodana.sarif.json"],
+      "format": "svg"
     }
   ]
 }

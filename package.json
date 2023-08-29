@@ -9,11 +9,14 @@
     "lint": "pnpm run \"/^lint:.*/\"",
     "lint:code": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
     "lint:packages": "pnpm dedupe --check",
-    "lint:spelling": "cspell \"**\" \".github/**/*\""
+    "lint:spelling": "cspell \"**\" \".github/**/*\"",
+    "ci:lint": "pnpm run \"/^lint:[p,s]\\w*/\" && eslint . .*js --max-warnings 0 --report-unused-disable-directives -f @microsoft/eslint-formatter-sarif -o eslint.sarif"
   },
   "keywords": [],
   "author": "",
   "devDependencies": {
+    "@microsoft/eslint-formatter-sarif": "^3.0.0",
+    "@rapidstack/cli": "*",
     "@types/eslint": "8.44.2",
     "@typescript-eslint/eslint-plugin": "6.4.1",
     "@typescript-eslint/parser": "6.4.1",
@@ -30,7 +33,6 @@
     "eslint-plugin-prettier": "5.0.0",
     "eslint-plugin-vitest": "0.2.8",
     "prettier": "3.0.2",
-    "@rapidstack/cli": "*",
     "tsup": "7.2.0",
     "typescript": "5.2.2",
     "vitest": "0.34.2"
@@ -39,6 +41,6 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   }
 }

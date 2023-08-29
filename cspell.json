@@ -13,6 +13,8 @@
     "npmignore",
     "quickstart",
     "tsup",
-    "wontfix"
+    "wontfix",
+    "sarif",
+    "vitest"
   ]
 }

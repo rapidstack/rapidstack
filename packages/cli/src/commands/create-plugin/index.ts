@@ -23,6 +23,6 @@ export function buildCreatePluginCommand(): Command {
     .usage(JSON.stringify(process.argv))
     .description('create a plugin using the template from rapidstack.')
     .option('-d, --debug', 'output extra debug logging')
-    .action(() => console.log('hello!'))
+    .action(() => console.log('Unimplemented!'))
     .exitOverride(handleExit);
 }

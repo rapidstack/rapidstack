@@ -20,7 +20,6 @@ export const sharedTsupConfig = {
       ps.on('close', (code) =>
         code === 0
           ? resolve()
-          
           : reject(
               new Error(`Code [${code}] returned from tsup onSuccess hook.`)
             )
@@ -28,11 +27,6 @@ export const sharedTsupConfig = {
     });
   },
   outDir: 'dist',
-  // outExtension: (params) => {
-  //   return {
-  //     js: `.${params.format}.js`,
-  //   };
-  // },
   shims: true,
   sourcemap: true,
   tsconfig: 'tsconfig.build.json',

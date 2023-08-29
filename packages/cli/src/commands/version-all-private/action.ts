@@ -9,7 +9,7 @@ import { updateOrgPackageDependencies, validateVersion } from './tasks.js';
  * The action to be run when the `version-all` command is called.
  * @param version The version to set for all packages.
  */
-export const action = async (version: string): Promise<void> => {
+export async function action(version: string): Promise<void> {
   log.debug(`running 'version-all' called with version: ${version}`);
 
   const newVersion = validateVersion(version);
@@ -52,4 +52,4 @@ export const action = async (version: string): Promise<void> => {
   });
 
   await Promise.all(fileUpdates);
-};
+}

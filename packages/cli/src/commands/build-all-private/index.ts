@@ -15,6 +15,6 @@ export function buildAllCommand(): Command {
       `builds all of the rapidstack packages. ${chalk.red('[Internal]')}`
     )
     .option('-d, --debug', 'output extra debug logging')
-    .action(() => console.log('hello!'))
+    .action(() => console.log('Unimplemented!'))
     .exitOverride(handleExit);
 }

@@ -1,4 +1,4 @@
-name: 'Qodana Quality Checks'
+name: 'Code Quality Checks'
 
 permissions: write-all
 
@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   codeql-quality-checks:
-    name: CodeQL Analyze
+    name: CodeQL
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' || !github.event.issue.draft }}
     permissions:
@@ -85,7 +85,7 @@ jobs:
         uses: github/codeql-action/analyze@v2
 
   qodana-quality-checks:
-    name: Qodana Analyze
+    name: Qodana
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' || !github.event.issue.draft }}
     permissions:
@@ -140,7 +140,7 @@ jobs:
           wait-for-processing: true
 
   eslint-quality-checks:
-    name: EsLint Analyze
+    name: ESLint
     runs-on: ubuntu-latest
     if: ${{ !github.event.issue.draft }}
     steps:
@@ -164,6 +164,7 @@ jobs:
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - name: Setup pnpm cache
         uses: actions/cache@v3
         with:
@@ -171,6 +172,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+
       - name: Install dependencies
         run: pnpm install
 

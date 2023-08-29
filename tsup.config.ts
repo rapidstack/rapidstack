@@ -27,11 +27,6 @@ export const sharedTsupConfig = {
     });
   },
   outDir: 'dist',
-  // outExtension: (params) => {
-  //   return {
-  //     js: `.${params.format}.js`,
-  //   };
-  // },
   shims: true,
   sourcemap: true,
   tsconfig: 'tsconfig.build.json',

@@ -15,12 +15,12 @@ describe('version-all command actions:', () => {
   describe('updateOrgPackageDependencies:', () => {
     test('Should return all prefixed deps set to the provided version', () => {
       const newVersion = '2.0.0';
-      const updatedDeps = updateOrgPackageDependencies(
-        deps,
-        '@org',
-        newVersion,
-        'dependencies'
-      );
+      const updatedDeps = updateOrgPackageDependencies({
+        dependencies: deps,
+        newVersion: '@org',
+        org: newVersion,
+        type: 'dependencies',
+      });
 
       expect(updatedDeps).toEqual({
         '@org/bar': newVersion,
@@ -29,12 +29,12 @@ describe('version-all command actions:', () => {
     });
     test('Should return an empty object if the org is not found', () => {
       const newVersion = '2.0.0';
-      const updatedDeps = updateOrgPackageDependencies(
-        deps,
-        '@other',
-        newVersion,
-        'dependencies'
-      );
+      const updatedDeps = updateOrgPackageDependencies({
+        dependencies: deps,
+        newVersion: '@other',
+        org: newVersion,
+        type: 'dependencies',
+      });
 
       expect(updatedDeps).toEqual({});
     });

@@ -35,12 +35,12 @@ export const action = async (version: string): Promise<void> => {
 
     ['dependencies', 'devDependencies'].forEach((depType) => {
       if (packageJson[depType]) {
-        const updatedDeps = updateOrgPackageDependencies(
-          packageJson[depType],
-          orgName,
-          newVersion,
-          depType as 'dependencies' | 'devDependencies'
-        );
+        const updatedDeps = updateOrgPackageDependencies({
+          dependencies: packageJson[depType],
+          newVersion: orgName,
+          org: newVersion,
+          type: depType as 'dependencies' | 'devDependencies',
+        });
         packageJson[depType] = {
           ...packageJson[depType],
           ...updatedDeps,

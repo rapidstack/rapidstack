@@ -17,8 +17,8 @@ describe('version-all command actions:', () => {
       const newVersion = '2.0.0';
       const updatedDeps = updateOrgPackageDependencies({
         dependencies: deps,
-        newVersion: '@org',
-        org: newVersion,
+        newVersion: newVersion,
+        org: '@org',
         type: 'dependencies',
       });
 
@@ -31,8 +31,8 @@ describe('version-all command actions:', () => {
       const newVersion = '2.0.0';
       const updatedDeps = updateOrgPackageDependencies({
         dependencies: deps,
-        newVersion: '@other',
-        org: newVersion,
+        newVersion: newVersion,
+        org: '@other',
         type: 'dependencies',
       });
 

@@ -37,8 +37,8 @@ export const action = async (version: string): Promise<void> => {
       if (packageJson[depType]) {
         const updatedDeps = updateOrgPackageDependencies({
           dependencies: packageJson[depType],
-          newVersion: orgName,
-          org: newVersion,
+          newVersion,
+          org: orgName,
           type: depType as 'dependencies' | 'devDependencies',
         });
         packageJson[depType] = {

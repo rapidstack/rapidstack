@@ -66,6 +66,16 @@ jobs:
       - name: Build Project
         run: npm run build
 
+      - name: Lint Project
+        run: npm run ci:lint
+        continue-on-error: true
+
+      - name: Upload Linting Results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: eslint.sarif
+          wait-for-processing: true
+
       - name: Qodana Scan
         uses: JetBrains/qodana-action@v2023.2.1
         with:
@@ -75,3 +85,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+          wait-for-processing: true

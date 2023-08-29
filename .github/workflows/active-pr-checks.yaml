@@ -62,16 +62,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Lint Project
-        run: npm run ci:lint
-        continue-on-error: true
-
-      - name: Upload Linting Results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ${{ runner.temp }}/eslint.serif
-          wait-for-processing: true
-
       - name: Build Project
         run: npm run build
 

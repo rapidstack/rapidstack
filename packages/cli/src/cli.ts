@@ -54,6 +54,6 @@ publicCommands.forEach(([name, command]) => {
 /**
  * The Rapidstack CLI
  */
-export const cli = (): void => {
+export function cli(): void {
   program.parse();
-};
+}

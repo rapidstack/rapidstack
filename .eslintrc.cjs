@@ -41,7 +41,7 @@ module.exports = {
           FunctionDeclaration: true,
           MethodDefinition: false,
           ClassDeclaration: false,
-          ArrowFunctionExpression: true,
+          ArrowFunctionExpression: false,
           FunctionExpression: false,
         },
       },
@@ -55,6 +55,7 @@ module.exports = {
       },
     ],
     'max-params': ['error', 3],
+    'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
 
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [

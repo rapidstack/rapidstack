@@ -183,6 +183,9 @@ jobs:
         run: npm run ci:lint
         continue-on-error: true
 
+      - name: Clean Sarif File
+        run: node ./.github/scripts/sarif-cleanup.js
+
       - name: Upload Linting Results
         uses: github/codeql-action/upload-sarif@v2
         with:

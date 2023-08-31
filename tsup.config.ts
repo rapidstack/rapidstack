@@ -20,6 +20,7 @@ export const sharedTsupConfig = {
       ps.on('close', (code) =>
         code === 0
           ? resolve()
+          
           : reject(
               new Error(`Code [${code}] returned from tsup onSuccess hook.`)
             )

@@ -184,7 +184,7 @@ jobs:
         continue-on-error: true
 
       - name: Clean Sarif File
-        run: node ./.github/scripts/sarif-cleanup.js
+        run: node ./.github/codeql/sarif-cleanup.js
 
       - name: Upload Linting Results
         uses: github/codeql-action/upload-sarif@v2

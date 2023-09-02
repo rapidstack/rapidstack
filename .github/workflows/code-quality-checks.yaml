@@ -13,17 +13,15 @@ on:
     paths:
       [
         '**.ts',
-        '**.js',
+        '**.*js',
         '**/package*.json',
         '**/workflows/on-merge-main.yaml',
         '**/workflows/active-pr-checks.yaml',
         'qodana.yaml',
-        '.github/qodana.sarif.json',
       ]
 
-# Allow a subsequently queued workflow run to interrupt a previous run
 concurrency:
-  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

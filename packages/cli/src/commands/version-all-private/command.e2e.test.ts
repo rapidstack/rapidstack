@@ -3,15 +3,16 @@
 import { cpSync, mkdtempSync, readFileSync, rmdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 import { mockShell } from '../../index.js';
 
-const __filename = new URL(import.meta.url).pathname;
-const cli = `node ${join(__filename, '../../../../bin/rapidstack-cli.mjs')}`;
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const cli = `node ${join(__dirname, '../../../bin/rapidstack-cli.mjs')}`;
 const cmd = `version-all`;
 const tempDirPathPrefix = join(tmpdir(), `version-all-e2e-${Date.now()}-`);
-const testTemplateDir = join(__filename, '..', 'test', 'assets');
+const testTemplateDir = join(__dirname, 'test', 'assets');
 let tempDir = '';
 
 beforeAll(async () => {

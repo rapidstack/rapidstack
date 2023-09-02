@@ -10,6 +10,7 @@ if (
 ) {
   process.env.DEBUG_LOGGING = '1';
   log.debug('cli arguments: ', JSON.stringify(process.argv));
+  log.debug('cwd:', process.cwd());
 }
 
 /**

@@ -1,5 +1,5 @@
 import { glob } from 'glob';
-import { readFile /* writeFile */ } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { log, orgName } from '../../index.js';
@@ -10,7 +10,7 @@ import { updateOrgPackageDependencies, validateVersion } from './tasks.js';
  * @param version The version to set for all packages.
  */
 export async function action(version: string): Promise<void> {
-  log.debug(`running 'version-all' called with version: ${version}`);
+  log.debug(`running 'version-all' called with version: [${version}]`);
 
   const newVersion = validateVersion(version);
 
@@ -48,7 +48,7 @@ export async function action(version: string): Promise<void> {
       }
     });
 
-    // await writeFile(file, JSON.stringify(packageJson, null, 2));
+    await writeFile(file, JSON.stringify(packageJson, null, 2));
   });
 
   await Promise.all(fileUpdates);

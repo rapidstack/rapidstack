@@ -34,18 +34,6 @@ module.exports = {
   ],
   rules: {
     // Base ESlint Rules
-    'require-jsdoc': [
-      'error',
-      {
-        require: {
-          FunctionDeclaration: true,
-          MethodDefinition: false,
-          ClassDeclaration: false,
-          ArrowFunctionExpression: false,
-          FunctionExpression: false,
-        },
-      },
-    ],
     'no-case-declarations': 'off',
     'no-restricted-syntax': [
       'error',

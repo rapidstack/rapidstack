@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { updateOrgPackageDependencies, validateVersion } from './tasks.js';
 
@@ -11,9 +11,14 @@ const deps = {
   'foo': '1.0.0',
 };
 
+beforeAll(() => {
+  // Disable logs for messages embedded in task functions
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+});
+
 describe('version-all command actions:', () => {
   describe('updateOrgPackageDependencies:', () => {
-    test('Should return all prefixed deps set to the provided version', () => {
+    test('should return all prefixed deps set to the provided version', () => {
       const newVersion = '2.0.0';
       const updatedDeps = updateOrgPackageDependencies({
         dependencies: deps,
@@ -27,7 +32,7 @@ describe('version-all command actions:', () => {
         '@org/foo': newVersion,
       });
     });
-    test('Should return an empty object if the org is not found', () => {
+    test('should return an empty object if the org is not found', () => {
       const newVersion = '2.0.0';
       const updatedDeps = updateOrgPackageDependencies({
         dependencies: deps,
@@ -40,11 +45,11 @@ describe('version-all command actions:', () => {
     });
   });
   describe('validateVersion:', () => {
-    test('Should take in a semver and validate it matches org schema', () => {
+    test('should take in a semver and validate it matches org schema', () => {
       const resolved = validateVersion('v1.0.0');
       expect(resolved).toBe('1.0.0');
     });
-    test('Should throw if the input does not match a valid org semver', () => {
+    test('should throw if the input does not match a valid org semver', () => {
       expect(() => validateVersion('bogus-string')).toThrow();
     });
   });

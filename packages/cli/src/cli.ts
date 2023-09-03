@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import { buildAllCommand } from './commands/build-all-private/index.js';
 import { buildCreateCommand } from './commands/create/index.js';
 import { buildCreatePluginCommand } from './commands/create-plugin/index.js';
-import { buildVersionCommand } from './commands/version-all-private/index.js';
+import { buildVersionCommand } from './commands/version-all-private/command.js';
 import { debugFlagRegex, handleExit, isLocal, log } from './utils/index.js';
 import { appStr, description, versionStr } from './utils/macros.js';
 
@@ -27,6 +27,7 @@ if (
 ) {
   process.env.DEBUG_LOGGING = '1';
   log.debug('cli arguments: ', JSON.stringify(process.argv));
+  log.debug('cwd:', process.cwd());
 }
 
 const program = new Command()
@@ -54,6 +55,6 @@ publicCommands.forEach(([name, command]) => {
 /**
  * The Rapidstack CLI
  */
-export const cli = (): void => {
+export function cli(): void {
   program.parse();
-};
+}

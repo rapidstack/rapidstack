@@ -34,18 +34,6 @@ module.exports = {
   ],
   rules: {
     // Base ESlint Rules
-    'require-jsdoc': [
-      'error',
-      {
-        require: {
-          FunctionDeclaration: true,
-          MethodDefinition: false,
-          ClassDeclaration: false,
-          ArrowFunctionExpression: true,
-          FunctionExpression: false,
-        },
-      },
-    ],
     'no-case-declarations': 'off',
     'no-restricted-syntax': [
       'error',
@@ -55,6 +43,7 @@ module.exports = {
       },
     ],
     'max-params': ['error', 3],
+    'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
 
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [

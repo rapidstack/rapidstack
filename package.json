@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "build": "pnpm --filter '@rapidstack/*' run build",
+    "build": "pnpm -r run build",
     "lint": "pnpm run \"/^lint:.*/\"",
     "lint:code": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
     "lint:packages": "pnpm dedupe --check",

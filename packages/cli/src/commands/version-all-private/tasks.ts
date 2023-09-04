@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 
-import { RapidstackCliError, log, semverRegex } from '../../index.js';
+import { RapidstackCliError, SEMVER_REGEX, log } from '../../index.js';
 
 /**
  * Scans the dependencies or devDependencies object from a package.json for
@@ -47,7 +47,7 @@ export function updateOrgPackageDependencies(params: {
 export function validateVersion(version: string): string {
   const newVersion = version.replace('v', '');
 
-  if (!semverRegex.test(newVersion)) {
+  if (!SEMVER_REGEX.test(newVersion)) {
     throw new RapidstackCliError(
       'Invalid version! Please use a valid semver format:' +
         `\n\t- <semver>: 1.2.3` +

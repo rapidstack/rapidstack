@@ -2,71 +2,61 @@ import { spawn } from 'node:child_process';
 
 /**
  * Executes a shell command in a given directory
- * @param cmd The shell command to execute, including all arguments
- * @param dir The directory to run the shell command in
- * @param env Any optional environment variables to set when running the command
+ * @param params the params object
+ * @param params.cmd The shell command to execute, including all arguments
+ * @param params.dir The directory to run the shell command in
+ * @param params.stdio The stdio option to pass to `child_process.spawn`. If
+ * `inherit`, the command will be run in the current process and the promise
+ * will resolve with an empty string (since the stdio of the command will be
+ * output to the stdio of the node process). Otherwise, the promise will resolve
+ * with the stdout and stderr of the command.
+ * @param params.env Any optional shell env vars to set when running the command
+ * @returns A promise that resolves with the stdout and stderr of the command if
+ * called without `stdio: 'inherit'`, otherwise resolves with an empty string.
  */
-export async function shell(
-  cmd: string,
-  dir: string,
-  env?: NodeJS.ProcessEnv
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(cmd, {
-      cwd: dir,
-      env: {
-        ...process.env,
-        ...env,
-      },
-      shell: true,
-      stdio: 'inherit',
-    });
-    child.on('error', reject);
-    child.on('exit', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Process exited with code ${code}`));
-      }
-    });
-  });
-}
-
-/**
- * Executes a shell command in a given directory and returns the value of the
- * stdout and stderr streams as strings for the intent of testing commands
- * @param cmd The shell command to execute, including all arguments
- * @param dir The directory to run the shell command in
- * @param env Any optional environment variables to set when running the command
- * @returns The stdout and stderr streams as strings
- */
-export async function mockShell(
-  cmd: string,
-  dir: string,
-  env?: NodeJS.ProcessEnv
-): Promise<{ stderr: string; stdout: string }> {
+export async function shell(params: {
+  cmd: string;
+  dir: string;
+  env?: NodeJS.ProcessEnv;
+  stdio?: 'inherit' | undefined;
+}): Promise<{ stderr: string; stdout: string }> {
   let stdout = '';
   let stderr = '';
 
-  return new Promise((resolve) => {
-    const child = spawn(cmd, {
-      cwd: dir,
+  return new Promise((resolve, reject) => {
+    const child = spawn(params.cmd, {
+      cwd: params.dir,
       env: {
         ...process.env,
-        ...env,
+        ...params.env,
       },
       shell: true,
+      stdio: params.stdio,
     });
+    if (
+      params.stdio === 'inherit' ||
+      child.stdout === null ||
+      child.stderr === null
+    ) {
+      child.on('error', reject);
+      child.on('exit', (code) => {
+        if (code === 0) {
+          resolve({ stderr, stdout });
+        } else {
+          reject(new Error(`Process exited with code ${code}`));
+        }
+      });
+    } else {
+      child.stdout.on('data', (data) => {
+        stdout += data;
+      });
 
-    child.stdout.on('data', (data) => {
-      stdout += data;
-    });
+      child.stderr.on('data', (data) => {
+        stderr += data;
+      });
 
-    child.stderr.on('data', (data) => {
-      stderr += data;
-    });
-
-    child.on('error', () => resolve({ stderr, stdout }));
-    child.on('exit', () => resolve({ stderr, stdout }));
+      child.on('error', () => resolve({ stderr, stdout }));
+      child.on('exit', () => resolve({ stderr, stdout }));
+    }
   });
 }

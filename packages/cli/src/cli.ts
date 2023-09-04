@@ -3,8 +3,8 @@ import { Command } from 'commander';
 import { buildAllCommand } from './commands/build-all-private/index.js';
 import { buildCreateCommand } from './commands/create/index.js';
 import { buildCreatePluginCommand } from './commands/create-plugin/index.js';
-import { buildVersionCommand } from './commands/version-all-private/command.js';
-import { debugFlagRegex, handleExit, isLocal, log } from './utils/index.js';
+import { buildVersionCommand } from './commands/version-all-private/index.js';
+import { DEBUG_FLAG_REGEX, handleExit, isLocal, log } from './utils/index.js';
 import { appStr, description, versionStr } from './utils/macros.js';
 
 const commands: {
@@ -23,11 +23,13 @@ const commands: {
 
 if (
   process.argv.includes('--debug') ||
-  process.argv.some((arg) => debugFlagRegex.test(arg))
+  process.argv.some((arg) => DEBUG_FLAG_REGEX.test(arg))
 ) {
-  process.env.DEBUG_LOGGING = '1';
-  log.debug('cli arguments: ', JSON.stringify(process.argv));
-  log.debug('cwd:', process.cwd());
+  log.debug('cli arguments:');
+  JSON.stringify(process.argv, null, 2).split('\n').forEach(log.debug);
+
+  log.debug('calling cwd:');
+  log.debug(process.cwd());
 }
 
 const program = new Command()
@@ -42,14 +44,14 @@ if (await isLocal()) {
   const privateCommands = Object.entries(commands.private);
   privateCommands.forEach(([name, command]) => {
     program.addCommand(command);
-    log.debug(`added private command: ${name}`);
+    log.debug(`added internal command: [${name}]`);
   });
 }
 
 const publicCommands = Object.entries(commands.public);
 publicCommands.forEach(([name, command]) => {
   program.addCommand(command);
-  log.debug(`added public command: ${name}`);
+  log.debug(`added public command: [${name}]`);
 });
 
 /**

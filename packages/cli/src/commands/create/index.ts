@@ -1,16 +1,19 @@
 import { Command } from 'commander';
 
-import { debugFlagRegex, handleExit, log } from '../../utils/index.js';
+import { DEBUG_FLAG_REGEX, handleExit, log } from '../../utils/index.js';
 
 // If called as a subcommand from main cli, this doesn't need to be logged again
 if (
   !process.env.DEBUG_LOGGING &&
   (process.argv.includes('--debug') ||
-    process.argv.some((arg) => debugFlagRegex.test(arg)))
+    process.argv.some((arg) => DEBUG_FLAG_REGEX.test(arg)))
 ) {
   process.env.DEBUG_LOGGING = '1';
-  log.debug('cli arguments: ', JSON.stringify(process.argv));
-  log.debug('cwd:', process.cwd());
+  log.debug('cli arguments:');
+  JSON.stringify(process.argv, null, 2).split('\n').forEach(log.debug);
+
+  log.debug('calling cwd:');
+  log.debug(process.cwd());
 }
 
 /**

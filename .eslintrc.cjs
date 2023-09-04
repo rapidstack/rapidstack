@@ -44,6 +44,7 @@ module.exports = {
     ],
     'max-params': ['error', 3],
     'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
+    'max-depth': ['error', 4],
 
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [

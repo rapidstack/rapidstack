@@ -10,7 +10,7 @@
     "lint:code": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
     "lint:packages": "pnpm dedupe --check",
     "lint:spelling": "cspell \"**\" \".github/**/*\"",
-    "ci:build": "pnpm build --filter \"@rapidstack/cli\"",
+    "ci:build": "pnpm --filter \"@rapidstack/cli\" build",
     "ci:lint": "pnpm run \"/^lint:[p,s]\\w*/\" && eslint . .*js --max-warnings 0 --report-unused-disable-directives -f @microsoft/eslint-formatter-sarif -o eslint.sarif"
   },
   "keywords": [],

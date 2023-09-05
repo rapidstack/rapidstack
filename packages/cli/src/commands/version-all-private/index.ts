@@ -13,7 +13,7 @@ export function buildVersionCommand(): Command {
   return new Command()
     .name('version-all')
     .description(
-      `versions all of the rapidstack packages. ${chalk.red('[Internal]')}`
+      `${chalk.red('(internal)')} versions all of the rapidstack packages.`
     )
     .argument('<version>', 'The version to set for all packages.')
     .option('-d, --debug', 'output extra debug logging')

@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -76,6 +76,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Prepare CLI
+        run: npm run ci:build
+
       - name: Build Project
         run: npm run build
 
@@ -92,7 +95,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -122,6 +125,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Prepare CLI
+        run: npm run ci:build
 
       - name: Build Project
         run: npm run build
@@ -143,7 +149,7 @@ jobs:
     if: ${{ !github.event.issue.draft }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -173,6 +179,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Prepare CLI
+        run: npm run ci:build
 
       - name: Build Project
         run: npm run build

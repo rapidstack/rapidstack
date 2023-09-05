@@ -10,16 +10,20 @@ import { log } from './logger.js';
  * @param error Commander error to handle
  */
 export function handleExit(error: CommanderError): void {
-  // If a user calls the CLI with no opts/args, it will by default exit(1) and
-  // exec tools like pnpm report a error with:
-  //   ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "rapidstack" not found
-  // even though that is a valid call to
-  // see the usage info.
+  /**
+   * If the user calls the CLI with no opts/args, it will by default exit(1)
+   * and exec tools like pnpm report a error with:
+   *
+   *  `ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "rapidstack" not found`
+   *
+   * even though for this application it should be a valid call to see the usage
+   * and help text.
+   */
   if (error.message === '(outputHelp)') {
     process.exit(0);
   }
 
-  log.error(error.message);
+  error.message.split('\n').forEach(log.error);
   process.exit(1);
 }
 
@@ -29,7 +33,7 @@ export function handleExit(error: CommanderError): void {
  */
 function actionErrorHandler(error: unknown) {
   if (error instanceof RapidstackCliError) {
-    log.error(error.message);
+    error.message.split('\n').forEach(log.error);
     process.exit(1);
   }
 
@@ -37,7 +41,8 @@ function actionErrorHandler(error: unknown) {
     log.error('An unexpected error occurred:', error.message);
     log.error('Use the -d or --debug flag to see more details.');
 
-    log.debug('Full error details:', error);
+    log.debug('Full error details:');
+    JSON.stringify(error, null, 2).split('\n').forEach(log.debug);
     process.exit(1);
   }
 

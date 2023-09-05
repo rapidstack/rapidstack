@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "build": "pnpm -r run build",
+    "build": "rapidstack build-all",
     "lint": "pnpm run \"/^lint:.*/\"",
     "lint:code": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
     "lint:packages": "pnpm dedupe --check",
     "lint:spelling": "cspell \"**\" \".github/**/*\"",
+    "ci:build": "pnpm --filter \"@rapidstack/cli\" build",
     "ci:lint": "pnpm run \"/^lint:[p,s]\\w*/\" && eslint . .*js --max-warnings 0 --report-unused-disable-directives -f @microsoft/eslint-formatter-sarif -o eslint.sarif"
   },
   "keywords": [],

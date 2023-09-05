@@ -187,10 +187,10 @@ jobs:
         run: npm run build
 
       - name: Package Dedupe Check (pnpm)
-        run: npm run ci:packages
+        run: npm run lint:packages
 
       - name: Spell Check (cspell)
-        run: npm run ci:spelling
+        run: npm run lint:spelling
 
       - name: Lint Check (eslint)
         run: npm run ci:lint

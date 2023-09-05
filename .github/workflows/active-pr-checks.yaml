@@ -60,6 +60,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Prepare CLI
+        run: npm run ci:build
+
       - name: Build Project
         run: npm run build
 

@@ -2,7 +2,7 @@ import { glob } from 'glob';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { log, orgName } from '../../index.js';
+import { ORG_NAME, log } from '../../index.js';
 import { updateOrgPackageDependencies, validateVersion } from './tasks.js';
 
 /**
@@ -38,7 +38,7 @@ export async function action(version: string): Promise<void> {
         const updatedDeps = updateOrgPackageDependencies({
           dependencies: packageJson[depType],
           newVersion,
-          org: orgName,
+          org: `@${ORG_NAME}`,
           type: depType as 'dependencies' | 'devDependencies',
         });
         packageJson[depType] = {

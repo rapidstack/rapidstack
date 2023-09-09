@@ -1,6 +1,7 @@
 {
   "name": "@rapidstack/cli",
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "test": "vitest",
@@ -15,6 +16,10 @@
     "./create": {
       "import": "./dist/commands/create/index.js",
       "types": "./dist/commands/create/index.d.ts"
+    },
+    "./create-plugin": {
+      "import": "./dist/commands/create-plugin/index.js",
+      "types": "./dist/commands/create-plugin/index.d.ts"
     }
   },
   "main": "./dist/index.js",

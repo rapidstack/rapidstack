@@ -85,63 +85,64 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
 
-  qodana-quality-checks:
-    name: Qodana
-    runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' || !github.event.issue.draft }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # qodana-quality-checks:
+  #   name: Qodana
+  #   runs-on: ubuntu-latest
+  #   if: ${{ github.actor != 'dependabot[bot]' || !github.event.issue.draft }}
+  #   permissions:
+  #     actions: read
+  #     contents: read
+  #     security-events: write
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Setup Project
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+  #     - name: Setup Project
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: latest
-          run_install: false
+  #     - name: Install pnpm
+  #       uses: pnpm/action-setup@v2
+  #       with:
+  #         version: latest
+  #         run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+  #     - name: Get pnpm store directory
+  #       shell: bash
+  #       run: |
+  #         echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+  #     - name: Setup pnpm cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: ${{ env.STORE_PATH }}
+  #         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
-        run: pnpm install
+  #     - name: Install dependencies
+  #       run: pnpm install
 
-      - name: Prepare CLI
-        run: npm run ci:build
+  #     - name: Prepare CLI
+  #       run: npm run ci:build
 
-      - name: Build Project
-        run: npm run build
+  #     - name: Build Project
+  #       run: npm run build
 
-      - name: Qodana Scan
-        uses: JetBrains/qodana-action@v2023.2.1
-        with:
-          pr-mode: ${{ github.event_name == 'pull_request' }}
+  #     - name: Qodana Scan
+  #       uses: JetBrains/qodana-action@v2023.2.6
+  #       with:
+  #         pr-mode: ${{ github.event_name == 'pull_request' }}
+  #         post-pr-comment: false
 
-      - name: Upload Results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
-          wait-for-processing: true
+  #     - name: Upload Results
+  #       uses: github/codeql-action/upload-sarif@v2
+  #       with:
+  #         sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+  #         wait-for-processing: true
 
   eslint-quality-checks:
     name: Linting

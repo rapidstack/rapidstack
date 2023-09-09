@@ -43,6 +43,7 @@ export function updateOrgPackageDependencies(params: {
  * Takes raw CLI input and returns a valid semver version or exits the process.
  * @param version the raw CLI input version
  * @returns a valid semver version
+ * @throws a `RapidstackCliError` if the version is invalid
  */
 export function validateVersion(version: string): string {
   const newVersion = version.replace('v', '');

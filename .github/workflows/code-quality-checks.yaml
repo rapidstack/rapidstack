@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -145,12 +145,12 @@ jobs:
   #         wait-for-processing: true
 
   eslint-quality-checks:
-    name: ESLint
+    name: Linting
     runs-on: ubuntu-latest
     if: ${{ !github.event.issue.draft }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -187,7 +187,13 @@ jobs:
       - name: Build Project
         run: npm run build
 
-      - name: Lint Project
+      - name: Package Dedupe Check (pnpm)
+        run: npm run lint:packages
+
+      - name: Spell Check (cspell)
+        run: npm run lint:spelling
+
+      - name: Lint Check (eslint)
         run: npm run ci:lint
         continue-on-error: true
 

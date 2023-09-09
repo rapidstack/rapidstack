@@ -28,6 +28,6 @@ export function buildCreateCommand(): Command {
     .description('create a project using the template from rapidstack.')
     .option('--append, -a', 'Sets the CLI to append for the current project.')
     .option('-d, --debug', 'output extra debug logging')
-    .action(() => console.log('Unimplemented!'))
+    .action(() => log.error('Unimplemented!'))
     .exitOverride(handleExit);
 }

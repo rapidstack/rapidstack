@@ -9,7 +9,11 @@ if (
     process.argv.some((arg) => DEBUG_FLAG_REGEX.test(arg)))
 ) {
   process.env.DEBUG_LOGGING = '1';
-  log.debug('cli arguments: ', JSON.stringify(process.argv));
+  log.debug('cli arguments:');
+  JSON.stringify(process.argv, null, 2).split('\n').forEach(log.debug);
+
+  log.debug('calling cwd:');
+  log.debug(process.cwd());
 }
 
 /**
@@ -23,6 +27,6 @@ export function buildCreatePluginCommand(): Command {
     .usage(JSON.stringify(process.argv))
     .description('create a plugin using the template from rapidstack.')
     .option('-d, --debug', 'output extra debug logging')
-    .action(() => console.log('Unimplemented!'))
+    .action(() => log.error('Unimplemented!'))
     .exitOverride(handleExit);
 }

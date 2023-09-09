@@ -112,6 +112,12 @@ importers:
         specifier: '*'
         version: link:../cli
 
+  packages/create-plugin:
+    dependencies:
+      '@rapidstack/cli':
+        specifier: '*'
+        version: link:../cli
+
 packages:
 
   /@aashutoshrathi/word-wrap@1.2.6:

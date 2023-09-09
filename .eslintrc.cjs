@@ -1,7 +1,9 @@
+/* eslint-disable jsdoc/check-tag-names */
 /* eslint-disable perfectionist/sort-objects */
 
 // @ts-check
-module.exports = {
+/** @type {import("eslint").Linter.Config} */
+const config = {
   root: true,
   parser: '@typescript-eslint/parser',
   env: {
@@ -45,6 +47,7 @@ module.exports = {
     'max-params': ['error', 3],
     'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
     'max-depth': ['error', 4],
+    'no-console': 'warn',
 
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [
@@ -71,9 +74,11 @@ module.exports = {
 
     // JSDoc Plugin Rules
     'jsdoc/informative-docs': 'error',
+    'jsdoc/require-throws': 'error',
 
     // Local Rules
     'local-rules/require-node-prefix': 'error',
+    'local-rules/jsdoc-require-throws-async': 'error',
   },
   overrides: [
     {
@@ -104,3 +109,5 @@ module.exports = {
     },
   ],
 };
+
+module.exports = config;

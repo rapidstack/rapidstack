@@ -1,9 +1,4 @@
-import chalk from 'chalk';
-import { join } from 'node:path';
-import ora from 'ora';
-
-import { ORG_NAME, ORG_PACKAGES, log, shell } from '../../index.js';
-import { findRepoRoot } from './tasks.js';
+import { buildPackage, findRepoRoot } from './tasks.js';
 
 /**
  * The action to be run when the `build-all` command is called. Builds all
@@ -12,21 +7,29 @@ import { findRepoRoot } from './tasks.js';
 export async function action(): Promise<void> {
   const repoRoot = await findRepoRoot();
 
-  for (const pkg of ORG_PACKAGES) {
-    const packagePath = join(repoRoot, 'packages', pkg);
-    const spinner = ora().start();
-    spinner.prefixText = `${chalk.bold.ansi256(166)(
-      `[${ORG_NAME}]`
-    )} Building ${pkg}`;
+  // Build the first group of rapidstack packages that don't depend on each
+  // other first.
+  const firstGroup = [
+    'cli',
+    // 'types',
+    // 'test-utils'
+  ];
+  const firstGroupJobs = firstGroup.map(async (pkg) => {
+    buildPackage(repoRoot, pkg);
+  });
+  await Promise.all(firstGroupJobs);
 
-    spinner.start();
-    await shell({
-      cmd: `pnpm build`,
-      dir: packagePath,
-    }).catch((err) => {
-      log.error(`Error building ${pkg}`);
-      throw err;
-    });
-    spinner.succeed();
-  }
+  // Build the second group of rapidstack packages that depend on the first
+  // group.
+  const secondGroup = [
+    'create',
+    'create-plugin',
+    // 'cloud',
+    // 'lambda',
+    // 'react',
+  ];
+  const secondGroupJobs = secondGroup.map(async (pkg) => {
+    buildPackage(repoRoot, pkg);
+  });
+  await Promise.all(secondGroupJobs);
 }

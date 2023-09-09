@@ -1,7 +1,7 @@
 {
   "name": "@rapidstack/root",
   "version": "0.0.0",
-  "description": "",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "test": "vitest",
@@ -13,8 +13,6 @@
     "ci:build": "pnpm --filter \"@rapidstack/cli\" build",
     "ci:lint": "pnpm run \"/^lint:[p,s]\\w*/\" && eslint . .*js --max-warnings 0 --report-unused-disable-directives -f @microsoft/eslint-formatter-sarif -o eslint.sarif"
   },
-  "keywords": [],
-  "author": "",
   "devDependencies": {
     "@microsoft/eslint-formatter-sarif": "^3.0.0",
     "@rapidstack/cli": "*",

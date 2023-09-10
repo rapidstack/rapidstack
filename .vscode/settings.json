@@ -1,0 +1,58 @@
+{
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": true },
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.rulers": [
+    { "column": 8, "color": "#ff000020" },
+    { "column": 80, "color": "#77777750" }
+  ],
+  "[json]": { "editor.rulers": [] },
+  "[jsonc]": { "editor.rulers": [] },
+  "[yaml]": { "editor.rulers": [] },
+  "eslint.probe": [
+    "javascript",
+    "javascriptreact",
+    "json",
+    "jsonc",
+    "markdown",
+    "typescript",
+    "typescriptreact",
+    "yaml"
+  ],
+  "workbench.colorCustomizations": {
+    "list.warningForeground": "#ffa600"
+  },
+  "eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "cSpell.words": ["nodenext", "tsup"],
+  "cSpell.ignorePaths": [
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "node_modules",
+    "vscode-extension",
+    ".git/objects",
+    ".vscode",
+    ".vscode-insiders"
+  ],
+  "vsicons.associations.files": [
+    {
+      "icon": "eslint",
+      "filename": true,
+      "extensions": ["eslint-local-rules.cjs", "eslint-local-rules.js"],
+      "format": "svg"
+    },
+    {
+      "icon": "tsconfig",
+      "filename": true,
+      "extensions": ["tsup.config.ts"],
+      "format": "svg"
+    },
+    {
+      "icon": "nsri",
+      "filename": true,
+      "extensions": ["qodana.yaml", "qodana.sarif.json"],
+      "format": "svg"
+    }
+  ]
+}

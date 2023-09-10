@@ -1,19 +1,33 @@
-name: "Code Quality Checks"
+name: 'Code Quality Checks'
+
+permissions: write-all
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   schedule:
-    - cron: "31 7 * * 3"
+    - cron: '31 7 * * 3'
+  pull_request:
+    types: [assigned, opened, synchronize, ready_for_review, reopened]
+    paths:
+      [
+        '**.ts',
+        '**.*js',
+        '**/package*.json',
+        '**/workflows/code-quality-checks.yaml',
+        'qodana.yaml',
+      ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  analyze:
-    name: Analyze
+  codeql-quality-checks:
+    name: CodeQL
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' && !github.event.pull_request.draft }}
     permissions:
       actions: read
       contents: read
@@ -22,20 +36,171 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["TypeScript"]
+        language: ['TypeScript', 'JavaScript']
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
-          source-root: src
+          config-file: ./.github/codeql/codeql-config.yaml
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare CLI
+        run: pnpm ci:build
+
+      - name: Build Project
+        run: pnpm build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
+
+  # qodana-quality-checks:
+  #   name: Qodana
+  #   runs-on: ubuntu-latest
+  #   if: ${{ github.actor != 'dependabot[bot]' || !github.event.pull_request.draft }}
+  #   permissions:
+  #     actions: read
+  #     contents: read
+  #     security-events: write
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Setup Project
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
+
+  #     - name: Install pnpm
+  #       uses: pnpm/action-setup@v2
+  #       with:
+  #         version: latest
+  #         run_install: false
+
+  #     - name: Get pnpm store directory
+  #       shell: bash
+  #       run: |
+  #         echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+  #     - name: Setup pnpm cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: ${{ env.STORE_PATH }}
+  #         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-pnpm-store-
+
+  #     - name: Install dependencies
+  #       run: pnpm install
+
+  #     - name: Prepare CLI
+  #       run: npm run ci:build
+
+  #     - name: Build Project
+  #       run: npm run build
+
+  #     - name: Qodana Scan
+  #       uses: JetBrains/qodana-action@v2023.2.6
+  #       with:
+  #         pr-mode: ${{ github.event_name == 'pull_request' }}
+  #         post-pr-comment: false
+
+  #     - name: Upload Results
+  #       uses: github/codeql-action/upload-sarif@v2
+  #       with:
+  #         sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+  #         wait-for-processing: true
+
+  eslint-quality-checks:
+    name: Linting
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare CLI
+        run: pnpm ci:build
+
+      - name: Build Project
+        run: pnpm build
+
+      - name: Package Dedupe Check (pnpm)
+        run: pnpm lint:packages
+
+      - name: Spell Check (cspell)
+        run: pnpm lint:spelling
+
+      - name: Lint Check (eslint)
+        run: pnpm ci:lint
+        continue-on-error: true
+
+      - name: Clean Sarif File
+        run: node ./.github/codeql/sarif-cleanup.js
+
+      - name: Upload Linting Results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: eslint.sarif
+          wait-for-processing: true

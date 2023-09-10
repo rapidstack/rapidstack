@@ -1,0 +1,16 @@
+{
+  "name": "@rapidstack/create-plugin",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc --noEmit && tsup"
+  },
+  "bin": {
+    "create-rapidstack-plugin": "./bin/create-plugin.mjs"
+  },
+  "dependencies": {
+    "@rapidstack/cli": "*"
+  }
+}

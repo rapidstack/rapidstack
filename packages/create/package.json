@@ -11,6 +11,6 @@
     "create-rapidstack": "./bin/create.mjs"
   },
   "dependencies": {
-    "@rapidstack/cli": "*"
+    "@rapidstack/cli": "workspace:*"
   }
 }

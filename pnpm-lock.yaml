@@ -109,13 +109,13 @@ importers:
   packages/create:
     dependencies:
       '@rapidstack/cli':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../cli
 
   packages/create-plugin:
     dependencies:
       '@rapidstack/cli':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../cli
 
 packages:

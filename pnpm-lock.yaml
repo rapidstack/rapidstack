@@ -12,7 +12,7 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       '@rapidstack/cli':
-        specifier: '*'
+        specifier: workspace:*
         version: link:packages/cli
       '@types/eslint':
         specifier: 8.44.2

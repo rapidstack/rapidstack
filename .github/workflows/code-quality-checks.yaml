@@ -27,7 +27,7 @@ jobs:
   codeql-quality-checks:
     name: CodeQL
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' || !github.event.issue.draft }}
+    if: ${{ github.actor != 'dependabot[bot]' || !github.event.pull_request.draft }}
     permissions:
       actions: read
       contents: read
@@ -87,7 +87,7 @@ jobs:
   # qodana-quality-checks:
   #   name: Qodana
   #   runs-on: ubuntu-latest
-  #   if: ${{ github.actor != 'dependabot[bot]' || !github.event.issue.draft }}
+  #   if: ${{ github.actor != 'dependabot[bot]' || !github.event.pull_request.draft }}
   #   permissions:
   #     actions: read
   #     contents: read
@@ -146,7 +146,7 @@ jobs:
   eslint-quality-checks:
     name: Linting
     runs-on: ubuntu-latest
-    if: ${{ !github.event.issue.draft }}
+    if: ${{ !github.event.pull_request.draft }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

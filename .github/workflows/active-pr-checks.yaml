@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   tests:
-    if: ${{ !github.event.issue.draft }}
+    if: ${{ !github.event.pull_request.draft }}
     name: Run Tests
     runs-on: ${{ matrix.os }}
     strategy:
@@ -124,6 +124,7 @@ jobs:
         id: semver
         with:
           label-prefix: 'sv:'
+          prerelease-prefix: 'pr.'
 
       - name: Version Packages
         run: pnpm rapidstack version-all ${{ steps.semver.outputs.string }}
@@ -132,7 +133,7 @@ jobs:
         run: pnpm build
 
       - name: Publish Packages
-        run: pnpm -r publish --access public --tag pr
+        run: pnpm -r publish --access public --tag pr --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ORG_TOKEN }}
 

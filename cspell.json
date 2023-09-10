@@ -1,0 +1,22 @@
+{
+  "dictionaries": ["typescript"],
+  "ignorePaths": [
+    "./coverage*",
+    ".github",
+    "dist",
+    "node_modules",
+    "pnpm-lock.yaml"
+  ],
+  "words": [
+    "rapidstack",
+    "codespace",
+    "npmignore",
+    "quickstart",
+    "tsup",
+    "wontfix",
+    "sarif",
+    "vitest",
+    "jetbrains",
+    "qodana"
+  ]
+}

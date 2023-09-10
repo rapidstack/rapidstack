@@ -1,0 +1,402 @@
+name: PR
+
+permissions: write-all
+
+on:
+  pull_request:
+    types:
+      - assigned
+      - labeled
+      - unlabeled
+      - opened
+      - synchronize
+      - ready_for_review
+      - reopened
+      - closed
+    paths:
+      - '**.ts'
+      - '**.js'
+      - '**/package*.json'
+      - '**/workflows/on-pr.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    if: ${{ !github.event.pull_request.draft && github.event.pull_request.state == 'open' }}
+    name: Run Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [18, 20]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare CLI
+        run: pnpm ci:build
+
+      - name: Build Project
+        run: pnpm build
+
+      - name: Run Tests
+        run: pnpm test
+
+  publish-pr-package:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'sv:prerelease') && !startsWith(github.head_ref, 'release/') && github.event.pull_request.base.ref == 'main' && github.actor != 'dependabot[bot]' }}
+    name: Publish Packages from PR Changes (@pr tagged)
+    needs: tests
+    runs-on: ubuntu-latest
+    environment: pr
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          scope: '@rapidstack'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare CLI
+        run: pnpm ci:build
+
+      - name: Version Packages
+        uses: rapidstack/pr-label-semver-action@v1.3.0
+        id: semver
+        with:
+          label-prefix: 'sv:'
+          prerelease-prefix: 'pr.'
+
+      - name: Version Packages
+        run: pnpm rapidstack version-all ${{ steps.semver.outputs.string }}
+
+      - name: Build Project
+        run: pnpm build
+
+      - name: Publish Packages
+        run: pnpm -r publish --access public --tag pr --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ORG_TOKEN }}
+
+      - name: Tag Prerelease
+        uses: actions/github-script@v6
+        env:
+          TAG: ${{ steps.semver.outputs.string }}
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/v${process.env.TAG}`,
+              sha: context.sha
+            })
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v6
+        env:
+          CURRENT: ${{ steps.semver.outputs.string }}
+          PREVIOUS: ${{ steps.semver.outputs.lastMainTag }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LINK: ${{ github.event.pull_request.html_url }}
+        with:
+          script: |
+            const { CURRENT, PREVIOUS, PR_TITLE, PR_LINK } = process.env;
+            const body = [
+              `## ${PR_TITLE} Prerelease`,
+              `_This is a prerelease version of all packages corresponding to [this pull request](${PR_LINK})._`,
+              '',
+              '```sh',
+              `npm install @rapidstack/<pkg>@${CURRENT}`,
+              '```',
+            ].join('\n');
+
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              draft: false,
+              generate_release_notes: false,
+              name: `v${CURRENT}`,
+              body: body,
+              prerelease: true,
+              tag_name: `v${CURRENT}`,
+            });
+
+  publish-next-package:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'sv:prerelease') && startsWith(github.head_ref, 'release/') && github.event.pull_request.base.ref == 'main' && github.actor != 'dependabot[bot]' }}
+    name: Publish Release Candidate Packages (@next tagged)
+    needs: tests
+    runs-on: ubuntu-latest
+    environment: next
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          scope: '@rapidstack'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare CLI
+        run: pnpm ci:build
+
+      - name: Version Packages
+        uses: rapidstack/pr-label-semver-action@v1.3.0
+        id: semver
+        with:
+          label-prefix: 'sv:'
+          prerelease-prefix: 'next.'
+
+      - name: Version Packages
+        run: pnpm rapidstack version-all ${{ steps.semver.outputs.string }}
+
+      - name: Build Project
+        run: pnpm build
+
+      - name: Publish Packages
+        run: pnpm -r publish --access public --tag next --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ORG_TOKEN }}
+
+      - name: Tag Prerelease
+        uses: actions/github-script@v6
+        env:
+          TAG: ${{ steps.semver.outputs.string }}
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/v${process.env.TAG}`,
+              sha: context.sha
+            })
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v6
+        env:
+          CURRENT: ${{ steps.semver.outputs.string }}
+          PREVIOUS: ${{ steps.semver.outputs.lastMainTag }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LINK: ${{ github.event.pull_request.html_url }}
+        with:
+          script: |
+            const { CURRENT, PREVIOUS, PR_TITLE, PR_LINK } = process.env;
+            const body = [
+              `## ${PR_TITLE} Release Candidate`,
+              `_This is a release candidate version of all packages corresponding to [this pull request](${PR_LINK})._`,
+              '',
+              '```sh',
+              `npm install @rapidstack/<pkg>@${CURRENT}`,
+              '```',
+            ].join('\n');
+
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              draft: false,
+              generate_release_notes: false,
+              name: `v${CURRENT}`,
+              body: body,
+              prerelease: true,
+              tag_name: `v${CURRENT}`,
+            });
+
+  publish-latest-package:
+    if: ${{ github.event.pull_request.merged && github.event.pull_request.base.ref == 'main' }}
+    name: Publish Production Packages
+    runs-on: ubuntu-latest
+    environment: latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          scope: '@rapidstack'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare CLI
+        run: pnpm ci:build
+
+      - name: Version Packages
+        uses: rapidstack/pr-label-semver-action@v1.3.0
+        id: semver
+        with:
+          label-prefix: 'sv:'
+
+      - name: Version Packages
+        run: pnpm rapidstack version-all ${{ steps.semver.outputs.string }}
+
+      - name: Build Project
+        run: pnpm build
+
+      - name: Publish Packages
+        run: pnpm -r publish --access public --tag latest --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ORG_TOKEN }}
+
+      - name: Tag Release
+        uses: actions/github-script@v6
+        env:
+          TAG: ${{ steps.semver.outputs.string }}
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/v${process.env.TAG}`,
+              sha: context.sha
+            })
+
+      - name: Create Release
+        uses: actions/github-script@v6
+        env:
+          CURR: ${{ steps.semver.outputs.string }}
+          PREV: ${{ steps.semver.outputs.lastMainTag }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        with:
+          script: |
+            const { CURR, PREV, PR_TITLE, PR_BODY } = process.env
+            const baseUrl = 'https://github.com/rapidstack/rapidstack/compare';
+
+            const body = [
+              `# ${PR_TITLE}`,
+              '',
+              '## Changes:',
+              PR_BODY,
+              '',
+              '---',
+              `Compare: [v${PREV} → v${CURR}](${baseUrl}/v${PREV}...v${CURR})`
+            ].join('\n')
+
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              draft: false,
+              generate_release_notes: false,
+              name: `v${CURR}`,
+              body: body,
+              prerelease: false,
+              tag_name: `v${CURR}`,
+            })
+
+      - name: Delete PR Branch
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const branchToDelete = context.payload.pull_request.head.ref;
+            github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${branchToDelete}`
+            });

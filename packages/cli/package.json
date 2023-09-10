@@ -1,0 +1,54 @@
+{
+  "name": "@rapidstack/cli",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc --noEmit && tsup",
+    "build:watch": "tsup --watch"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./create": {
+      "import": "./dist/commands/create/index.js",
+      "types": "./dist/commands/create/index.d.ts"
+    },
+    "./create-plugin": {
+      "import": "./dist/commands/create-plugin/index.js",
+      "types": "./dist/commands/create-plugin/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "bin": {
+    "rapidstack": "./bin/rapidstack-cli.mjs"
+  },
+  "devDependencies": {
+    "@types/glob": "8.1.0",
+    "@types/inquirer": "9.0.3",
+    "@types/node": "20.6.0",
+    "vitest": "0.34.4"
+  },
+  "files": [
+    "dist/*",
+    "bin/*",
+    "templates/*",
+    "!dist/local.*",
+    "!**/*.spec.*",
+    "!**/*.test.*",
+    "!**/tests/*.*",
+    "!**/tests/*.ts.map"
+  ],
+  "dependencies": {
+    "chalk": "5.3.0",
+    "commander": "11.0.0",
+    "glob": "10.3.4",
+    "inquirer": "9.2.10",
+    "node-fetch": "3.3.2",
+    "ora": "7.0.1"
+  }
+}

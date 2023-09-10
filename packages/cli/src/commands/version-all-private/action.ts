@@ -16,7 +16,7 @@ export async function action(version: string): Promise<void> {
 
   const packageJsonFiles = await glob('**/package.json', {
     cwd: process.cwd(),
-    ignore: 'node_modules',
+    ignore: ['**/node_modules/**', '**/templates/**', '**/test/assets/**'],
   });
 
   const fileUpdates = packageJsonFiles.map(async (file) => {

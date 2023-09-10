@@ -4,25 +4,26 @@ on:
     types:
       - closed
     branches:
-      - development
+      - main
   workflow_dispatch:
 
 jobs:
   create-branch:
-    # TODO: change 'development' to 'main' once we merge the development branch into main
-    if: github.event.pull_request.merged && github.event.pull_request.base.ref == 'development' && github.event.pull_request.head.ref == 'dependabot-staging' || github.event_name == 'workflow_dispatch'
+    if: github.event.pull_request.merged && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'dependabot-staging' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: "0"
+          fetch-depth: '0'
+
       - name: Create Branch
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "Github Actions"
-          git checkout -b dependabot-staging origin/development
+          git checkout -b dependabot-staging origin/main
           git commit --allow-empty -m "chore: Dependency Updates (Staging)"
           git push origin dependabot-staging
+
       - name: Create Draft PR for Updates
         uses: actions/github-script@v6
         with:
@@ -32,7 +33,7 @@ jobs:
               repo: context.repo.repo,
               title: "Dependency Updates",
               head: "dependabot-staging",
-              base: "development",
+              base: "main",
               body: "Dependency Updates for npm packages and GitHub Actions",
               draft: true,
               maintainer_can_modify: true

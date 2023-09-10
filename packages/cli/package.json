@@ -35,6 +35,8 @@
   },
   "files": [
     "dist/*",
+    "bin/*",
+    "templates/*",
     "!dist/local.*",
     "!**/*.spec.*",
     "!**/*.test.*",

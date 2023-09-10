@@ -10,6 +10,14 @@
   "bin": {
     "create-rapidstack": "./bin/create.mjs"
   },
+  "files": [
+    "dist/*",
+    "bin/*",
+    "!**/*.spec.*",
+    "!**/*.test.*",
+    "!**/tests/*.*",
+    "!**/tests/*.ts.map"
+  ],
   "dependencies": {
     "@rapidstack/cli": "workspace:*"
   }

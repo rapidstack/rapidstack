@@ -4,15 +4,22 @@ permissions: write-all
 
 on:
   pull_request:
-    types: [assigned, labeled, unlabeled, opened, synchronize, reopened, closed]
+    types:
+      [
+        assigned,
+        labeled,
+        unlabeled,
+        opened,
+        synchronize,
+        ready_for_review,
+        reopened,
+      ]
     paths:
       [
         '**.ts',
         '**.js',
         '**/package*.json',
-        '**/workflows/on-merge-main.yaml',
         '**/workflows/active-pr-checks.yaml',
-        'qodana.yaml',
       ]
 
 concurrency:
@@ -21,7 +28,8 @@ concurrency:
 
 jobs:
   tests:
-    # if: ${{ !github.event.issue.draft }}
+    if: ${{ !github.event.issue.draft }}
+    name: Run Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -61,10 +69,112 @@ jobs:
         run: pnpm install
 
       - name: Prepare CLI
-        run: npm run ci:build
+        run: pnpm ci:build
 
       - name: Build Project
-        run: npm run build
+        run: pnpm build
 
       - name: Run Tests
         run: pnpm test
+
+  publish-pr-package:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'sv:prerelease') && github.event.pull_request.base.ref == 'main' && github.actor != 'dependabot[bot]' }}
+    name: Publish Packages from PR Changes
+    needs: tests
+    runs-on: ubuntu-latest
+    environment: pr
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Project
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare CLI
+        run: pnpm ci:build
+
+      - name: Version Packages
+        uses: rapidstack/pr-label-semver-action@v1.3.0
+        id: semver
+        with:
+          label-prefix: 'sv:'
+
+      - name: Version Packages
+        run: pnpm rapidstack version-all ${{ steps.semver.outputs.string }}
+
+      - name: Build Project
+        run: pnpm build
+
+      - name: Publish Packages
+        run: pnpm -r publish --access public --tag pr
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ORG_TOKEN }}
+
+      - name: Tag Prerelease
+        uses: actions/github-script@v6
+        env:
+          TAG: ${{ steps.semver.outputs.string }}
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/v${process.env.TAG}`,
+              sha: context.sha
+            })
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v6
+        env:
+          CURRENT: ${{ steps.semver.outputs.string }}
+          PREVIOUS: ${{ steps.semver.outputs.lastMainTag }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LINK: ${{ github.event.pull_request.html_url }}
+        with:
+          script: |
+            const { CURRENT, PREVIOUS, PR_TITLE, PR_LINK } = process.env;
+            const body = [
+              `## ${PR_TITLE}`,
+              `_This is a prerelease version of all packages corresponding to [this pull request](${PR_LINK})._`,
+              '',
+              '```sh',
+              `npm install @rapidstack/<pkg>@${CURRENT}`,
+              '```',
+            ].join('\n');
+
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              draft: false,
+              generate_release_notes: false,
+              name: `v${CURRENT}`,
+              body: body,
+              prerelease: true,
+              tag_name: `v${CURRENT}`,
+            });

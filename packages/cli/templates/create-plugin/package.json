@@ -1,5 +1,5 @@
 {
-  "name": "@project/create-example",
+  "name": "@project/rapid-plugin-example",
   "version": "0.0.0",
   "private": true,
   "dependencies": {

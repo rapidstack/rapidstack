@@ -1,31 +1,23 @@
-import { readFile, stat } from 'node:fs/promises';
+import inquirer from 'inquirer';
+import { cp, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import {
-  DEFAULT_TEMPLATE_DIR,
-  RapidstackCliError,
-  TEMPLATE_CONFIG_FILENAME,
-  log,
-} from '../../index.js';
+import { DEFAULT_TEMPLATE_DIR, RapidstackCliError, log } from '../../index.js';
 
 /**
  * Creates a new rapidstack project. The action to be run whenever the following
  * commands are run in a user's shell:
- * @param templateDirectory an optional directory to look for templates in
+ * @param appName the name of the application directory to be created
  * @example
  * `rapidstack create`
  * `npm init @rapidstack`
  * @throws a `RapidstackCliError` if the template directory does not exist
  */
-export async function action(templateDirectory?: string): Promise<void> {
-  log.debug(
-    `running 'create' called with templateDirectory: [${
-      templateDirectory ?? ''
-    }]`
-  );
+export async function action(appName?: string): Promise<void> {
+  log.debug(`running 'create' with appName: [${appName ?? ''}]`);
 
   // Look up directory for templates and ensure it exists
-  const templateDir = templateDirectory ?? join(DEFAULT_TEMPLATE_DIR, 'create');
+  const templateDir = join(DEFAULT_TEMPLATE_DIR, 'create');
   const templateDirExists = await stat(templateDir).catch(() => false);
   if (!templateDirExists) {
     throw new RapidstackCliError(
@@ -33,16 +25,24 @@ export async function action(templateDirectory?: string): Promise<void> {
     );
   }
 
-  // Get the rapidstack-template-params.json file from the template directory
-  const templateParamsFile = join(templateDir, TEMPLATE_CONFIG_FILENAME);
-  const templateParamsFileContents = await readFile(
-    templateParamsFile,
-    'utf-8'
-  );
-  const templateParams = JSON.parse(templateParamsFileContents);
-  log.msg(templateParams);
+  // Get or create app name:
+  let name = appName as string;
+  if (!name) {
+    const answers = await inquirer.prompt([
+      {
+        default: 'my-rapidstack-app',
+        message: 'Project Name',
+        name: 'name',
+        type: 'input',
+        when: !appName,
+      },
+    ]);
+    name = answers.name;
+  }
 
-  // Recursively copy all the files from the template directory to the cwd
-  // if a package.json file is found, look through the devDeps and deps and see
-  // if they require any specific version handling
+  // Copy the package.json file to the destination (as a proof of concept)
+  const templateParamsFile = join(templateDir, 'package.json');
+  await cp(templateParamsFile, join(process.cwd(), name, 'package.json'), {
+    recursive: true,
+  });
 }

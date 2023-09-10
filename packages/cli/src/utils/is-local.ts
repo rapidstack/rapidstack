@@ -12,7 +12,7 @@ export async function isLocal(): Promise<boolean> {
 
    * This method is used as an alternative dynamically importing certain CLI
    * commands based upon the context of where it was being run from, as the top-
-   * level await created a circular dependency soft-lock resulting in 
+   * level await created a circular dependency deadlock resulting in 
    * process.exit(13)
    * 
    * See: https://github.com/nodejs/node/issues/44601

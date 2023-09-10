@@ -9,14 +9,13 @@ on:
   schedule:
     - cron: '31 7 * * 3'
   pull_request:
-    types: [assigned, labeled, unlabeled, opened, synchronize, reopened]
+    types: [assigned, opened, synchronize, ready_for_review, reopened]
     paths:
       [
         '**.ts',
         '**.*js',
         '**/package*.json',
-        '**/workflows/on-merge-main.yaml',
-        '**/workflows/active-pr-checks.yaml',
+        '**/workflows/code-quality-checks.yaml',
         'qodana.yaml',
       ]
 
@@ -77,10 +76,10 @@ jobs:
         run: pnpm install
 
       - name: Prepare CLI
-        run: npm run ci:build
+        run: pnpm ci:build
 
       - name: Build Project
-        run: npm run build
+        run: pnpm build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -152,7 +151,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ github.ref }}
 
       - name: Setup Project
         uses: actions/setup-node@v3
@@ -182,19 +181,19 @@ jobs:
         run: pnpm install
 
       - name: Prepare CLI
-        run: npm run ci:build
+        run: pnpm ci:build
 
       - name: Build Project
-        run: npm run build
+        run: pnpm build
 
       - name: Package Dedupe Check (pnpm)
-        run: npm run lint:packages
+        run: pnpm lint:packages
 
       - name: Spell Check (cspell)
-        run: npm run lint:spelling
+        run: pnpm lint:spelling
 
       - name: Lint Check (eslint)
-        run: npm run ci:lint
+        run: pnpm ci:lint
         continue-on-error: true
 
       - name: Clean Sarif File

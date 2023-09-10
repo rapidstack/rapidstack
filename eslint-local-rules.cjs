@@ -26,6 +26,18 @@ const rules = {
         }
       },
     }),
+    meta: {
+      docs: {
+        category: 'Best Practices',
+        description:
+          "Adding @throws to function's JSDocs, async or not, gives developers \
+          an understanding of what errors can be thrown at a given point in an \
+          application.",
+        recommended: true,
+      },
+      schema: [],
+      type: 'problem',
+    },
   },
   'require-node-prefix': {
     // https://github.com/import-js/eslint-plugin-import/issues/2717#issuecomment-1556594437

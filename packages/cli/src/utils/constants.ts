@@ -21,6 +21,4 @@ export const ORG_PACKAGES = [ /*
   // 'plugin-example',     // types
 ] as const;
 
-export const DEFAULT_TEMPLATE_DIR = join(__dirname, '../../templates');
-export const TEMPLATE_CONFIG_FILENAME =
-  'rapidstack-template-params.json' as const;
+export const DEFAULT_TEMPLATE_DIR = join(__dirname, '..', 'templates');

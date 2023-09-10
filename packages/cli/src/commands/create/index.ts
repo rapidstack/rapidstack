@@ -1,6 +1,12 @@
 import { Command } from 'commander';
 
-import { DEBUG_FLAG_REGEX, handleExit, log } from '../../utils/index.js';
+import {
+  DEBUG_FLAG_REGEX,
+  actionRunner,
+  handleExit,
+  log,
+} from '../../utils/index.js';
+import { action } from './action.js';
 
 // If called as a subcommand from main cli, this doesn't need to be logged again
 if (
@@ -26,8 +32,8 @@ export function buildCreateCommand(): Command {
     .name('create')
     .usage(JSON.stringify(process.argv))
     .description('create a project using the template from rapidstack.')
-    .option('--append, -a', 'Sets the CLI to append for the current project.')
+    .argument('[app-name]', 'Name of the application')
     .option('-d, --debug', 'output extra debug logging')
-    .action(() => log.error('Unimplemented!'))
+    .action(actionRunner(action))
     .exitOverride(handleExit);
 }

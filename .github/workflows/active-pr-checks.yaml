@@ -94,6 +94,12 @@ jobs:
         with:
           node-version: 18
 
+      - name: Setup Registry
+        run: |
+          echo "\n//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" > ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ORG_TOKEN }}
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -134,8 +140,6 @@ jobs:
 
       - name: Publish Packages
         run: pnpm -r publish --access public --tag pr --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ORG_TOKEN }}
 
       - name: Tag Prerelease
         uses: actions/github-script@v6

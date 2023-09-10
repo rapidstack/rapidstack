@@ -27,7 +27,7 @@ jobs:
   codeql-quality-checks:
     name: CodeQL
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' || !github.event.pull_request.draft }}
+    if: ${{ github.actor != 'dependabot[bot]' && !github.event.pull_request.draft }}
     permissions:
       actions: read
       contents: read

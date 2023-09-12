@@ -17,6 +17,7 @@ on:
       - '**.ts'
       - '**.js'
       - '**/package*.json'
+      - '**/pnpm-lock.yaml'
       - '**/workflows/on-pr.yaml'
 
 concurrency:

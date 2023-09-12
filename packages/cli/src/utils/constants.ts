@@ -21,4 +21,6 @@ export const ORG_PACKAGES = [ /*
   // 'plugin-example',     // types
 ] as const;
 
-export const DEFAULT_TEMPLATE_DIR = join(__dirname, '..', 'templates');
+const DEFAULT_TEMPLATE_DIR = join(__dirname, '..', 'templates');
+export const PROJECT_TEMPLATE_DIR = join(DEFAULT_TEMPLATE_DIR, 'create');
+export const PLUGIN_TEMPLATE_DIR = join(DEFAULT_TEMPLATE_DIR, 'plugin');

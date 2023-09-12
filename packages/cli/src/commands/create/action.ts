@@ -2,7 +2,7 @@ import inquirer from 'inquirer';
 import { cp, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { DEFAULT_TEMPLATE_DIR, RapidstackCliError, log } from '../../index.js';
+import { RapidstackCliError, log } from '../../index.js';
 
 /**
  * Creates a new rapidstack project. The action to be run whenever the following
@@ -17,7 +17,7 @@ export async function action(appName?: string): Promise<void> {
   log.debug(`running 'create' with appName: [${appName ?? ''}]`);
 
   // Look up directory for templates and ensure it exists
-  const templateDir = join(DEFAULT_TEMPLATE_DIR, 'create');
+  const templateDir = join('foo', 'create');
   const templateDirExists = await stat(templateDir).catch(() => false);
   if (!templateDirExists) {
     throw new RapidstackCliError(

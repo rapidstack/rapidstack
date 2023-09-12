@@ -16,7 +16,9 @@ if (
 ) {
   process.env.DEBUG_LOGGING = '1';
   log.debug('cli arguments:');
-  JSON.stringify(process.argv, null, 2).split('\n').forEach(log.debug);
+  JSON.stringify(process.argv, null, 2)
+    .split('\n')
+    .forEach((str) => log.debug(str));
 
   log.debug('calling cwd:');
   log.debug(process.cwd());

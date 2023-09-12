@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import ora from 'ora';
 
-import { ORG_NAME, log, shell } from '../../index.js';
+import { ORG_NAME, RapidstackCliError, log, shell } from '../../index.js';
 
 /**
  * Recursively search for the root of the repo, looking in each package.json
@@ -32,23 +32,39 @@ export async function findRepoRoot(cwd = process.cwd()): Promise<string> {
  * Build a package in the monorepo while displaying a progress spinner.
  * @param repoRoot The path to the root of the monorepo
  * @param pkg The name of the package to build
+ * @throws a `RapidstackCliError` If the package fails to build or outputs to
+ * stderr.
  */
 export async function buildPackage(
   repoRoot: string,
   pkg: string
 ): Promise<void> {
   const packagePath = join(repoRoot, 'packages', pkg);
-  const spinner = ora().start();
+  const spinner = ora(`Building ${chalk.cyan(`@${ORG_NAME}/${pkg}`)}`).start();
   spinner.prefixText = `${chalk.bold.ansi256(166)(`[${ORG_NAME}]`)}`;
-  spinner.suffixText = `Building ${chalk.cyan(`@${ORG_NAME}/${pkg}`)}`;
-
   spinner.start();
-  await shell({
+
+  const { stderr } = await shell({
     cmd: `pnpm build`,
     dir: packagePath,
   }).catch((err) => {
-    log.error(`Error building ${pkg}`);
-    throw err;
+    spinner.fail(`Error building package [${pkg}]`);
+    if (err instanceof Error) {
+      const { stdout } = JSON.parse(err.message);
+      stdout.split('\n').forEach((msg: string) => log.error(msg));
+      stderr && stderr.split('\n').forEach((msg: string) => log.error(msg));
+      throw new RapidstackCliError(`Error building package [${pkg}]`);
+    }
+
+    log.error(err);
+    throw new RapidstackCliError(`Error building package [${pkg}]`);
   });
+
+  if (stderr) {
+    spinner.fail(`Error building package [${pkg}]`);
+    stderr.split('\n').forEach((msg: string) => log.error(msg));
+    throw new RapidstackCliError(`Error building package [${pkg}]`);
+  }
+
   spinner.succeed();
 }

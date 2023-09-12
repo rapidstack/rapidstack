@@ -6,7 +6,7 @@ import {
   handleExit,
   log,
 } from '../../utils/index.js';
-import { action } from './action.js';
+import { actionBuilder } from './builder.js';
 
 // If called as a subcommand from main cli, this doesn't need to be logged again
 if (
@@ -16,7 +16,9 @@ if (
 ) {
   process.env.DEBUG_LOGGING = '1';
   log.debug('cli arguments:');
-  JSON.stringify(process.argv, null, 2).split('\n').forEach(log.debug);
+  JSON.stringify(process.argv, null, 2)
+    .split('\n')
+    .forEach((str) => log.debug(str));
 
   log.debug('calling cwd:');
   log.debug(process.cwd());
@@ -34,6 +36,6 @@ export function buildCreateCommand(): Command {
     .description('create a project using the template from rapidstack.')
     .argument('[app-name]', 'Name of the application')
     .option('-d, --debug', 'output extra debug logging')
-    .action(actionRunner(action))
+    .action(actionRunner(actionBuilder))
     .exitOverride(handleExit);
 }

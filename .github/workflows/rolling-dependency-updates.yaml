@@ -28,7 +28,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.pulls.create({
+            const pr = await github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: "Dependency Updates",
@@ -37,4 +37,11 @@ jobs:
               body: "Dependency Updates for npm packages and GitHub Actions",
               draft: true,
               maintainer_can_modify: true
-            })
+            });
+
+            await github.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.data.number,
+              labels: ['sv:patch']
+            });

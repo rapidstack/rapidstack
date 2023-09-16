@@ -8,15 +8,17 @@
     "pnpm-lock.yaml"
   ],
   "words": [
-    "rapidstack",
     "codespace",
-    "npmignore",
-    "quickstart",
-    "tsup",
-    "wontfix",
-    "sarif",
-    "vitest",
     "jetbrains",
-    "qodana"
+    "nodenext",
+    "npmignore",
+    "outfile",
+    "qodana",
+    "quickstart",
+    "rapidstack",
+    "sarif",
+    "tsup",
+    "vitest",
+    "wontfix"
   ]
 }

@@ -10,12 +10,15 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { shell } from '../../index.js';
+import { TMP_DIR_PREFIX, shell } from '../../index.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const cli = `node ${join(__dirname, '../../../bin/rapidstack-cli.mjs')}`;
 const cmd = `version-all`;
-const tempDirPathPrefix = join(tmpdir(), `version-all-e2e-${Date.now()}-`);
+const tempDirPathPrefix = join(
+  tmpdir(),
+  `${TMP_DIR_PREFIX}-version-all-e2e-${Date.now()}-`
+);
 const testTemplateDir = join(__dirname, 'test', 'assets');
 let tempDir = '';
 

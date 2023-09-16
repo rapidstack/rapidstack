@@ -18,7 +18,7 @@ export async function findRepoRoot(cwd = process.cwd()): Promise<string> {
 
   const currentSearch = join(cwd, 'package.json');
   const nextSearchDir = join(cwd, '..');
-  const fileContents = await readFile(currentSearch, 'utf-8').catch(() => {});
+  const fileContents = await readFile(currentSearch, 'utf-8').catch(() => null);
 
   if (!fileContents) return findRepoRoot(nextSearchDir);
   const pkg = JSON.parse(fileContents);
@@ -50,7 +50,7 @@ export async function buildPackage(
   }).catch((err) => {
     spinner.fail(`Error building package [${pkg}]`);
     if (err instanceof Error) {
-      const { stdout } = JSON.parse(err.message);
+      const { stderr, stdout } = JSON.parse(err.message);
       stdout.split('\n').forEach((msg: string) => log.error(msg));
       stderr && stderr.split('\n').forEach((msg: string) => log.error(msg));
       throw new RapidstackCliError(`Error building package [${pkg}]`);

@@ -42,7 +42,9 @@ function actionErrorHandler(error: unknown) {
     log.error('Use the -d or --debug flag to see more details.');
 
     log.debug('Full error details:');
-    JSON.stringify(error, null, 2).split('\n').forEach(log.debug);
+    JSON.stringify(error, null, 2)
+      .split('\n')
+      .forEach((line) => log.debug(line));
     process.exit(1);
   }
 

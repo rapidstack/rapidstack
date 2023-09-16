@@ -9,7 +9,7 @@ export const DEBUG_FLAG_REGEX = /^-([a-ce-z]*d[a-ce-z]*)$/i;
 
 // prettier-ignore
 export const ORG_PACKAGES = [ /*
-  pkg                   dependencies  */
+-|pkg------------------|dependencies------------|-*/
   'cli',                // ---
   'create',             // cli
   'create-plugin',      // cli
@@ -24,3 +24,5 @@ export const ORG_PACKAGES = [ /*
 const DEFAULT_TEMPLATE_DIR = join(__dirname, '..', 'templates');
 export const PROJECT_TEMPLATE_DIR = join(DEFAULT_TEMPLATE_DIR, 'create');
 export const PLUGIN_TEMPLATE_DIR = join(DEFAULT_TEMPLATE_DIR, 'plugin');
+
+export const TMP_DIR_PREFIX = 'rapidstack-tmp';

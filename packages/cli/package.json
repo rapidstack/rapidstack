@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && tsup",
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup",
     "build:watch": "tsup --watch",
     "clean": "rimraf dist",
     "test": "vitest"
@@ -47,6 +47,7 @@
   "dependencies": {
     "chalk": "5.3.0",
     "commander": "11.0.0",
+    "esbuild": "^0.19.3",
     "glob": "10.3.4",
     "inquirer": "9.2.10",
     "node-fetch": "3.3.2",

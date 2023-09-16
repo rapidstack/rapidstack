@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable perfectionist/sort-objects */
 
-import inquirer from 'inquirer';
 import { cp } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { stringPrompt } from '../../../dist/template-builder/prompts.js';
 import { type log } from '../../../src/utils/logger.js';
 
 type CreateCliContext = {
@@ -40,13 +40,7 @@ export default {
       token: 'PROJECT_NAME',
       default: 'rapidstack-project',
       async prompt(defaultValue: string): Promise<string> {
-        const prompt = await inquirer.prompt({
-          type: 'input',
-          name: 'projectName',
-          message: 'What is the name of your project?',
-          default: defaultValue,
-        });
-        return prompt.projectName;
+        return await stringPrompt(defaultValue);
       },
       async action(): Promise<boolean> {
         return true;

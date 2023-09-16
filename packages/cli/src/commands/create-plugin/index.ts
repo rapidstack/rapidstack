@@ -32,7 +32,6 @@ if (
 export function buildCreatePluginCommand(): Command {
   return new Command()
     .name('create-plugin')
-    .usage(JSON.stringify(process.argv))
     .description('create a plugin using the template from rapidstack.')
     .argument('[plugin-name]', 'Name of the plugin')
     .option('-d, --debug', 'output extra debug logging')

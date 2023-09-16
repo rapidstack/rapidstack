@@ -32,9 +32,15 @@ if (
 export function buildCreateCommand(): Command {
   return new Command()
     .name('create')
-    .usage(JSON.stringify(process.argv))
     .description('create a project using the template from rapidstack.')
-    .argument('[app-name]', 'Name of the application')
+    .option(
+      '--template-dir <path>',
+      'optional path to a directory containing templates'
+    )
+    .option(
+      '--template <template-name>',
+      'optional name of the template to use'
+    )
     .option('-d, --debug', 'output extra debug logging')
     .action(actionRunner(actionBuilder))
     .exitOverride(handleExit);

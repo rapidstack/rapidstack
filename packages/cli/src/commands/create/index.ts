@@ -42,6 +42,7 @@ export function buildCreateCommand(): Command {
       'optional name of the template to use'
     )
     .option('-d, --debug', 'output extra debug logging')
+    .allowUnknownOption()
     .action(actionRunner(actionBuilder))
     .exitOverride(handleExit);
 }

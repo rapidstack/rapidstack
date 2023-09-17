@@ -69,6 +69,18 @@ export async function createProjectStagingDirectory(): Promise<string> {
   return tempDir;
 }
 
+type TemplateConfig = {
+  parameters: {
+    action: () => Promise<boolean>;
+    default: string;
+    name: string;
+    prompt: () => Promise<string>;
+    token: string;
+    type: string;
+  }[];
+  version: string;
+};
+
 /**
  * Compiles the template config file to a temporary directory and returns the
  * compiled config file.
@@ -81,7 +93,7 @@ export async function createProjectStagingDirectory(): Promise<string> {
 export async function getTemplateConfig(
   templateConfigPath: string,
   tempDir: string
-): Promise<unknown> {
+): Promise<TemplateConfig> {
   const compiledConfigPath = join(tempDir, CONFIG_SUBDIRECTORY, 'config.mjs');
   await build({
     banner: {

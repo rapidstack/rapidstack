@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { Command } from 'commander';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -55,8 +56,37 @@ export async function actionBuilder(
   const configPath = join(templateDir, projectConfig);
   const config = await getTemplateConfig(configPath, tempDir);
 
-  // TODO: configure subcommand to handle config file parameters
-  await (config as any).parameters[0].prompt('foo');
+  // clean args - move later
+  const createIndex = process.argv.indexOf('create');
+  const args = process.argv.slice(createIndex + 1);
 
+  const templateIndex = args.indexOf('--template');
+  if (templateIndex !== -1) args.splice(templateIndex, 2);
+
+  const templateDirIndex = args.indexOf('--template-dir');
+  if (templateDirIndex !== -1) args.splice(templateDirIndex, 2);
+  // -------------------------
+
+  // Subcommand
+  const subcommand = new Command();
+  subcommand.name('foo');
+  subcommand.description('foo');
+  // add 'assist' as the help keyword for the inner command
+  config.parameters.forEach((param) => {
+    log.msg(`adding option: --${param.name} <${param.name}>`);
+    subcommand.option(
+      `--${param.name} <${param.name}>`,
+      param.name.split('-').join(' ')
+    );
+  });
+  subcommand.action(async () => {
+    // console.log({ args, params });
+    console.log('opts', subcommand.opts());
+  });
+  subcommand.outputHelp();
+
+  subcommand.parse(args, { from: 'user' });
+
+  console.log('done');
   await rm(tempDir, { force: true, recursive: true });
 }

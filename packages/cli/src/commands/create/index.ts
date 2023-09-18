@@ -6,7 +6,7 @@ import {
   handleExit,
   log,
 } from '../../utils/index.js';
-import { actionBuilder } from './builder.js';
+import { cliBuilder } from './cli-builder.js';
 
 // If called as a subcommand from main cli, this doesn't need to be logged again
 if (
@@ -43,6 +43,6 @@ export function buildCreateCommand(): Command {
     )
     .option('-d, --debug', 'output extra debug logging')
     .allowUnknownOption()
-    .action(actionRunner(actionBuilder))
+    .action(actionRunner(cliBuilder))
     .exitOverride(handleExit);
 }

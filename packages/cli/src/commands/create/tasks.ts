@@ -26,7 +26,7 @@ type ManifestFile = {
  */
 export async function getTemplateManifest(
   templatePath: string
-): Promise<ManifestFile['manifest']> {
+): Promise<ManifestFile> {
   if (!(await stat(templatePath).catch(() => false))) {
     throw new RapidstackCliError(
       `Template directory [${templatePath}] not found.`
@@ -47,7 +47,7 @@ export async function getTemplateManifest(
     );
   }
 
-  return parsedFile.manifest;
+  return parsedFile;
 }
 
 /**
@@ -69,7 +69,7 @@ export async function createProjectStagingDirectory(): Promise<string> {
   return tempDir;
 }
 
-type TemplateConfig = {
+export type TemplateConfig = {
   parameters: {
     action: () => Promise<boolean>;
     default: string;
@@ -127,4 +127,23 @@ export async function getTemplateConfig(
   }
 
   return config;
+}
+
+/**
+ * Cleans the process.argv array to remove any rapidstack cli arguments that
+ * relate to calls aimed towards `rapidstack create`. This includes the
+ * `--template` and `--template-dir` flags which are used by the outer command.
+ * @param args the rapidstack cli arguments to be cleaned
+ * @returns the cleaned arguments
+ */
+export function cleanCliArgs(args: string[]): string[] {
+  const createCmdIndex = args.indexOf('create');
+  const cleanArgs = process.argv.slice(createCmdIndex + 1);
+
+  const templateIndex = args.indexOf('--template');
+  if (templateIndex !== -1) cleanArgs.splice(templateIndex, 2);
+
+  const templateDirIndex = args.indexOf('--template-dir');
+  if (templateDirIndex !== -1) cleanArgs.splice(templateDirIndex, 2);
+  return cleanArgs;
 }

@@ -24,8 +24,8 @@ importers:
         specifier: 6.7.2
         version: 6.7.2(eslint@8.49.0)(typescript@5.2.2)
       '@vitest/coverage-v8':
-        specifier: 0.34.4
-        version: 0.34.4(vitest@0.34.4)
+        specifier: 0.34.5
+        version: 0.34.5(vitest@0.34.4)
       cspell:
         specifier: 7.3.6
         version: 7.3.6
@@ -1032,8 +1032,8 @@ packages:
       eslint-visitor-keys: 3.4.3
     dev: true
 
-  /@vitest/coverage-v8@0.34.4(vitest@0.34.4):
-    resolution: {integrity: sha512-TZ5ghzhmg3COQqfBShL+zRQEInHmV9TSwghTdfkHpCTyTOr+rxo6x41vCNcVfWysWULtqtBVpY6YFNovxnESfA==}
+  /@vitest/coverage-v8@0.34.5(vitest@0.34.4):
+    resolution: {integrity: sha512-97xjhRTSdmeeHCm2nNHhT3hLsMYkAhHXm/rwj6SZ3voka8xiCJrwgtfIjoZIFEL4OO0KezGmVuHWQXcMunULIA==}
     peerDependencies:
       vitest: '>=0.32.0 <1'
     dependencies:

@@ -15,8 +15,8 @@ importers:
         specifier: workspace:*
         version: link:packages/cli
       '@types/eslint':
-        specifier: 8.44.2
-        version: 8.44.2
+        specifier: 8.44.3
+        version: 8.44.3
       '@typescript-eslint/eslint-plugin':
         specifier: 6.7.2
         version: 6.7.2(@typescript-eslint/parser@6.7.2)(eslint@8.50.0)(typescript@5.2.2)
@@ -55,7 +55,7 @@ importers:
         version: 2.1.0(eslint@8.50.0)(typescript@5.2.2)
       eslint-plugin-prettier:
         specifier: 5.0.0
-        version: 5.0.0(@types/eslint@8.44.2)(eslint-config-prettier@9.0.0)(eslint@8.50.0)(prettier@3.0.3)
+        version: 5.0.0(@types/eslint@8.44.3)(eslint-config-prettier@9.0.0)(eslint@8.50.0)(prettier@3.0.3)
       eslint-plugin-vitest:
         specifier: 0.3.1
         version: 0.3.1(@typescript-eslint/eslint-plugin@6.7.2)(eslint@8.50.0)(vitest@0.34.5)
@@ -836,8 +836,8 @@ packages:
     resolution: {integrity: sha512-mEo1sAde+UCE6b2hxn332f1g1E8WfYRu6p5SvTKr2ZKC1f7gFJXk4h5PyGP9Dt6gCaG8y8XhwnXWC6Iy2cmBng==}
     dev: true
 
-  /@types/eslint@8.44.2:
-    resolution: {integrity: sha512-sdPRb9K6iL5XZOmBubg8yiFp5yS/JdUDQsq5e6h95km91MCYMuvp7mh1fjPEYUhvHepKpZOjnEaMBR4PxjWDzg==}
+  /@types/eslint@8.44.3:
+    resolution: {integrity: sha512-iM/WfkwAhwmPff3wZuPLYiHX18HI24jU8k1ZSH7P8FHwxTjZ2P6CoX2wnF43oprR+YXJM6UUxATkNvyv/JHd+g==}
     dependencies:
       '@types/estree': 1.0.1
       '@types/json-schema': 7.0.12
@@ -2091,7 +2091,7 @@ packages:
       - typescript
     dev: true
 
-  /eslint-plugin-prettier@5.0.0(@types/eslint@8.44.2)(eslint-config-prettier@9.0.0)(eslint@8.50.0)(prettier@3.0.3):
+  /eslint-plugin-prettier@5.0.0(@types/eslint@8.44.3)(eslint-config-prettier@9.0.0)(eslint@8.50.0)(prettier@3.0.3):
     resolution: {integrity: sha512-AgaZCVuYDXHUGxj/ZGu1u8H8CYgDY3iG6w5kUFw4AzMVXzB7VvbKgYR4nATIN+OvUrghMbiDLeimVjVY5ilq3w==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
@@ -2105,7 +2105,7 @@ packages:
       eslint-config-prettier:
         optional: true
     dependencies:
-      '@types/eslint': 8.44.2
+      '@types/eslint': 8.44.3
       eslint: 8.50.0
       eslint-config-prettier: 9.0.0(eslint@8.50.0)
       prettier: 3.0.3

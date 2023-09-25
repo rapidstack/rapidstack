@@ -81,8 +81,8 @@ importers:
         specifier: 11.0.0
         version: 11.0.0
       glob:
-        specifier: 10.3.6
-        version: 10.3.6
+        specifier: 10.3.7
+        version: 10.3.7
       inquirer:
         specifier: 9.2.11
         version: 9.2.11
@@ -2479,8 +2479,8 @@ packages:
       is-glob: 4.0.3
     dev: true
 
-  /glob@10.3.6:
-    resolution: {integrity: sha512-mEfImdc/fiYHEcF6pHFfD2b/KrdFB1qH9mRe5vI5HROF8G51SWxQJ2V56Ezl6ZL9y86gsxQ1Lgo2S746KGUPSQ==}
+  /glob@10.3.7:
+    resolution: {integrity: sha512-wCMbE1m9Nx5yD9LYtgsVWq5VhHlk5WzJirw594qZR6AIvQYuHrdDtIktUVjQItalD53y7dqoedu9xP0u0WaxIQ==}
     engines: {node: '>=16 || 14 >=14.17'}
     hasBin: true
     dependencies:

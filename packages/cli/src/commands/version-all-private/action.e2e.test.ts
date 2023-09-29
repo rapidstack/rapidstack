@@ -1,36 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable jsdoc/require-jsdoc */
 
 /*
  * Note: This file requires a build before running.
  */
 
-import { initializeZipAssets, mockShell } from '@rapidstack/test-utils';
-import { mkdtempSync, readFileSync, rmdirSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import {
+  mockShell,
+  setupTempDir,
+  tearDownTempDir,
+} from '@rapidstack/test-utils';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { TMP_DIR_PREFIX } from '../../index.js';
-
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const cli = `node ${join(__dirname, '../../../bin/rapidstack-cli.mjs')}`;
 const cmd = `version-all`;
-const tempDirPathPrefix = join(
-  tmpdir(),
-  `${TMP_DIR_PREFIX}-version-all-e2e-${Date.now()}-`
-);
+
 const testTemplateAssets = join(__dirname, 'test', 'assets.zip');
 let tempDir = '';
-
 beforeAll(async () => {
-  tempDir = mkdtempSync(tempDirPathPrefix);
-  await initializeZipAssets(testTemplateAssets, tempDir);
+  tempDir = await setupTempDir(cmd, testTemplateAssets);
 });
-afterAll(async () => {
-  rmdirSync(tempDir, { recursive: true });
-});
+afterAll(async () => void tearDownTempDir(tempDir));
 
 describe(`${cmd} e2e tests:`, () => {
   describe('fail cases', () => {

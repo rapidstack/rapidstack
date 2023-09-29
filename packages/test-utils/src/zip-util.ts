@@ -23,17 +23,17 @@ export async function initializeZipAssets(
   const zip = await open(assetZipPath);
   try {
     for await (const entry of zip as FixedZip) {
+      const [firstSlug] = entry.filename.split('/');
+      const strippedPath = entry.filename.replace(`${firstSlug}/`, '');
+      const destination = join(destinationPath, strippedPath);
+
       if (entry.filename.endsWith('/')) {
-        const assetsStrippedDir = entry.filename.replace('assets/', '');
-        await mkdir(join(destinationPath, assetsStrippedDir));
+        await mkdir(destination);
         continue;
       }
 
       const readStream = await entry.openReadStream();
-      const assetsStrippedFile = entry.filename.replace('assets/', '');
-      const writeStream = createWriteStream(
-        join(destinationPath, assetsStrippedFile)
-      );
+      const writeStream = createWriteStream(destination);
       await pipeline(readStream, writeStream);
     }
   } finally {

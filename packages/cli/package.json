@@ -32,7 +32,9 @@
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.3",
     "@types/node": "20.6.2",
-    "vitest": "0.34.4"
+    "@types/yauzl-promise": "^2.1.2",
+    "vitest": "0.34.4",
+    "yauzl-promise": "^4.0.0"
   },
   "files": [
     "dist/*",

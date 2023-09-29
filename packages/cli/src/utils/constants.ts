@@ -10,11 +10,11 @@ export const DEBUG_FLAG_REGEX = /^-([a-ce-z]*d[a-ce-z]*)$/i;
 // prettier-ignore
 export const ORG_PACKAGES = [ /*
 -|pkg------------------|dependencies------------|-*/
-  'cli',                // ---
+  'cli',                // test-utils
   'create',             // cli
   'create-plugin',      // cli
   // 'types',              // ---
-  // 'test-utils',         // ---
+  'test-utils',         // ---
   // 'cloud',              // types
   // 'lambda',             // test-utils, types
   // 'react',              // test-utils, types 

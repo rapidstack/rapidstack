@@ -5,21 +5,14 @@
  * Note: This file requires a build before running.
  */
 
-import {
-  createWriteStream,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmdirSync,
-} from 'node:fs';
+import { initializeZipAssets, mockShell } from '@rapidstack/test-utils';
+import { mkdtempSync, readFileSync, rmdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { open } from 'yauzl-promise';
 
-import { TMP_DIR_PREFIX, shell } from '../../index.js';
+import { TMP_DIR_PREFIX } from '../../index.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const cli = `node ${join(__dirname, '../../../bin/rapidstack-cli.mjs')}`;
@@ -31,31 +24,9 @@ const tempDirPathPrefix = join(
 const testTemplateAssets = join(__dirname, 'test', 'assets.zip');
 let tempDir = '';
 
-async function loadAssets(zipPath: string, destination: string) {
-  const zip = await open(zipPath);
-  try {
-    for await (const entry of zip as unknown as any) {
-      if (entry.filename.endsWith('/')) {
-        const assetsStrippedDir = entry.filename.replace('assets/', '');
-        mkdirSync(join(destination, assetsStrippedDir));
-      } else {
-        const readStream = await entry.openReadStream();
-        const assetsStrippedFile = entry.filename.replace('assets/', '');
-        const writeStream = createWriteStream(
-          join(destination, assetsStrippedFile)
-        );
-        await pipeline(readStream, writeStream);
-      }
-    }
-  } finally {
-    await zip.close();
-  }
-}
-
 beforeAll(async () => {
   tempDir = mkdtempSync(tempDirPathPrefix);
-  await loadAssets(testTemplateAssets, tempDir);
-  // cpSync(testTemplateAssets, tempDir, { recursive: true });
+  await initializeZipAssets(testTemplateAssets, tempDir);
 });
 afterAll(async () => {
   rmdirSync(tempDir, { recursive: true });
@@ -64,17 +35,19 @@ afterAll(async () => {
 describe(`${cmd} e2e tests:`, () => {
   describe('fail cases', () => {
     test('should return error if no version is provided', async () => {
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd}`,
         dir: tempDir,
-      }).catch((err) => JSON.parse(err.message));
+      });
+
       expect(stderr).toContain('error: missing required argument');
     });
     test('should return error if semver is invalid', async () => {
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} abc123`,
         dir: tempDir,
-      }).catch((err) => JSON.parse(err.message));
+      });
+
       expect(stderr).toContain('Please use a valid semver format');
     });
   });
@@ -83,10 +56,11 @@ describe(`${cmd} e2e tests:`, () => {
       const rootPkg = join(tempDir, 'package.json');
       const nested1Pkg = join(tempDir, 'nest1', 'package.json');
       const nested2Pkg = join(tempDir, 'nest1', 'nest2', 'package.json');
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} v1.2.3`,
         dir: tempDir,
-      }).catch((err) => JSON.parse(err.message));
+      });
+
       expect(stderr).toBeFalsy();
       expect(getPackageJson(rootPkg).version).toBe('1.2.3');
       expect(getPackageJson(nested1Pkg).version).toBe('1.2.3');
@@ -96,15 +70,16 @@ describe(`${cmd} e2e tests:`, () => {
       const rootPkg = join(tempDir, 'package.json');
       const nested1Pkg = join(tempDir, 'nest1', 'package.json');
       const nested2Pkg = join(tempDir, 'nest1', 'nest2', 'package.json');
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} v1.2.3`,
         dir: tempDir,
-      }).catch((err) => JSON.parse(err.message));
+      });
       const output = {
         '@rapidstack/asterisk-dep': '1.2.3',
         '@rapidstack/versioned-dep': '1.2.3',
         '@unrelated-pkg/dep': '0.0.0',
       };
+
       expect(stderr).toBeFalsy();
       expect(getPackageJson(rootPkg).dependencies).toStrictEqual(output);
       expect(getPackageJson(nested1Pkg).dependencies).toStrictEqual(output);
@@ -114,15 +89,16 @@ describe(`${cmd} e2e tests:`, () => {
       const rootPkg = join(tempDir, 'package.json');
       const nested1Pkg = join(tempDir, 'nest1', 'package.json');
       const nested2Pkg = join(tempDir, 'nest1', 'nest2', 'package.json');
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} v1.2.3`,
         dir: tempDir,
-      }).catch((err) => JSON.parse(err.message));
+      });
       const output = {
         '@rapidstack/asterisk-dev': '1.2.3',
         '@rapidstack/versioned-dev': '1.2.3',
         '@unrelated-pkg/dev': '0.0.0',
       };
+
       expect(stderr).toBeFalsy();
       expect(getPackageJson(rootPkg).devDependencies).toStrictEqual(output);
       expect(getPackageJson(nested1Pkg).devDependencies).toStrictEqual(output);

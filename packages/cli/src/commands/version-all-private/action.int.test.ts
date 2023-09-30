@@ -25,7 +25,7 @@ beforeAll(async () => {
 });
 afterAll(async () => void tearDownTempDir(tempDir));
 
-describe(`${cmd} e2e tests:`, () => {
+describe(`${cmd} integration tests:`, () => {
   describe('fail cases', () => {
     test('should return error if no version is provided', async () => {
       const { stderr } = await mockShell({

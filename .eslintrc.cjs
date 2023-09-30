@@ -48,6 +48,7 @@ const config = {
     'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
     'max-depth': ['error', 4],
     'no-console': 'warn',
+    'require-await': 'error',
 
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [

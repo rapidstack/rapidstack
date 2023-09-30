@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 
 import {
@@ -34,8 +35,10 @@ export function buildCreateCommand(): Command {
     .name('create')
     .description('create a project using the template from rapidstack.')
     .option(
-      '--template-dir <path>',
-      'optional path to a directory containing templates'
+      '--template-loc <path, repository>',
+      `optional path to a local folder, GitHub user/repo with ${chalk.inverse(
+        'github:<org>/<repo>'
+      )} (with optional branch specifier @branch), or git url`
     )
     .option(
       '--template <template-name>',

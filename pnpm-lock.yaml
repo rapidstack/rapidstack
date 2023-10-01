@@ -118,6 +118,15 @@ importers:
         specifier: workspace:*
         version: link:../cli
 
+  packages/lambda:
+    devDependencies:
+      '@types/node':
+        specifier: 20.8.0
+        version: 20.8.0
+      vitest:
+        specifier: 0.34.6
+        version: 0.34.6
+
 packages:
 
   /@aashutoshrathi/word-wrap@1.2.6:

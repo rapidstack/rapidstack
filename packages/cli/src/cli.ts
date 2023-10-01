@@ -34,7 +34,7 @@ if (
     .split('\n')
     .forEach((str) => log.debug(str));
 
-  log.debug('calling cwd:');
+  log.debug('the cwd of invocation:');
   log.debug(process.cwd());
 }
 

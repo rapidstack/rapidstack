@@ -21,7 +21,7 @@ if (
     .split('\n')
     .forEach((str) => log.debug(str));
 
-  log.debug('calling cwd:');
+  log.debug('the cwd of invocation:');
   log.debug(process.cwd());
 }
 
@@ -43,6 +43,10 @@ export function buildCreateCommand(): Command {
     .option(
       '--template <template-name>',
       'optional name of the template to use'
+    )
+    .option(
+      '--defaults',
+      'prefer default values for applicable template value rather than prompts'
     )
     .option('-d, --debug', 'output extra debug logging')
     .allowUnknownOption()

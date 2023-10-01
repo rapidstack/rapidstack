@@ -31,6 +31,6 @@ export async function setupTempDir(
  * Deletes the temp directory created by `setupTempDir`.
  * @param tempDir the path to the temp directory to tear down.
  */
-export function tearDownTempDir(tempDir: string): void {
-  rm(tempDir, { recursive: true });
+export async function tearDownTempDir(tempDir: string): Promise<void> {
+  await rm(tempDir, { recursive: true });
 }

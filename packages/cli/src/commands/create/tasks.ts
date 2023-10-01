@@ -13,6 +13,7 @@ type ManifestFile = {
       directory: string;
     };
   };
+  name: string;
   version: string;
 };
 
@@ -72,6 +73,7 @@ export async function createProjectStagingDirectory(): Promise<string> {
 export type TemplateConfig = {
   parameters: {
     action: () => Promise<boolean>;
+    booleanFlag?: boolean;
     default: string;
     name: string;
     prompt: () => Promise<string>;
@@ -130,20 +132,30 @@ export async function getTemplateConfig(
 }
 
 /**
- * Cleans the process.argv array to remove any rapidstack cli arguments that
- * relate to calls aimed towards `rapidstack create`. This includes the
- * `--template` and `--template-dir` flags which are used by the outer command.
+ * Cleans the passed argv array to remove any rapidstack cli arguments that
+ * relate to calls aimed towards `rapidstack create`. This includes:
+ * `--template`, `--template-loc`, `--defaults`, and the `--debug / -d` flags
+ * which are used by the outer command.
  * @param args the rapidstack cli arguments to be cleaned
  * @returns the cleaned arguments
  */
 export function cleanCliArgs(args: string[]): string[] {
   const createCmdIndex = args.indexOf('create');
-  const cleanArgs = process.argv.slice(createCmdIndex + 1);
+  const cleanArgs = args.slice(createCmdIndex + 1);
 
-  const templateIndex = args.indexOf('--template');
+  const templateIndex = cleanArgs.indexOf('--template');
   if (templateIndex !== -1) cleanArgs.splice(templateIndex, 2);
 
-  const templateDirIndex = args.indexOf('--template-dir');
+  const templateDirIndex = cleanArgs.indexOf('--template-loc');
   if (templateDirIndex !== -1) cleanArgs.splice(templateDirIndex, 2);
+
+  let debugIndex = cleanArgs.indexOf('--debug');
+  if (debugIndex !== -1) cleanArgs.splice(debugIndex, 1);
+  debugIndex = cleanArgs.indexOf('-d');
+  if (debugIndex !== -1) cleanArgs.splice(debugIndex, 1);
+
+  const defaultsIndex = cleanArgs.indexOf('--defaults');
+  if (defaultsIndex !== -1) cleanArgs.splice(defaultsIndex, 1);
+
   return cleanArgs;
 }

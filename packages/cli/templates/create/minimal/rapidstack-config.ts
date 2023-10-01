@@ -32,7 +32,7 @@ type CreateCliContext = {
  */
 
 export default {
-  version: '1.0',
+  version: '1.0.0',
   parameters: [
     {
       type: 'token-replacer',
@@ -49,6 +49,7 @@ export default {
     {
       type: 'file-action',
       name: 'add-ts-config',
+      booleanFlag: true,
       default: false,
       async prompt(defaultValue: {}): Promise<boolean | number | string> {
         return defaultValue as boolean;

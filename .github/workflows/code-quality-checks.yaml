@@ -90,7 +90,15 @@ jobs:
   qodana-quality-checks:
     name: Qodana
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' && !github.event.pull_request.draft }}
+    if: |
+      !github.event.pull_request.draft && 
+      ((
+        github.actor == 'dependabot[bot]' && 
+        contains(github.event.pull_request.title, 'Bump JetBrains/qodana-action')
+      ) ||
+      (
+        github.actor != 'dependabot[bot]'
+      ))
     permissions:
       actions: read
       contents: read
@@ -135,7 +143,7 @@ jobs:
         run: npm run build
 
       - name: Qodana Scan
-        uses: JetBrains/qodana-action@v2023.2.6
+        uses: JetBrains/qodana-action@v2023.2.7
         with:
           pr-mode: ${{ github.event_name == 'pull_request' }}
           post-pr-comment: false

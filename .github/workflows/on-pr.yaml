@@ -376,14 +376,3 @@ jobs:
               prerelease: false,
               tag_name: `v${CURR}`,
             })
-
-      - name: Delete PR Branch
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const branchToDelete = context.payload.pull_request.head.ref;
-            github.rest.git.deleteRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `heads/${branchToDelete}`
-            });

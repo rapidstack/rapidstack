@@ -25,6 +25,8 @@ export function updateOrgPackageDependencies(params: {
 
   return deps.reduce(
     (acc, [name, oldVersion], index) => {
+      // the following is not a concern given the scope of this function's use
+      // eslint-disable-next-line security/detect-object-injection
       acc[name] = params.newVersion;
       log.msg(
         deps.length === index ? '├───' : '└───',

@@ -64,10 +64,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Prepare CLI
-        run: pnpm ci:build
+        run: pnpm prep
 
       - name: Build Project
         run: pnpm build
@@ -114,10 +111,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Prepare CLI
-        run: pnpm ci:build
+        run: pnpm prep
 
       - name: Version Packages
         uses: rapidstack/pr-label-semver-action@v1.3.0
@@ -219,10 +213,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Prepare CLI
-        run: pnpm ci:build
+        run: pnpm prep
 
       - name: Version Packages
         uses: rapidstack/pr-label-semver-action@v1.3.0
@@ -321,10 +312,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Prepare CLI
-        run: pnpm ci:build
+        run: pnpm prep
 
       - name: Version Packages
         uses: rapidstack/pr-label-semver-action@v1.3.0
@@ -388,14 +376,3 @@ jobs:
               prerelease: false,
               tag_name: `v${CURR}`,
             })
-
-      - name: Delete PR Branch
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const branchToDelete = context.payload.pull_request.head.ref;
-            github.rest.git.deleteRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `heads/${branchToDelete}`
-            });

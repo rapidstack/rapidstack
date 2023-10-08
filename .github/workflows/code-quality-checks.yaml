@@ -91,11 +91,14 @@ jobs:
     name: Qodana
     runs-on: ubuntu-latest
     if: |
-      (
+      !github.event.pull_request.draft && 
+      ((
         github.actor == 'dependabot[bot]' && 
-        contains(github.event.pull_request.title, 'qodana-action')
+        contains(github.event.pull_request.title, 'Bump JetBrains/qodana-action')
       ) ||
-      !github.event.pull_request.draft
+      (
+        github.actor != 'dependabot[bot]'
+      ))
     permissions:
       actions: read
       contents: read

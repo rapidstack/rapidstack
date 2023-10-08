@@ -25,6 +25,8 @@ const config = {
     'vitest',
     'jsdoc',
     'eslint-plugin-local-rules',
+    'regexp',
+    'security',
   ],
   extends: [
     'plugin:@typescript-eslint/recommended',
@@ -33,6 +35,8 @@ const config = {
     'plugin:perfectionist/recommended-natural',
     'plugin:vitest/recommended',
     'plugin:jsdoc/recommended-typescript',
+    'plugin:regexp/recommended',
+    'plugin:security/recommended',
   ],
   rules: {
     // Base ESlint Rules
@@ -105,6 +109,17 @@ const config = {
         project: './tsconfig.common.json',
         sourceType: 'module',
         ecmaVersion: 'latest',
+      },
+    },
+    // Disable certain fs security rules for the CLI, because they are intended
+    {
+      files: [
+        'packages/cli/src/commands/**/*.ts',
+        'packages/cli/src/utils/**/*.ts',
+      ],
+      rules: {
+        'security/detect-non-literal-fs-filename': 'off',
+        'security/detect-non-literal-regexp': 'off',
       },
     },
   ],

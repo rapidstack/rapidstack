@@ -1,3 +1,5 @@
+/* eslint-disable security/detect-object-injection */
+
 import { glob } from 'glob';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';

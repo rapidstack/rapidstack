@@ -3,7 +3,9 @@ import { join } from 'node:path';
 export const ORG_NAME = 'rapidstack' as const;
 
 export const SEMVER_REGEX =
-  /^(\d+\.\d+\.\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Fa-f]{7})?))?$/;
+  // verified safe with a ReDoS checker
+  // eslint-disable-next-line security/detect-unsafe-regex
+  /^(\d+\.\d+\.\d+)(?:-([\dA-Za-z-]+(?:\.[\dA-Fa-f]{7})?))?$/;
 
 export const DEBUG_FLAG_REGEX = /^-([a-ce-z]*d[a-ce-z]*)$/i;
 

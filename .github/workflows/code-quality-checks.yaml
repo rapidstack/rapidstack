@@ -76,10 +76,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Prepare CLI
-        run: pnpm ci:build
+        run: pnpm prep
 
       - name: Build Project
         run: pnpm build
@@ -126,10 +123,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Prepare CLI
-        run: npm run ci:build
+        run: pnpm prep
 
       - name: Build Project
         run: npm run build
@@ -181,10 +175,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Prepare CLI
-        run: pnpm ci:build
+        run: pnpm prep
 
       - name: Build Project
         run: pnpm build

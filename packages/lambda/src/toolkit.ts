@@ -8,14 +8,16 @@ type Cache = {} & { _type: 'cache' };
 
 type Factory = <C extends Creatable<T, O>, T, O extends CreatableOptions>(
   tool: C,
-  options?: O
+  options?: Parameters<C>[3]
 ) => T;
 
-type CreatableOptions<T extends Record<string, any> = {}> =
-  | ({
-      cacheTtl?: number;
-    } & { [K in keyof T]: T[K] })
-  | undefined;
+type StandardCreateOptions = {
+  cacheTtl?: number;
+};
+
+type CreatableOptions<T extends Record<string, any> = Record<string, any>> = {
+  [K in keyof T]: T[K];
+} & StandardCreateOptions;
 
 type Creatable<T, O extends CreatableOptions> = (
   logger: Logger,
@@ -36,11 +38,7 @@ export function createToolkit(name: string): {
   const logger = {} as Logger;
   const cache = {} as Cache;
   // eslint-disable-next-line func-style
-  const create: Factory = function create<
-    C extends Creatable<T, O>,
-    T,
-    O extends CreatableOptions,
-  >(tool: C, options?: O): T {
+  const create: Factory = function create(tool, options?) {
     return tool(logger, cache, create, options);
   };
 
@@ -57,9 +55,9 @@ type IMyWidget = {
   putItem: (key: string, value: any) => Promise<void>;
 };
 
-type IMyWidgetOptions = CreatableOptions<{
-  someProperty: string;
-}>;
+interface IMyWidgetOptions extends CreatableOptions {
+  someProperty?: string;
+}
 
 // eslint-disable-next-line func-style
 const MyWidget: Creatable<IMyWidget, IMyWidgetOptions> = (
@@ -68,18 +66,17 @@ const MyWidget: Creatable<IMyWidget, IMyWidgetOptions> = (
   create,
   options
 ): IMyWidget => {
-  const dynamo = {} as IMyWidget;
-  return dynamo;
+  const something = {} as IMyWidget;
+  return something;
 };
 
 // Example usage idea:
 
 const toolkit = createToolkit('my-app');
-const d = toolkit.create(MyWidget, { someProperty: 'my-property' });
+const d = toolkit.create(MyWidget);
 
-/* 
-The problem with this approach is that there is no intellisense on the options.
-Need to see if there is a better way to handle the creatable options so they
-fit handlers and other utils the lambda package exports so all things are 
-constructed in a consistent way.
+/*
+This looks to be closer to what is wanted if it can be assumed that options will
+always be the 4th parameter (line 11). The problem here is that the return type
+from the factory is unknown. Need to fix that...
 */

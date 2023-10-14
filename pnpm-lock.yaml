@@ -9,7 +9,7 @@ importers:
   .:
     devDependencies:
       '@microsoft/eslint-formatter-sarif':
-        specifier: ^3.0.0
+        specifier: 3.0.0
         version: 3.0.0
       '@rapidstack/cli':
         specifier: workspace:*
@@ -57,10 +57,10 @@ importers:
         specifier: 5.0.0
         version: 5.0.0(@types/eslint@8.44.3)(eslint-config-prettier@9.0.0)(eslint@8.51.0)(prettier@3.0.3)
       eslint-plugin-regexp:
-        specifier: ^1.15.0
+        specifier: 1.15.0
         version: 1.15.0(eslint@8.51.0)
       eslint-plugin-security:
-        specifier: ^1.7.1
+        specifier: 1.7.1
         version: 1.7.1
       eslint-plugin-vitest:
         specifier: 0.3.2
@@ -896,6 +896,10 @@ packages:
 
   /@types/minimatch@5.1.2:
     resolution: {integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==}
+    dev: true
+
+  /@types/node@20.8.0:
+    resolution: {integrity: sha512-LzcWltT83s1bthcvjBmiBvGJiiUe84NWRHkw+ZV6Fr41z2FbIzvc815dk2nQ3RAKMuN2fkenM/z3Xv2QzEpYxQ==}
     dev: true
 
   /@types/node@20.8.3:

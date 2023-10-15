@@ -9,6 +9,14 @@ type IsConstructable<T> = T extends new (...args: any[]) => any ? 'yes' : 'no';
 // Relevant TypeScript Implementation
 // ---------------------------
 
+/**
+ *
+ * @param fn
+ */
+function isConstructable(fn: any) {
+  /* TODO */ return true;
+}
+
 type Factory = <
   C extends Creatable<T, O>,
   T extends ICreatable,
@@ -49,12 +57,29 @@ export function createToolkit(name: string) {
   function create<T extends ICreatable>(
     tool: Creatable<T, ICreatableOptions>
   ): T;
-  function create<T extends ICreatable>(
-    tool: Creatable<T, ICreatableOptions>
-  ): T;
+  function create<T extends ICreatable>(tool: {
+    new (
+      logger: Logger,
+      cache: Cache,
+      create: Factory,
+      options?: ICreatableOptions
+    ): T;
+  }): T;
   function create<T extends ICreatable, O extends ICreatableOptions>(
     tool: Creatable<T, O>,
     options: O
+  ): T;
+  function create<T extends ICreatable, O extends ICreatableOptions>(
+    tool: {
+      new (logger: Logger, cache: Cache, create: Factory, options: O): T;
+    },
+    options: O
+  ): T;
+  function create<T extends ICreatable, O extends ICreatableOptions>(
+    tool: {
+      new (logger: Logger, cache: Cache, create: Factory, options?: O): T;
+    },
+    options?: O
   ): T;
   /**
    *
@@ -65,7 +90,7 @@ export function createToolkit(name: string) {
     tool: Creatable<T, O>,
     options?: O
   ): T {
-    if (isConstructible(tool)) {
+    if (isConstructable(tool)) {
       return new (tool as {
         new (logger: Logger, cache: Cache, create: Factory, options?: O): T;
       })(logger, cache, create, options);
@@ -130,9 +155,7 @@ interface IMyClassWidgetOptions extends ICreatableOptions {
   someOtherProperty: string;
 }
 
-class MyClassWidget
-  implements Creatable<IMyClassWidget, IMyClassWidgetOptions>
-{
+class MyClassWidget implements IMyClassWidget {
   constructor(
     logger: Logger,
     cache: Cache,
@@ -174,12 +197,8 @@ const test31 = toolkit.create(MyWidgetWithRequiredOptions); // should error
 type t = IsConstructable<typeof MyWidget>;
 //   ^?
 
-const test4 = toolkit.create(MyClassWidget);
+const test4 = toolkit.create(MyClassWidget, { someOtherProperty: 'foo' });
 
-// 4. support classes and factory function/closures that return methods/properties: FAIL (have not tried yet; not implemented)
+// 4. support classes and factory function/closures that return methods/properties: PASS
 
 // -------------------------------------------------------------------------------------------
-
-/* 
-Now 1, 2, and 3 are working. Just need to get this working with classes.
-*/

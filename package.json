@@ -12,7 +12,8 @@
     "lint:packages": "pnpm dedupe --check",
     "lint:spelling": "cspell \"**\" \".github/**/*\"",
     "prep": "pnpm install && pnpm --filter \"@rapidstack/cli\" build --silent",
-    "test": "vitest"
+    "test": "vitest && pnpm test:post",
+    "test:post": "pnpm -r test:post"
   },
   "devDependencies": {
     "@microsoft/eslint-formatter-sarif": "3.0.0",

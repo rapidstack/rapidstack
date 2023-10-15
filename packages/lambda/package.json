@@ -4,7 +4,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest --run && pnpm test:post",
+    "test:post": "tsc -p tsconfig.test.json",
     "build": "tsc --noEmit && tsup",
     "build:watch": "tsup --watch"
   },
@@ -28,5 +29,7 @@
     "!**/tests/*.*",
     "!**/tests/*.ts.map"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "pino": "8.16.0"
+  }
 }

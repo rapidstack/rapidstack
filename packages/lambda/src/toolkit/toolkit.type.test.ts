@@ -10,7 +10,6 @@ import { describe, expectTypeOf as expect, test } from 'vitest';
 
 import type { Cache, Logger } from '../common/index.js';
 import type {
-  Creatable,
   CreateFactory,
   ICreatable,
   ICreatableOptions,
@@ -42,14 +41,16 @@ describe('createToolkit type tests:', () => {
         };
       }
 
-      const TestCreatableRequiredProps: Creatable<
-        ITestCreatable,
-        ITestCreatableRequiredOptions
-      > = (logger, cache, create, options) => {
+      function TestCreatableRequiredProps(
+        logger: Logger,
+        cache: Cache,
+        create: CreateFactory,
+        options: ITestCreatableRequiredOptions
+      ): ITestCreatable {
         return {
           testFunction: async () => 'test',
         };
-      };
+      }
 
       test('should return ICreatable', () => {
         const toolkit = createToolkit('test');

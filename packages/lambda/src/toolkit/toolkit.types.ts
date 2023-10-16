@@ -30,34 +30,7 @@ export type Creatable<
   | FunctionCreatable<CreatableInterface, Options>;
 
 export interface CreateFactory {
-  /**
-   * An abstract utility factory that automatically injects core toolkit
-   * elements like a logger, cache and factory into each implementing construct.
-   * @param tool The handler, tool, helper, or anything else that follows the
-   * interface of `Creatable`.
-   * @param options Any options that the tool may require or optionally have.
-   * @returns The created tool with injected logger and cache.
-   */
-  <I extends ICreatable, O extends ICreatableOptions>(
-    tool: Creatable<I, O>,
-    options?: O
-  ): I;
-  /**
-   * An abstract utility factory that automatically injects core toolkit
-   * elements like a logger, cache and factory into each implementing construct.
-   * @param tool The handler, tool, helper, or anything else that follows the
-   * interface of `Creatable`.
-   * @param options Any options that the tool may require or optionally have.
-   * @returns The created tool with injected logger and cache.
-   */
-  <I extends ICreatable>(tool: {
-    new (
-      logger: Logger,
-      cache: Cache,
-      create: CreateFactory,
-      options?: ICreatableOptions
-    ): I;
-  }): I;
+  /// CASE: NO OPTIONS
   /**
    * An abstract utility factory that automatically injects core toolkit
    * elements like a logger, cache and factory into each implementing construct.
@@ -75,12 +48,16 @@ export interface CreateFactory {
    * @param options Any options that the tool may require or optionally have.
    * @returns The created tool with injected logger and cache.
    */
-  <I extends ICreatable, O extends ICreatableOptions>(
-    tool: {
-      new (logger: Logger, cache: Cache, create: CreateFactory, options: O): I;
-    },
-    options: O
-  ): I;
+  <I extends ICreatable>(tool: {
+    new (
+      logger: Logger,
+      cache: Cache,
+      create: CreateFactory,
+      options?: ICreatableOptions
+    ): I;
+  }): I;
+
+  /// CASE: OPTIONAL OPTIONS
   /**
    * An abstract utility factory that automatically injects core toolkit
    * elements like a logger, cache and factory into each implementing construct.
@@ -91,6 +68,37 @@ export interface CreateFactory {
    */
   <I extends ICreatable, O extends ICreatableOptions>(
     tool: Creatable<I, O>,
+    options?: O
+  ): I;
+  /**
+   * An abstract utility factory that automatically injects core toolkit
+   * elements like a logger, cache and factory into each implementing construct.
+   * @param tool The handler, tool, helper, or anything else that follows the
+   * interface of `Creatable`.
+   * @param options Any options that the tool may require or optionally have.
+   * @returns The created tool with injected logger and cache.
+   */
+  <I extends ICreatable, O extends ICreatableOptions>(tool: {
+    new (logger: Logger, cache: Cache, create: CreateFactory, options?: O): I;
+  }): I;
+
+  /// CASE: REQUIRED OPTIONS
+  /**
+   * An abstract utility factory that automatically injects core toolkit
+   * elements like a logger, cache and factory into each implementing construct.
+   * @param tool The handler, tool, helper, or anything else that follows the
+   * interface of `Creatable`.
+   * @param options Any options that the tool may require or optionally have.
+   * @returns The created tool with injected logger and cache.
+   */
+  <I extends ICreatable, O extends ICreatableOptions>(
+    // For some reason this one will not take Creatable<I, O>...
+    tool: (
+      logger: Logger,
+      cache: Cache,
+      create: CreateFactory,
+      options: O
+    ) => I,
     options: O
   ): I;
   /**
@@ -103,9 +111,9 @@ export interface CreateFactory {
    */
   <I extends ICreatable, O extends ICreatableOptions>(
     tool: {
-      new (logger: Logger, cache: Cache, create: CreateFactory, options?: O): I;
+      new (logger: Logger, cache: Cache, create: CreateFactory, options: O): I;
     },
-    options?: O
+    options: O
   ): I;
 }
 

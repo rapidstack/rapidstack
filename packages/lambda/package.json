@@ -19,6 +19,7 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "devDependencies": {
+    "@types/aws-lambda": "8.10.124",
     "@types/node": "20.8.0",
     "vitest": "0.34.6"
   },

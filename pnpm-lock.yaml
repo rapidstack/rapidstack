@@ -127,9 +127,12 @@ importers:
   packages/lambda:
     dependencies:
       pino:
-        specifier: ^8.16.0
+        specifier: 8.16.0
         version: 8.16.0
     devDependencies:
+      '@types/aws-lambda':
+        specifier: 8.10.124
+        version: 8.10.124
       '@types/node':
         specifier: 20.8.0
         version: 20.8.0
@@ -843,6 +846,10 @@ packages:
 
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
+    dev: true
+
+  /@types/aws-lambda@8.10.124:
+    resolution: {integrity: sha512-PHqK0SuAkFS3tZjceqRXecxxrWIN3VqTicuialtK2wZmvBy7H9WGc3u3+wOgaZB7N8SpSXDpWk9qa7eorpTStg==}
     dev: true
 
   /@types/chai-subset@1.3.3:

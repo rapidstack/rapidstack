@@ -1,2 +1,2 @@
-export type Logger = 'logger' & { _type: 'logger' };
-export type Cache = 'cache' & { _type: 'cache' };
+export * from './logger.js';
+export * from './cache.js';

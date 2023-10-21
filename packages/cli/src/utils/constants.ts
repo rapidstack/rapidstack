@@ -5,7 +5,7 @@ export const ORG_NAME = 'rapidstack' as const;
 export const SEMVER_REGEX =
   // verified safe with a ReDoS checker
   // eslint-disable-next-line security/detect-unsafe-regex
-  /^(\d+\.\d+\.\d+)(?:-([\dA-Za-z-]+(?:\.[\dA-Fa-f]{7})?))?$/;
+  /^(\d+\.\d+\.\d+)(?:-([\dA-Z]+(?:\.[\dA-F]{7})?))?$/i;
 
 export const DEBUG_FLAG_REGEX = /^-([a-ce-z]*d[a-ce-z]*)$/i;
 

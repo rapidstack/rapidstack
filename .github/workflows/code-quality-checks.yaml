@@ -205,8 +205,8 @@ jobs:
         run: |
           if [[ ${{ steps.lint-packages.outcome }} == 'failure' ]]; then
             echo "Dedupe is required."
-            git config --global user.name "Your Name"
-            git config --global user.email "youremail@example.com"
+            git config --global user.email "action@github.com"
+            git config --global user.name "Github Actions"
             pnpm dedupe
             git add -A
             git commit -m "De-dupe pnpm lockfile"

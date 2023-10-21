@@ -193,6 +193,10 @@ jobs:
         run: pnpm lint:packages
         continue-on-error: true
 
+      - name: Auto-fix dedupe
+        if: ${{ steps.lint-packages.outcome == 'failure' }}
+        run: pnpm dedupe
+
       - name: Spell Check (cspell)
         run: pnpm lint:spelling
         continue-on-error: true
@@ -219,3 +223,7 @@ jobs:
         with:
           sarif_file: eslint.sarif
           wait-for-processing: true
+
+      - name: Report Failures
+        if: ${{ failure() }}
+        run: exit 1

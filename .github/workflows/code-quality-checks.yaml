@@ -209,7 +209,7 @@ jobs:
           pnpm dedupe
           git add -A
           git commit -m "De-dupe pnpm lockfile"
-          git push origin ${{ github.ref }}
+          git push origin HEAD:${{ github.ref }}
 
       - name: Clean Sarif File
         run: node ./.github/codeql/sarif-cleanup.js

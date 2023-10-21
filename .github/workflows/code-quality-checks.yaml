@@ -229,11 +229,11 @@ jobs:
 
       - name: Remove Trigger Label
         uses: actions/github-script@v5
-        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'Trigger Actions') }}
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'trigger actions') }}
         with:
           script: |
-            github.issues.removeLabel({
-              issue_number: context.issue.number,
+            github.rest.issues.removeLabel({
+              issue_number: context.payload.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'Trigger Actions'

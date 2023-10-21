@@ -25,7 +25,7 @@ export async function action(): Promise<void> {
     'create',
     'create-plugin',
     // 'cloud',
-    // 'lambda',
+    'lambda',
     // 'react',
   ];
   const secondGroupJobs = secondGroup.map(async (pkg) => {

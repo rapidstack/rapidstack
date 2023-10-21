@@ -1,4 +1,4 @@
-import type { Cache, Logger } from '../common/index.js';
+import type { Cache, ICache, Logger } from '../common/index.js';
 
 export interface ICreatable {}
 export interface ICreatableOptions {
@@ -118,8 +118,13 @@ export interface CreateFactory {
 }
 
 export type Toolkit = {
-  cache: Cache;
   create: CreateFactory;
-  logger: Logger;
   name: string;
+};
+
+export type ToolkitOptions = {
+  additionalLoggerEntries?: Record<string, unknown>;
+  cache?: ICache;
+  defaultCacheTtl?: number;
+  logger?: Logger;
 };

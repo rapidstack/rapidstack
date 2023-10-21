@@ -2,6 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable jsdoc/check-tag-names */
+/* eslint-disable jsdoc/no-types */
 
 const { builtinModules } = require('module');
 
@@ -81,7 +82,7 @@ module.exports = rules;
  * Determines if a function contains a throw statement.
  * Used in the 'jsdoc-require-throws-async' rule.
  * @param node {object}
- * @returns value
+ * @returns {boolean} - true if the function contains a throw statement
  */
 function checkForThrows(node) {
   if (node.type === 'ThrowStatement') return true;
@@ -94,4 +95,6 @@ function checkForThrows(node) {
   for (const child of nodeToCheck.body) {
     if (checkForThrows(child)) return true;
   }
+
+  return false;
 }

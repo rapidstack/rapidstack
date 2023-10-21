@@ -228,7 +228,7 @@ jobs:
           wait-for-processing: true
 
       - name: Remove Trigger Label
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'trigger actions') }}
         with:
           script: |

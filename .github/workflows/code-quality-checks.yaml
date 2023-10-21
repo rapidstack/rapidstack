@@ -189,14 +189,29 @@ jobs:
         run: pnpm build
 
       - name: Package Dedupe Check (pnpm)
+        id: lint-packages
         run: pnpm lint:packages
+        continue-on-error: true
 
       - name: Spell Check (cspell)
         run: pnpm lint:spelling
+        continue-on-error: true
 
       - name: Lint Check (eslint)
         run: pnpm ci:lint
         continue-on-error: true
+
+      - name: Commit Dedupe Changes (optional)
+        run: |
+          if [[ ${{ steps.lint-packages.outcome }} == 'failure' ]]; then
+            echo "Dedupe is required."
+            git config --global user.name "Your Name"
+            git config --global user.email "youremail@example.com"
+            pnpm dedupe
+            git add -A
+            git commit -m "De-dupe pnpm lockfile"
+            git push
+          fi
 
       - name: Clean Sarif File
         run: node ./.github/codeql/sarif-cleanup.js

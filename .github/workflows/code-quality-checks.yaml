@@ -14,6 +14,7 @@ on:
       - synchronize
       - ready_for_review
       - reopened
+      - labeled
     paths:
       - '**.ts'
       - '**.*js'
@@ -139,7 +140,7 @@ jobs:
       - name: Qodana Scan
         uses: JetBrains/qodana-action@v2023.2.8
         with:
-          pr-mode: ${{ github.event_name == 'pull_request' }}
+          pr-mode: false
           post-pr-comment: false
 
       - name: Upload Results
@@ -189,14 +190,33 @@ jobs:
         run: pnpm build
 
       - name: Package Dedupe Check (pnpm)
+        id: packages-check
         run: pnpm lint:packages
+        continue-on-error: true
+
+      - name: Auto-fix Dedupe
+        if: ${{ steps.packages-check.outcome == 'failure' }}
+        run: pnpm dedupe
 
       - name: Spell Check (cspell)
+        id: spell-check
         run: pnpm lint:spelling
+        continue-on-error: true
 
       - name: Lint Check (eslint)
+        id: lint-check
         run: pnpm ci:lint
         continue-on-error: true
+
+      - name: Commit Auto-fixable Changes (if failed check)
+        if: ${{ github.event_name == 'pull_request' && steps.packages-check.outcome == 'failure' }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Dedupe package dependencies
+          file_pattern: 'pnpm-lock.yaml'
+          commit_user_name: GitHub Actions
+          commit_user_email: action@github.com
+          commit_author: GitHub Actions <actions@github.com>
 
       - name: Clean Sarif File
         run: node ./.github/codeql/sarif-cleanup.js
@@ -206,3 +226,19 @@ jobs:
         with:
           sarif_file: eslint.sarif
           wait-for-processing: true
+
+      - name: Remove Trigger Label
+        uses: actions/github-script@v6
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'trigger actions') }}
+        with:
+          script: |
+            github.rest.issues.removeLabel({
+              issue_number: context.payload.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Trigger Actions'
+            })
+
+      - name: Report Failures
+        if: ${{ steps.packages-check.outcome == 'failure' ||  steps.spell-check.outcome == 'failure' || steps.lint-check.outcome == 'failure' }}
+        run: exit 1

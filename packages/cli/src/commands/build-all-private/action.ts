@@ -15,7 +15,7 @@ export async function action(): Promise<void> {
     // 'test-utils'
   ];
   const firstGroupJobs = firstGroup.map(async (pkg) => {
-    buildPackage(repoRoot, pkg);
+    await buildPackage(repoRoot, pkg);
   });
   await Promise.all(firstGroupJobs);
 
@@ -29,7 +29,7 @@ export async function action(): Promise<void> {
     // 'react',
   ];
   const secondGroupJobs = secondGroup.map(async (pkg) => {
-    buildPackage(repoRoot, pkg);
+    await buildPackage(repoRoot, pkg);
   });
   await Promise.all(secondGroupJobs);
 }

@@ -201,17 +201,15 @@ jobs:
         run: pnpm ci:lint
         continue-on-error: true
 
-      - name: Commit Dedupe Changes (optional)
+      - name: Commit Dedupe Changes (if failed check)
+        if: ${{ github.event_name == 'pull_request' && steps.lint-packages.outcome == 'failure' }}
         run: |
-          if [[ ${{ steps.lint-packages.outcome }} == 'failure' ]]; then
-            echo "Dedupe is required."
-            git config --global user.email "action@github.com"
-            git config --global user.name "Github Actions"
-            pnpm dedupe
-            git add -A
-            git commit -m "De-dupe pnpm lockfile"
-            git push
-          fi
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Actions"
+          pnpm dedupe
+          git add -A
+          git commit -m "De-dupe pnpm lockfile"
+          git push origin ${{ github.ref }}
 
       - name: Clean Sarif File
         run: node ./.github/codeql/sarif-cleanup.js

@@ -53,7 +53,7 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yaml
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -108,7 +108,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -160,7 +160,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 

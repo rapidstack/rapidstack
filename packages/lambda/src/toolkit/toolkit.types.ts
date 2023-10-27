@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ICache, ILogger } from '../common/index.js';
 
 export interface ICreatableReturn {}
@@ -5,9 +6,15 @@ export interface ICreatableConfig {
   cacheTtl?: false | number;
 }
 
+export type CreatableUtils = {
+  cache: ICache;
+  create: CreatableFactory;
+  logger: ILogger;
+};
+
 export type CreatableParameters<
   Config extends ICreatableConfig = ICreatableConfig,
-> = [logger: ILogger, cache: ICache, create: CreatableFactory, config?: Config];
+> = [utils: CreatableUtils, config?: Config];
 
 export type ClassCreatable<
   Config extends ICreatableConfig,
@@ -26,7 +33,7 @@ export type Creatable<
 
 export type InferConfig<C extends Creatable<any, any>> = C extends Creatable<
   infer Config,
-  infer Return
+  any
 >
   ? Config
   : never;

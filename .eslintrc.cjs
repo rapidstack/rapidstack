@@ -133,7 +133,6 @@ const config = {
     {
       files: ['packages/lambda/src/**/*.ts'],
       rules: {
-        'max-params': ['error', 4],
         'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
       },
     },

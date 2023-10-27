@@ -2,9 +2,8 @@
 
 import { describe, expectTypeOf as expect, test } from 'vitest';
 
-import type { ICache, ILogger } from '../common/index.js';
 import type {
-  CreatableFactory,
+  CreatableUtils,
   ICreatableConfig,
   ICreatableReturn,
 } from './toolkit.types.js';
@@ -25,9 +24,7 @@ describe('createToolkit type tests:', () => {
       }
 
       function TestCreatable(
-        logger: ILogger,
-        cache: ICache,
-        create: CreatableFactory,
+        utils: CreatableUtils,
         config?: ITestCreatableConfig
       ): ITestCreatable {
         return {
@@ -36,9 +33,7 @@ describe('createToolkit type tests:', () => {
       }
 
       function TestCreatableRequiredProps(
-        logger: ILogger,
-        cache: ICache,
-        create: CreatableFactory,
+        utils: CreatableUtils,
         config?: ITestCreatableRequiredConfig
       ): ITestCreatable {
         return {
@@ -91,12 +86,7 @@ describe('createToolkit type tests:', () => {
       }
 
       class TestCreatable implements ITestCreatable {
-        constructor(
-          logger: ILogger,
-          cache: ICache,
-          create: CreatableFactory,
-          options?: ITestCreatableConfig
-        ) {}
+        constructor(utils: CreatableUtils, options?: ITestCreatableConfig) {}
         public async testFunction() {
           return 'test';
         }
@@ -104,9 +94,7 @@ describe('createToolkit type tests:', () => {
 
       class TestCreatableRequiredProps implements ITestCreatable {
         constructor(
-          logger: ILogger,
-          cache: ICache,
-          create: CreatableFactory,
+          utils: CreatableUtils,
           options?: ITestCreatableRequiredConfig
         ) {}
         public async testFunction() {

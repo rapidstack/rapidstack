@@ -18,10 +18,11 @@ export function createToolkit(name: string, options?: ToolkitOptions): Toolkit {
   const cache = (options?.cache || {}) as ICache;
 
   const create: CreatableFactory = (...args) => {
+    const utils = { cache, create, logger };
     const [tool, options] = args;
-    if (isConstructable(tool)) return new tool(logger, cache, create, options);
+    if (isConstructable(tool)) return new tool(utils, options);
 
-    return tool(logger, cache, create, options);
+    return tool(utils, options);
   };
 
   return {

@@ -1,52 +1,72 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import type { Context } from 'aws-lambda';
 
-import type { Cache, Logger } from '../../common/index.js';
-import type { ICreatable } from '../../toolkit/index.js';
+import type { ICache, ILogger } from '../../common/index.js';
+import type {
+  CreatableUtils,
+  ICreatableConfig,
+  ICreatableReturn,
+} from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 
-export interface IGenericHandler extends ICreatable {
+export interface GenericHandlerReturn<
+  EventT,
+  ReturnT,
+  ExtraT extends Record<string, any> = Record<string, any>,
+> extends ICreatableReturn {
   <Event, Result>(
-    runner: (params: {
-      Logger: Logger;
-      cache: Cache;
-      context: Context;
-      event: Event;
-    }) => Promise<Result>
-  ): LambdaEntryPoint<Event, Result>;
+    runner: (
+      params: {
+        cache: ICache;
+        context: Context;
+        event: EventT;
+        logger: ILogger;
+      } & ExtraT
+    ) => Promise<ReturnT>
+  ): LambdaEntryPoint<Event, ReturnT>;
+}
+
+export interface GenericHandlerConfig<EventT, ReturnT, ExtraT>
+  extends ICreatableConfig {
+  onRequestStart?: (props: {
+    event: EventT;
+    logger: ILogger;
+  }) => Promise<() => any> | Promise<{} | ExtraT>;
 }
 
 /**
- *
- * @param logger the logger instance passed from the factory
- * @param cache the cache instance passed from the factory
+ * Creates a generic handler that can be used to wrap a lambda entry point.
+ * @param utils the common toolkit utils passed from the factory
+ * @param config optional configuration for the generic handler
  * @returns a runner function that wraps the lambda entry point
  */
-export function GenericHandler(logger: Logger, cache: Cache) {
-  return <
-    Event,
-    Result,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Extra extends Record<string, any> = Record<string, any>,
-  >(
+export const GenericHandler = <
+  EventT,
+  ReturnT,
+  ExtraT extends Record<string, any> = Record<string, any>,
+>(
+  utils: CreatableUtils,
+  config?: GenericHandlerConfig<EventT, ReturnT, ExtraT>
+) => {
+  return (
     runner: (
       props: {
-        Logger: Logger;
-        cache: Cache;
+        cache: ICache;
         context: Context;
         event: Event;
-      } & Extra
-    ) => Promise<Result>
+        logger: ILogger;
+      } & EventT
+    ) => Promise<ReturnT>
   ) => {
-    return async (event: Event, context: Context): Promise<Result> => {
+    return async (event: Event, context: Context): Promise<ReturnT> => {
       return await runner({
-        Logger: logger,
-        cache,
+        cache: utils.cache,
         context,
         event,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+        logger: utils.logger,
+      });
     };
   };
-}
+};

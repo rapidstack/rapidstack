@@ -5,8 +5,8 @@ import { describe, expectTypeOf as expect, test } from 'vitest';
 import type { ICache, ILogger } from '../common/index.js';
 import type {
   CreatableFactory,
-  ICreatableReturn,
   ICreatableConfig,
+  ICreatableReturn,
 } from './toolkit.types.js';
 
 import { createToolkit } from './toolkit.js';
@@ -72,9 +72,7 @@ describe('createToolkit type tests:', () => {
       test('should require non-optional properties - second parameter', () => {
         const toolkit = createToolkit('test');
         const properties = { requiredProperty: 'test' };
-        toolkit.create(TestCreatableRequiredProps, {
-          requiredProperty: 'foo',
-        });
+        toolkit.create(TestCreatableRequiredProps, properties);
 
         // isn't feasibly testable with vitest - rely on ts errors
         expect(properties).toMatchTypeOf<ITestCreatableRequiredConfig>();

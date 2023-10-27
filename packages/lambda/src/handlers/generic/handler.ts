@@ -4,69 +4,41 @@
 import type { Context } from 'aws-lambda';
 
 import type { ICache, ILogger } from '../../common/index.js';
-import type {
-  CreatableUtils,
-  ICreatableConfig,
-  ICreatableReturn,
-} from '../../toolkit/index.js';
+import type { CreatableUtils, ICreatableReturn } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 
-export interface GenericHandlerReturn<
-  EventT,
-  ReturnT,
-  ExtraT extends Record<string, any> = Record<string, any>,
-> extends ICreatableReturn {
-  <Event, Result>(
-    runner: (
-      params: {
-        cache: ICache;
-        context: Context;
-        event: EventT;
-        logger: ILogger;
-      } & ExtraT
-    ) => Promise<ReturnT>
-  ): LambdaEntryPoint<Event, ReturnT>;
+import {
+  type GenericHandlerConfig,
+  genericHandlerLifecycle,
+} from './lifecycle.js';
+
+interface GenericHandlerReturn<Event, Return> extends ICreatableReturn {
+  (event: Event, context: Context): Promise<Return>;
 }
 
-export interface GenericHandlerConfig<EventT, ReturnT, ExtraT>
-  extends ICreatableConfig {
-  onRequestStart?: (props: {
-    event: EventT;
-    logger: ILogger;
-  }) => Promise<() => any> | Promise<{} | ExtraT>;
-}
-
-/**
- * Creates a generic handler that can be used to wrap a lambda entry point.
- * @param utils the common toolkit utils passed from the factory
- * @param config optional configuration for the generic handler
- * @returns a runner function that wraps the lambda entry point
- */
 export const GenericHandler = <
-  EventT,
-  ReturnT,
-  ExtraT extends Record<string, any> = Record<string, any>,
+  Event,
+  Return,
+  Extra extends {} | Record<string, any> = {},
 >(
   utils: CreatableUtils,
-  config?: GenericHandlerConfig<EventT, ReturnT, ExtraT>
+  options?: GenericHandlerConfig<Event, Return, Extra>
 ) => {
   return (
-    runner: (
-      props: {
-        cache: ICache;
-        context: Context;
-        event: Event;
-        logger: ILogger;
-      } & EventT
-    ) => Promise<ReturnT>
-  ) => {
-    return async (event: Event, context: Context): Promise<ReturnT> => {
-      return await runner({
-        cache: utils.cache,
+    runnerFunction: (
+      params: { context: Context; event: Event; logger: ILogger } & Extra
+    ) => Promise<Return>
+  ): GenericHandlerReturn<Event, Return> =>
+    (async (event: Event, context: Context) => {
+      return genericHandlerLifecycle({
         context,
         event,
+        // eslint-disable-next-line max-params
+        functionToRun: async (logger, event, context, extra = {} as any) =>
+          runnerFunction({ context, event, logger, ...extra }),
         logger: utils.logger,
+        name: 'GenericHandler',
+        options,
       });
-    };
-  };
+    }) as LambdaEntryPoint<Event, Return>;
 };

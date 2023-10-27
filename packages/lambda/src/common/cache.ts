@@ -3,6 +3,11 @@
 import { isSafeKey } from '../utils/object.js';
 
 export interface ICache {}
+export interface ICacheOptions {
+  clones?: boolean;
+  storeType: 'map' | 'object';
+  ttl?: number;
+}
 export class Cache {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected store: Record<string, any> = Object.create(null);

@@ -1,18 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-/**
- * Note: Tests here are a combination of vitest type testing and tsc type
- * checking with the `test:post` script. Though some of the tests here may look
- * pointless, they are being tested in one way or another.
- */
-
 import { describe, expectTypeOf as expect, test } from 'vitest';
 
-import type { Cache, Logger } from '../common/index.js';
+import type { ICache, ILogger } from '../common/index.js';
 import type {
-  CreateFactory,
-  ICreatable,
-  ICreatableOptions,
+  CreatableFactory,
+  ICreatableReturn,
+  ICreatableConfig,
 } from './toolkit.types.js';
 
 import { createToolkit } from './toolkit.js';
@@ -20,21 +14,21 @@ import { createToolkit } from './toolkit.js';
 describe('createToolkit type tests:', () => {
   describe('createToolkit `create` factory success cases:', () => {
     describe('functional:', () => {
-      interface ITestCreatable extends ICreatable {
+      interface ITestCreatable extends ICreatableReturn {
         testFunction: () => Promise<string>;
       }
-      interface ITestCreatableOptions extends ICreatableOptions {
+      interface ITestCreatableConfig extends ICreatableConfig {
         optionalProperty?: string;
       }
-      interface ITestCreatableRequiredOptions extends ICreatableOptions {
+      interface ITestCreatableRequiredConfig extends ICreatableConfig {
         requiredProperty: string;
       }
 
       function TestCreatable(
-        logger: Logger,
-        cache: Cache,
-        create: CreateFactory,
-        options?: ITestCreatableOptions
+        logger: ILogger,
+        cache: ICache,
+        create: CreatableFactory,
+        config?: ITestCreatableConfig
       ): ITestCreatable {
         return {
           testFunction: async () => 'test',
@@ -42,10 +36,10 @@ describe('createToolkit type tests:', () => {
       }
 
       function TestCreatableRequiredProps(
-        logger: Logger,
-        cache: Cache,
-        create: CreateFactory,
-        options: ITestCreatableRequiredOptions
+        logger: ILogger,
+        cache: ICache,
+        create: CreatableFactory,
+        config?: ITestCreatableRequiredConfig
       ): ITestCreatable {
         return {
           testFunction: async () => 'test',
@@ -56,7 +50,7 @@ describe('createToolkit type tests:', () => {
         const toolkit = createToolkit('test');
         const creatable = toolkit.create(TestCreatable);
 
-        expect(creatable).toMatchTypeOf<ICreatable>();
+        expect(creatable).toMatchTypeOf<ICreatableReturn>();
       });
       test('should return interface of extended creatable', () => {
         const toolkit = createToolkit('test');
@@ -73,35 +67,37 @@ describe('createToolkit type tests:', () => {
         toolkit.create(TestCreatable, properties);
 
         // isn't feasibly testable with vitest - rely on ts errors
-        expect(properties).toMatchTypeOf<ITestCreatableOptions>();
+        expect(properties).toMatchTypeOf<ITestCreatableConfig>();
       });
       test('should require non-optional properties - second parameter', () => {
         const toolkit = createToolkit('test');
         const properties = { requiredProperty: 'test' };
-        toolkit.create(TestCreatableRequiredProps, properties);
+        toolkit.create(TestCreatableRequiredProps, {
+          requiredProperty: 'foo',
+        });
 
         // isn't feasibly testable with vitest - rely on ts errors
-        expect(properties).toMatchTypeOf<ITestCreatableRequiredOptions>();
+        expect(properties).toMatchTypeOf<ITestCreatableRequiredConfig>();
       });
     });
 
     describe('class:', () => {
-      interface ITestCreatable extends ICreatable {
+      interface ITestCreatable extends ICreatableReturn {
         testFunction: () => Promise<string>;
       }
-      interface ITestCreatableOptions extends ICreatableOptions {
+      interface ITestCreatableConfig extends ICreatableConfig {
         optionalProperty?: string;
       }
-      interface ITestCreatableRequiredOptions extends ICreatableOptions {
+      interface ITestCreatableRequiredConfig extends ICreatableConfig {
         requiredProperty: string;
       }
 
       class TestCreatable implements ITestCreatable {
         constructor(
-          logger: Logger,
-          cache: Cache,
-          create: CreateFactory,
-          options?: ITestCreatableOptions
+          logger: ILogger,
+          cache: ICache,
+          create: CreatableFactory,
+          options?: ITestCreatableConfig
         ) {}
         public async testFunction() {
           return 'test';
@@ -110,10 +106,10 @@ describe('createToolkit type tests:', () => {
 
       class TestCreatableRequiredProps implements ITestCreatable {
         constructor(
-          logger: Logger,
-          cache: Cache,
-          create: CreateFactory,
-          options: ITestCreatableRequiredOptions
+          logger: ILogger,
+          cache: ICache,
+          create: CreatableFactory,
+          options?: ITestCreatableRequiredConfig
         ) {}
         public async testFunction() {
           return 'test';
@@ -124,13 +120,13 @@ describe('createToolkit type tests:', () => {
         const toolkit = createToolkit('test');
         const creatable = toolkit.create(TestCreatable);
 
-        expect(creatable).toMatchTypeOf<ICreatable>();
+        expect(creatable).toMatchTypeOf<ICreatableReturn>();
       });
       test('should return interface of extended creatable', () => {
         const toolkit = createToolkit('test');
         const creatable = toolkit.create(TestCreatable);
 
-        expect(creatable).toMatchTypeOf<ITestCreatable>();
+        expect(creatable).toMatchTypeOf<ICreatableReturn>();
         expect(creatable.testFunction).toMatchTypeOf<
           ITestCreatable['testFunction']
         >();
@@ -141,7 +137,7 @@ describe('createToolkit type tests:', () => {
         toolkit.create(TestCreatable, properties);
 
         // isn't feasibly testable with vitest - rely on ts errors
-        expect(properties).toMatchTypeOf<ITestCreatableOptions>();
+        expect(properties).toMatchTypeOf<ITestCreatableConfig>();
       });
       test('should require non-optional properties - second parameter', () => {
         const toolkit = createToolkit('test');
@@ -149,7 +145,7 @@ describe('createToolkit type tests:', () => {
         toolkit.create(TestCreatableRequiredProps, properties);
 
         // isn't feasibly testable with vitest - rely on ts errors
-        expect(properties).toMatchTypeOf<ITestCreatableRequiredOptions>();
+        expect(properties).toMatchTypeOf<ITestCreatableRequiredConfig>();
       });
     });
   });

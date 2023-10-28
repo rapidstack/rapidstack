@@ -4,42 +4,48 @@
 import type { Context } from 'aws-lambda';
 
 import type { ICache, ILogger } from '../../common/index.js';
-import type { CreatableUtils, ICreatableReturn } from '../../toolkit/index.js';
+import type { CreatableUtils, ICreatableConfig } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 
 import {
-  type GenericHandlerConfig,
-  genericHandlerLifecycle,
+  type CommonHandlerOptions,
+  executeCommonLambdaFlow,
 } from './lifecycle.js';
 
-export interface GenericHandlerReturn extends ICreatableReturn {
-  (event: any, context: Context): Promise<any>;
+type GenericHandlerT = <
+  EventT,
+  ResultT,
+  ExtraParamsT extends {} | Record<string, any> = {},
+>(
+  runnerFunction: (
+    params: {
+      context: Context;
+      event: EventT;
+      logger: ILogger;
+    } & ExtraParamsT
+  ) => Promise<ResultT>,
+  options?: CommonHandlerOptions<EventT, ResultT, ExtraParamsT>
+) => LambdaEntryPoint<EventT, ResultT>;
+
+interface GenericHandlerConfig extends ICreatableConfig {
+  name?: string;
 }
 
-export const GenericHandler = <
-  Event,
-  Return,
-  Extra extends Record<string, any> | object = object,
->(
+export const GenericHandler = (
   utils: CreatableUtils,
-  options?: GenericHandlerConfig
-) => {
-  return (
-    runnerFunction: (
-      params: { context: Context; event: Event; logger: ILogger } & Extra
-    ) => Promise<Return>
-  ): GenericHandlerReturn =>
-    (async (event: Event, context: Context) => {
-      return genericHandlerLifecycle({
-        context,
-        event,
-        // eslint-disable-next-line max-params
-        cache: utils.cache,
-        functionToRun: async (logger, event, context, extra = {} as object) =>
-          runnerFunction({ context, event, logger, ...(extra = {} as any) }),
-        logger: utils.logger,
-        name: 'GenericHandler',
-        options,
-      });
-    }) as LambdaEntryPoint<Event, Return>;
+  config?: GenericHandlerConfig
+): GenericHandlerT => {
+  return (runnerFunction, options) => async (event, context) => {
+    return executeCommonLambdaFlow({
+      cache: utils.cache,
+      context,
+      event,
+      // eslint-disable-next-line max-params
+      functionToRun: async (logger, event, context, extra = {} as any) =>
+        runnerFunction({ context, event, logger, ...extra }),
+      logger: utils.logger,
+      name: config?.name ?? 'GenericHandler (unnamed)',
+      options,
+    });
+  };
 };

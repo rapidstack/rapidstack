@@ -1,6 +1,5 @@
 import { createToolkit } from '../../toolkit/index.js';
 import { GenericHandler } from './handler.js';
-import { type CommonHookProps } from './lifecycle.js';
 
 const toolkit = createToolkit('test');
 
@@ -14,23 +13,22 @@ type MyEvent = {
 type MyExtra = { foo: string };
 type MyReturnT = { bar: number };
 
-const runnerFn = toolkit.create(GenericHandler, {
-  onRequestStart: async ({ event, logger }: CommonHookProps<MyEvent>) => {
-    logger.info({
-      event: event.abc,
-      msg: 'starting pre-request hook',
-    });
-    if (!event.abc) {
-      return () =>
-        ({
-          bar: 123,
-        }) as MyReturnT;
-    }
+const runnerFn = toolkit.create(GenericHandler);
 
-    return { foo: 'bar' } as MyExtra;
+export const handler = runnerFn<MyEvent, MyReturnT, MyExtra>(
+  async ({ event, foo, logger }) => {
+    const e = event as MyEvent;
+    logger.info({ foo, msg: 'foo value' });
+    return { bar: e.abc };
   },
-});
+  {
+    onRequestStart: async ({ event }) => {
+      if (!event)
+        return () => {
+          return { bar: 0 } as MyReturnT;
+        };
 
-export const handler = runnerFn(async ({ event }) => {
-  return event;
-});
+      return { foo: 'bar' } as MyExtra;
+    },
+  }
+);

@@ -13,13 +13,14 @@ type MyEvent = {
 type MyExtra = { foo: string };
 type MyReturnT = { bar: number };
 
-const runnerFn = toolkit.create(GenericHandler);
+const runnerFn = toolkit.create(GenericHandler, {
+  name: 'TestHandler',
+});
 
 export const handler = runnerFn<MyEvent, MyReturnT, MyExtra>(
   async ({ event, foo, logger }) => {
-    const e = event as MyEvent;
     logger.info({ foo, msg: 'foo value' });
-    return { bar: e.abc };
+    return { bar: event.abc };
   },
   {
     onRequestStart: async ({ event }) => {

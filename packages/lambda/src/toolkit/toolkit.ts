@@ -14,6 +14,9 @@ import { isConstructable } from '../utils/index.js';
  * @returns a toolkit that can be used to create tools
  */
 export function createToolkit(name: string, options?: ToolkitOptions): Toolkit {
+  // Used to detect if called from a cold start in handlers
+  process.env.RAPIDSTACK_COLD_START = '1';
+
   const logger = (options?.logger || {}) as ILogger;
   const cache = (options?.cache || {}) as ICache;
 

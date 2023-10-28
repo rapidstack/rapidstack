@@ -1,9 +1,12 @@
 import type { P } from 'pino';
 
-import { type EventEmitter } from 'node:events';
 import { pino } from 'pino';
 
 type LogMessage = ({ msg: string } & Record<string, unknown>) | string;
+type SummaryMessage = {
+  conclusion: 'failure' | 'success';
+  duration: number;
+} & Record<string, number | string>;
 
 type LoggerConfig = {
   base?: Record<string, unknown>;
@@ -20,11 +23,35 @@ export interface ILogger {
   error(msg: LogMessage): void;
   fatal(msg: LogMessage): void;
   info(msg: LogMessage): void;
-  summary(msg: LogMessage): void;
+  summary(msg: SummaryMessage): void;
   trace(msg: LogMessage): void;
   warn(msg: LogMessage): void;
 }
 
+interface LoggerEvents {
+  emit(
+    event: 'log',
+    level: 'debug' | 'error' | 'fatal' | 'info' | 'trace' | 'warn',
+    msg: LogMessage,
+    props: Record<string, unknown> | null | undefined
+  ): boolean;
+  emit(
+    event: 'log',
+    level: 'summary',
+    msg: SummaryMessage,
+    props: Record<string, unknown> | null | undefined
+  ): boolean;
+  emit(event: 'end'): boolean;
+  on(
+    event: 'log',
+    listener: (
+      level: string,
+      msg: LogMessage,
+      props: Record<string, unknown> | null | undefined
+    ) => void
+  ): this;
+  on(event: 'end', listener: () => void): this;
+}
 /**
  * Logger that outputs a set of standard properties for each log message:
  * ```
@@ -33,6 +60,7 @@ export interface ILogger {
  * '@m': the message of the log
  * '@l': the level of the log
  * '@a': the application name
+ * '@r': the request info for the relevant run
  * ```
  */
 export class Logger implements ILogger {
@@ -41,7 +69,7 @@ export class Logger implements ILogger {
   protected pinoOptions: P.LoggerOptions;
   constructor(
     config: LoggerConfig = {},
-    protected emitter?: EventEmitter
+    protected emitter?: LoggerEvents
   ) {
     this.pinoOptions = {
       base: {
@@ -102,7 +130,7 @@ export class Logger implements ILogger {
     this.emitter?.emit('log', 'info', str, this.pinoOptions.base);
   }
 
-  public summary(str: LogMessage): void {
+  public summary(str: SummaryMessage): void {
     this.logger.summary(str);
     this.emitter?.emit('log', 'summary', str, this.pinoOptions.base);
   }
@@ -117,3 +145,9 @@ export class Logger implements ILogger {
     this.emitter?.emit('log', 'warn', str, this.pinoOptions.base);
   }
 }
+
+const logger = new Logger();
+
+logger.info('hello!');
+const c = logger.child({ hierarchicalName: 'my-helper' });
+c.info('hello from child');

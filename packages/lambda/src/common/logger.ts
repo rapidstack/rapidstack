@@ -145,9 +145,3 @@ export class Logger implements ILogger {
     this.emitter?.emit('log', 'warn', str, this.pinoOptions.base);
   }
 }
-
-const logger = new Logger();
-
-logger.info('hello!');
-const c = logger.child({ hierarchicalName: 'my-helper' });
-c.info('hello from child');

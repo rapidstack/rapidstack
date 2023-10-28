@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "test": "vitest --run && pnpm test:post",
-    "test:post": "tsc -p tsconfig.test.json",
     "build": "tsc --noEmit && tsup",
     "build:watch": "tsup --watch"
   },

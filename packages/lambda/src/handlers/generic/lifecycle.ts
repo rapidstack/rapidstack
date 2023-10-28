@@ -1,12 +1,27 @@
 import { type Context } from 'aws-lambda';
 
-import { type ILogger } from '../../common/index.js';
+import { type ICache, type ILogger } from '../../common/index.js';
 import { type ICreatableConfig } from '../../toolkit/index.js';
-export interface GenericHandlerConfig<
-  Event,
-  Return,
-  Extra extends Record<string, any> | undefined,
-> extends ICreatableConfig {
+
+type CommonHookUtils = {
+  cache: ICache;
+  context: Context;
+  logger: ILogger;
+};
+
+export type CommonHookProps<Event> = {
+  event: Event;
+} & CommonHookUtils;
+
+export type OnErrorHookProps<Event> = {
+  error: unknown;
+} & CommonHookProps<Event>;
+
+export type OnRequestEndHookProps<Event, Return> = {
+  result: Return;
+} & CommonHookProps<Event>;
+
+export interface GenericHandlerConfig extends ICreatableConfig {
   /**
    * If the lambda is cold started, this function, if supplied, will be called
    * to handle the cold start. It does not interrupt the critical path of the
@@ -16,22 +31,13 @@ export interface GenericHandlerConfig<
    * this function will not be called._
    * @returns {void}
    */
-  onColdStart?: (params: {
-    context: Context;
-    event: Event;
-    logger: ILogger;
-  }) => Promise<void>;
+  onColdStart?: <Event>(params: CommonHookProps<Event>) => Promise<void>;
   /**
    * If an error is thrown in the runnerFunction, this function, if supplied,
    * will be called to handle the error.
    * @returns {ResultT} A response object to return to the caller.
    */
-  onError?: (params: {
-    context: Context;
-    error: Error;
-    event: Event;
-    logger: ILogger;
-  }) => Promise<Return>;
+  onError?: <Event, Return>(params: OnErrorHookProps<Event>) => Promise<Return>;
   /**
    * If the lambda is configured to be a "hot function", this routine is called
    * to handle resources that need to be kept warm.
@@ -40,11 +46,7 @@ export interface GenericHandlerConfig<
    * called._
    * @returns {void}
    */
-  onHotFunctionTrigger?: (params: {
-    context: Context;
-    event: Event;
-    logger: ILogger;
-  }) => Promise<void>;
+  onHotFunctionTrigger?: (params: CommonHookUtils) => Promise<void>;
   /**
    * A function to run right before the Lambda container calls SIGTERM on the
    * node process. Can be used to safely wind down any resources that need to be
@@ -61,12 +63,9 @@ export interface GenericHandlerConfig<
    * Anything thrown in this function will be caught and handled by the
    * `onError` function, if supplied.
    */
-  onRequestEnd?: (params: {
-    context: Context;
-    event: Event;
-    logger: ILogger;
-    result: Return;
-  }) => Promise<(() => Return) | void>;
+  onRequestEnd?: <Event, Return>(
+    params: OnRequestEndHookProps<Event, Return>
+  ) => Promise<(() => Return) | void>;
   /**
    * A function to run before the main lambda handler function is called. Can be
    * used to transform and/or enrich the main function's parameters by returning
@@ -76,11 +75,9 @@ export interface GenericHandlerConfig<
    * Anything thrown in this function will be caught and handled by the
    * `onError` function, if supplied.
    */
-  onRequestStart?: (params: {
-    context: Context;
-    event: Event;
-    logger: ILogger;
-  }) => Promise<(() => Return) | Extra>;
+  onRequestStart?: <Event, Return, Extra>(
+    params: CommonHookProps<Event>
+  ) => Promise<(() => Return) | Extra>;
 }
 
 export const genericHandlerLifecycle = async <
@@ -88,6 +85,7 @@ export const genericHandlerLifecycle = async <
   Return,
   Extra extends Record<string, any> | undefined,
 >({
+  cache,
   context,
   event,
   functionToRun,
@@ -95,6 +93,7 @@ export const genericHandlerLifecycle = async <
   name,
   options,
 }: {
+  cache: ICache;
   context: Context;
   event: Event;
   functionToRun: (
@@ -105,7 +104,7 @@ export const genericHandlerLifecycle = async <
   ) => Promise<Return>;
   logger: ILogger;
   name: string;
-  options?: GenericHandlerConfig<Event, Return, Extra>;
+  options?: GenericHandlerConfig;
 }): Promise<Return> => {
   let result;
   try {
@@ -114,7 +113,8 @@ export const genericHandlerLifecycle = async <
       {};
     if (options?.onRequestStart) {
       optionalHandlerArgsOrReturnFn =
-        (await options.onRequestStart({
+        (await options.onRequestStart<Event, Return, Extra>({
+          cache,
           context,
           event,
           logger: logger.child({

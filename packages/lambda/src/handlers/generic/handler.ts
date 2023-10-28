@@ -12,30 +12,31 @@ import {
   genericHandlerLifecycle,
 } from './lifecycle.js';
 
-interface GenericHandlerReturn<Event, Return> extends ICreatableReturn {
-  (event: Event, context: Context): Promise<Return>;
+export interface GenericHandlerReturn extends ICreatableReturn {
+  (event: any, context: Context): Promise<any>;
 }
 
 export const GenericHandler = <
   Event,
   Return,
-  Extra extends {} | Record<string, any> = {},
+  Extra extends Record<string, any> | object = object,
 >(
   utils: CreatableUtils,
-  options?: GenericHandlerConfig<Event, Return, Extra>
+  options?: GenericHandlerConfig
 ) => {
   return (
     runnerFunction: (
       params: { context: Context; event: Event; logger: ILogger } & Extra
     ) => Promise<Return>
-  ): GenericHandlerReturn<Event, Return> =>
+  ): GenericHandlerReturn =>
     (async (event: Event, context: Context) => {
       return genericHandlerLifecycle({
         context,
         event,
         // eslint-disable-next-line max-params
-        functionToRun: async (logger, event, context, extra = {} as any) =>
-          runnerFunction({ context, event, logger, ...extra }),
+        cache: utils.cache,
+        functionToRun: async (logger, event, context, extra = {} as object) =>
+          runnerFunction({ context, event, logger, ...(extra = {} as any) }),
         logger: utils.logger,
         name: 'GenericHandler',
         options,

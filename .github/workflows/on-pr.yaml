@@ -39,7 +39,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
 
@@ -84,7 +84,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           scope: '@rapidstack'
@@ -113,7 +113,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.1
+        uses: rapidstack/pr-label-semver-action@v1.3.2
         id: semver
         with:
           label-prefix: 'sv:'
@@ -186,7 +186,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           scope: '@rapidstack'
@@ -215,7 +215,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.1
+        uses: rapidstack/pr-label-semver-action@v1.3.2
         id: semver
         with:
           label-prefix: 'sv:'
@@ -285,7 +285,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           scope: '@rapidstack'
@@ -314,7 +314,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.1
+        uses: rapidstack/pr-label-semver-action@v1.3.2
         id: semver
         with:
           label-prefix: 'sv:'

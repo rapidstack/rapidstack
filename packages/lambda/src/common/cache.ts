@@ -22,12 +22,12 @@ export class Cache implements ICache {
   protected config: Required<ICacheConfig>;
   protected store: Map<string, unknown> | Record<string, unknown>;
 
-  constructor(config: ICacheConfig) {
+  constructor(config?: ICacheConfig) {
     this.config = {
-      avoidClones: config.avoidClones ?? true,
-      pruneInterval: config.pruneInterval ?? 60_000,
-      storeType: config.storeType ?? 'map',
-      ttl: config.ttl ?? 10_000,
+      avoidClones: config?.avoidClones ?? true,
+      pruneInterval: config?.pruneInterval ?? 60_000,
+      storeType: config?.storeType ?? 'map',
+      ttl: config?.ttl ?? 10_000,
     };
 
     this.store =

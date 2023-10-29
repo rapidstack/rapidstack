@@ -1,10 +1,10 @@
-import type { ICache, ILogger } from '../common/index.js';
 import type {
   CreatableFactory,
   Toolkit,
   ToolkitOptions,
 } from './toolkit.types.js';
 
+import { Cache, type ICache, type ILogger, Logger } from '../common/index.js';
 import { isConstructable } from '../utils/index.js';
 
 /**
@@ -17,8 +17,8 @@ export function createToolkit(name: string, options?: ToolkitOptions): Toolkit {
   // Used to detect if called from a cold start in handlers
   process.env.RAPIDSTACK_COLD_START = '1';
 
-  const logger = (options?.logger || {}) as ILogger;
-  const cache = (options?.cache || {}) as ICache;
+  const logger = (options?.logger || new Logger()) as ILogger;
+  const cache = (options?.cache || new Cache()) as ICache;
 
   const create: CreatableFactory = (...args) => {
     const utils = { cache, create, logger };

@@ -61,6 +61,7 @@ interface LoggerEvents {
  * '@l': the level of the log
  * '@a': the application name
  * '@r': the request info for the relevant run
+ * '@s': summary info for the relevant run
  * ```
  */
 export class Logger implements ILogger {
@@ -90,16 +91,14 @@ export class Logger implements ILogger {
   }
 
   public child(props: ChildLoggerProperties): Logger {
+    const { hierarchicalName, ...rest } = props;
     return new Logger(
       {
         ...this.pinoOptions,
         base: {
           ...this.pinoOptions.base,
-          ...props,
-          '@h': [
-            ...(this.pinoOptions.base || {})['@h'],
-            props.hierarchicalName,
-          ],
+          ...rest,
+          '@h': [...(this.pinoOptions.base || {})['@h'], hierarchicalName],
         },
       },
       this.emitter
@@ -130,9 +129,10 @@ export class Logger implements ILogger {
     this.emitter?.emit('log', 'info', str, this.pinoOptions.base);
   }
 
-  public summary(str: SummaryMessage): void {
-    this.logger.summary(str);
-    this.emitter?.emit('log', 'summary', str, this.pinoOptions.base);
+  public summary(obj: SummaryMessage): void {
+    const summary = { '@s': obj };
+    this.logger.summary(summary);
+    this.emitter?.emit('log', 'summary', obj, this.pinoOptions.base);
   }
 
   public trace(str: LogMessage): void {

@@ -2,7 +2,6 @@ import type { Context } from 'aws-lambda';
 
 import { performance } from 'node:perf_hooks';
 
-import type { ILogger } from '../../common/index.js';
 import type {
   CreatableUtils,
   ICreatableConfig,
@@ -10,10 +9,15 @@ import type {
 } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 
+import { HOT_FUNCTION_TRIGGER, type ILogger } from '../../common/index.js';
+import { resolvePossibleRequestIds } from '../../utils/index.js';
 import {
-  type GenericHandlerWrapperOptions,
-  genericHandlerLifecycleWrapper,
+  handleColdStartHook,
+  handleHotFunctionHook,
+  handleRequestHooks,
+  handleShutdownHook,
 } from './lifecycle.js';
+import { type GenericHandlerWrapperOptions } from './types.js';
 
 interface GenericHandlerReturn extends ICreatableReturn {
   <Event, Return, Extra extends Record<string, unknown> | object = object>(
@@ -38,26 +42,73 @@ export const GenericHandler = (
 ): GenericHandlerReturn => {
   performance.mark('handler-start');
   let conclusion = 'success' as 'failure' | 'success';
-  try {
-    return (runnerFunction, options) => async (event, context) => {
-      return genericHandlerLifecycleWrapper({
+
+  const { cache, logger: _log } = utils;
+  const { name } = config ?? {};
+
+  return (runnerFunction, options) => async (event, context) => {
+    const {
+      onColdStart,
+      onError,
+      onHotFunctionTrigger,
+      onLambdaShutdown,
+      onRequestEnd,
+      onRequestStart,
+    } = options ?? {};
+
+    const logger = _log.child({
+      '@r': resolvePossibleRequestIds(event, context),
+      'hierarchicalName': name ?? 'GenericHandler (unnamed)',
+    });
+
+    const isHotTrigger =
+      typeof event === 'object' &&
+      // eslint-disable-next-line security/detect-object-injection
+      (event as { [k: string]: unknown })[HOT_FUNCTION_TRIGGER];
+
+    // outer try/catch to determine conclusion for the summary log
+    try {
+      handleShutdownHook(onLambdaShutdown, logger);
+
+      if (isHotTrigger) {
+        return await handleHotFunctionHook({
+          cache,
+          context,
+          event,
+          hook: onHotFunctionTrigger,
+          logger,
+        });
+      }
+
+      await handleColdStartHook({
+        cache,
         context,
         event,
-        fn: runnerFunction,
-        name: config?.name ?? 'GenericHandler (unnamed)',
-        options,
-        utils,
+        logger,
+        onColdStart: onColdStart,
       });
-    };
-  } catch (err) {
-    conclusion = 'failure';
-    throw err;
-  } finally {
-    performance.mark('handler-end');
-    const res = performance.measure('handler', 'handler-start', 'handler-end');
-    utils.logger.summary({
-      conclusion,
-      duration: res.duration,
-    });
-  }
+
+      return await handleRequestHooks({
+        cache,
+        context,
+        event,
+        logger,
+        onError,
+        onRequestEnd,
+        onRequestStart,
+        runnerFunction,
+      });
+    } catch (err) {
+      conclusion = 'failure';
+      throw err;
+    } finally {
+      performance.mark('handler-end');
+      const { duration } = performance.measure(
+        'handler',
+        'handler-start',
+        'handler-end'
+      );
+      logger.summary({ conclusion, duration });
+    }
+  };
 };

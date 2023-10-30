@@ -34,7 +34,7 @@ export class Cache implements ICache {
       this.config.storeType === 'map' ? new Map() : Object.create(null);
 
     if (this.config.pruneInterval) {
-      setInterval(this.maintenance, this.config.pruneInterval);
+      setInterval(this.maintenance.bind(this), this.config.pruneInterval);
     }
   }
 

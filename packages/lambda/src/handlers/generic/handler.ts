@@ -109,6 +109,7 @@ export const GenericHandler = (
         'handler-end'
       );
       logger.summary({ conclusion, duration });
+      performance.clearMarks();
     }
   };
 };

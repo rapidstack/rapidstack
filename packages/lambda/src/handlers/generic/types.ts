@@ -9,19 +9,19 @@ type CommonHookUtils = {
   logger: ILogger;
 };
 
-export type CommonHookProps<Event> = {
+type CommonHookProps<Event> = {
   event: Event;
 } & CommonHookUtils;
 
-export type AmbiguousEventHookProps<Event> = {
+type AmbiguousEventHookProps<Event> = {
   event: Partial<Event> | null | undefined;
 } & CommonHookUtils;
 
-export type OnErrorHookProps<Event> = {
+type OnErrorHookProps<Event> = {
   error: unknown;
 } & CommonHookProps<Event>;
 
-export type OnRequestEndHookProps<Event, Return> = {
+type OnRequestEndHookProps<Event, Return> = {
   result: Return;
 } & CommonHookProps<Event>;
 
@@ -38,13 +38,24 @@ export type GenericHandlerWrapperOptions<
    *
    * _Note: If the `onHotFunctionTrigger` function is supplied,
    * this function will not be called._
-   * @returns {void}
+   * @param params The parameters passed to the function.
+   * @param params.event The ambiguous event object passed to the lambda.
+   * @param params.context The context object passed to the lambda.
+   * @param params.logger A logger instance with request context.
+   * @param params.cache The cache supplied from the toolkit.
+   * @returns void
    */
   onColdStart?: (params: AmbiguousEventHookProps<Event>) => Promise<void>;
   /**
-   * If an error is thrown in the runnerFunction, this function, if supplied,
-   * will be called to handle the error.
-   * @returns {Return} A response object to return to the caller.
+   * If an error is thrown in the runnerFunction, pre-request, or post-request
+   * hooks, this function, if supplied, will be called to handle the error.
+   * @param params The parameters passed to the function.
+   * @param params.event The event object passed to the lambda.
+   * @param params.error The resulting error caught during lambda execution.
+   * @param params.context The context object passed to the lambda.
+   * @param params.logger A logger instance with request context.
+   * @param params.cache The cache supplied from the toolkit.
+   * @returns The expected return type shape for the lambda.
    */
   onError?: (params: OnErrorHookProps<Event>) => Promise<Return>;
   /**
@@ -53,14 +64,18 @@ export type GenericHandlerWrapperOptions<
    *
    * _Note: If this function is supplied, the `onColdStart` function will not be
    * called._
-   * @returns {void}
+   * @param params The parameters passed to the function.
+   * @param params.context The context object passed to the lambda.
+   * @param params.logger A logger instance with request context.
+   * @param params.cache The cache supplied from the toolkit.
+   * @returns void.
    */
   onHotFunctionTrigger?: (params: CommonHookUtils) => Promise<void>;
   /**
    * A function to run right before the Lambda container calls SIGTERM on the
    * node process. Can be used to safely wind down any resources that need to be
    * shut down before the process is terminated.
-   * @returns {void}
+   * @returns void.
    */
   onLambdaShutdown?: () => Promise<void>;
   /**
@@ -71,6 +86,13 @@ export type GenericHandlerWrapperOptions<
    *
    * Anything thrown in this function will be caught and handled by the
    * `onError` function, if supplied.
+   * @param params The parameters passed to the function.
+   * @param params.context The context object passed to the lambda.
+   * @param params.logger A logger instance with request context.
+   * @param params.cache The cache supplied from the toolkit.
+   * @param params.result The result of the main lambda handler function.
+   * @param params.event The event object passed to the lambda.
+   * @returns The expected return type shape for the lambda.
    */
   onRequestEnd?: (
     params: OnRequestEndHookProps<Event, Return>
@@ -83,6 +105,12 @@ export type GenericHandlerWrapperOptions<
    *
    * Anything thrown in this function will be caught and handled by the
    * `onError` function, if supplied.
+   * @param params The parameters passed to the function.
+   * @param params.context The context object passed to the lambda.
+   * @param params.logger A logger instance with request context.
+   * @param params.cache The cache supplied from the toolkit.
+   * @param params.event The ambiguous event object passed to the lambda.
+   * @returns The expected return type shape for the lambda.
    */
   onRequestStart?: (
     params: AmbiguousEventHookProps<Event>

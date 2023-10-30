@@ -4,7 +4,14 @@ import type {
   ToolkitOptions,
 } from './toolkit.types.js';
 
-import { Cache, type ICache, type ILogger, Logger } from '../common/index.js';
+import {
+  COLD_START,
+  Cache,
+  type ICache,
+  type ILogger,
+  LOG_LEVEL,
+  Logger,
+} from '../common/index.js';
 import { isConstructable } from '../utils/index.js';
 
 /**
@@ -15,9 +22,15 @@ import { isConstructable } from '../utils/index.js';
  */
 export function createToolkit(name: string, options?: ToolkitOptions): Toolkit {
   // Used to detect if called from a cold start in handlers
-  process.env.RAPIDSTACK_COLD_START = '1';
+  // eslint-disable-next-line security/detect-object-injection
+  process.env[COLD_START] = '1';
 
-  const logger = (options?.logger || new Logger()) as ILogger;
+  const logger = (options?.logger ||
+    new Logger({
+      base: options?.additionalLoggerEntries,
+      // eslint-disable-next-line security/detect-object-injection
+      level: options?.logLevel ?? process.env[LOG_LEVEL],
+    })) as ILogger;
   const cache = (options?.cache || new Cache()) as ICache;
 
   const create: CreatableFactory = (...args) => {

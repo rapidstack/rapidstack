@@ -69,5 +69,13 @@ export type ToolkitOptions = {
   additionalLoggerEntries?: Record<string, unknown>;
   cache?: ICache;
   defaultCacheTtl?: number;
+  logLevel?:
+    | 'debug'
+    | 'error'
+    | 'fatal'
+    | 'info'
+    | 'summary'
+    | 'trace'
+    | 'warn';
   logger?: ILogger;
 };

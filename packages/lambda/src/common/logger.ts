@@ -11,6 +11,7 @@ type SummaryMessage = {
 type LoggerConfig = {
   base?: Record<string, unknown>;
   formatters?: P.LoggerOptions['formatters'];
+  level?: P.LoggerOptions['level'];
 };
 
 type ChildLoggerProperties = Record<string, unknown> & {
@@ -82,6 +83,7 @@ export class Logger implements ILogger {
         level: (label: string) => ({ '@l': label }),
         ...config.formatters,
       },
+      level: config.level?.toLowerCase() ?? 'info',
       messageKey: '@m',
       timestamp: () => `, "@t": ${Date.now()}`,
     };

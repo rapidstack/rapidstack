@@ -40,13 +40,13 @@ export const GenericHandler = (
   utils: CreatableUtils,
   config?: GenericHandlerConfig
 ): GenericHandlerReturn => {
-  performance.mark('handler-start');
-  let conclusion = 'success' as 'failure' | 'success';
-
   const { cache, logger: _log } = utils;
   const { name } = config ?? {};
 
   return (runnerFunction, options) => async (event, context) => {
+    performance.mark('handler-start');
+    let conclusion = 'success' as 'failure' | 'success';
+
     const {
       onColdStart,
       onError,
@@ -75,8 +75,8 @@ export const GenericHandler = (
           cache,
           context,
           event,
-          hook: onHotFunctionTrigger,
           logger,
+          onHotFunctionTrigger,
         });
       }
 
@@ -85,7 +85,7 @@ export const GenericHandler = (
         context,
         event,
         logger,
-        onColdStart: onColdStart,
+        onColdStart,
       });
 
       return await handleRequestHooks({

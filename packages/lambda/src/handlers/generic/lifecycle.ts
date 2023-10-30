@@ -36,18 +36,18 @@ type HotFunctionHook<Event, Return> = {
   cache: ICache;
   context: Context;
   event: unknown;
-  hook: GenericHandlerWrapperOptions<
+  logger: ILogger;
+  onHotFunctionTrigger: GenericHandlerWrapperOptions<
     Event,
     Return,
     any
   >['onHotFunctionTrigger'];
-  logger: ILogger;
 };
 export const handleHotFunctionHook = async <Event, Return>(
   props: HotFunctionHook<Event, Return>
 ): Promise<Return> => {
-  const { cache, context, hook, logger } = props;
-  if (!hook) {
+  const { cache, context, logger, onHotFunctionTrigger } = props;
+  if (!onHotFunctionTrigger) {
     const message =
       'A hot function trigger was received, but no onHotFunctionTrigger \
       handler was provided.';
@@ -63,7 +63,7 @@ export const handleHotFunctionHook = async <Event, Return>(
     hierarchicalName: 'handler-hook:onHotFunctionTrigger',
   });
   try {
-    return (await hook({
+    return (await onHotFunctionTrigger({
       cache,
       context,
       logger: hotFunctionTriggerLogger,

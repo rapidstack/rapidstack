@@ -1,5 +1,3 @@
-/* eslint-disable jsdoc/require-jsdoc */
-
 /*
  * Note: This file requires a build before running.
  */

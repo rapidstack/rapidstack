@@ -11,6 +11,7 @@
     "rapidstack",
     "codespace",
     "npmignore",
+    "pino",
     "quickstart",
     "tsup",
     "wontfix",

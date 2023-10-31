@@ -59,9 +59,14 @@ describe('`createToolkit` tests:', () => {
       expect(t.create).toBeDefined();
       expect(typeof t.create).toBe('function');
     });
+    test('should set the "cold start" env flag', () => {
+      createToolkit();
+
+      expect(process.env[COLD_START]).toBeTruthy();
+    });
   });
   describe('toolkit options', () => {
-    test('should use provided logger', () => {
+    test('should use provided logger, if provided', () => {
       const toolkit = createToolkit('name', {
         logger: new Logger(loggerEvents),
       });
@@ -76,7 +81,7 @@ describe('`createToolkit` tests:', () => {
         expect.any(Object)
       );
     });
-    test('should use provided cache', () => {
+    test('should use provided cache, if provided', () => {
       const cache = { getItem: vi.fn() } as unknown as ICache;
       const toolkit = createToolkit('name', { cache });
 

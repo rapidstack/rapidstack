@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ICache, ILogger } from '../common/index.js';
+import type {
+  CacheConfig,
+  ICache,
+  ILogger,
+  LoggerConfig,
+} from '../common/index.js';
 
 export interface ICreatableReturn {}
 export interface ICreatableConfig {
@@ -65,18 +70,27 @@ export type Toolkit = {
   name: string;
 };
 
-export type ToolkitOptions = {
-  additionalLoggerEntries?: Record<string, unknown>;
-  cache?: ICache;
-  defaultCacheTtl?: number;
-  logLevel?:
-    | 'debug'
-    | 'error'
-    | 'fatal'
-    | 'info'
-    | 'silent'
-    | 'summary'
-    | 'trace'
-    | 'warn';
-  logger?: ILogger;
-};
+/**
+ * Options for the lambda toolkit. Allows for the developer to provide options
+ * for the default logger and cache, or to provide their own instances of each.
+ */
+export type ToolkitOptions = (
+  | {
+      cache?: ICache;
+      cacheConfig?: never;
+    }
+  | {
+      cache?: never;
+      cacheConfig?: CacheConfig;
+    }
+) &
+  (
+    | {
+        logger?: ILogger;
+        loggerConfig?: never;
+      }
+    | {
+        logger?: never;
+        loggerConfig?: LoggerConfig;
+      }
+  );

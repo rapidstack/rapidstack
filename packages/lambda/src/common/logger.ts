@@ -8,7 +8,7 @@ type SummaryMessage = {
   duration: number;
 } & Record<string, number | string>;
 
-type LoggerConfig = {
+export type LoggerConfig = {
   base?: Record<string, unknown>;
   formatters?: P.LoggerOptions['formatters'];
   level?: P.LoggerOptions['level'];
@@ -18,14 +18,55 @@ type ChildLoggerProperties = Record<string, unknown> & {
   hierarchicalName: string;
 };
 export interface ILogger {
+  /**
+   * Creates a child logger with the provided properties. The child logger
+   * inherits the parent's properties and adds the provided properties. The
+   * required `hierarchicalName` property is used to build a trace hierarchy to
+   * assist in debugging/navigating.
+   * @param props the properties to be added to the child logger
+   */
   child(props: ChildLoggerProperties): ILogger;
+  /**
+   * Logs a debug message.
+   * @param msg a string message to be logged or a log object with the `msg` key
+   */
   debug(msg: LogMessage): void;
+  /**
+   * Signifies the logger has reached the end of a request. Useful when extended
+   * loggers want to perform some action at the end of a request.
+   */
   end(): void;
+  /**
+   * Logs an error message.
+   * @param msg a string message to be logged or a log object with the `msg` key
+   */
   error(msg: LogMessage): void;
+  /**
+   * Logs a fatal message.
+   * @param msg a string message to be logged or a log object with the `msg` key
+   */
   fatal(msg: LogMessage): void;
+  /**
+   * Logs an information message.
+   * @param msg a string message to be logged or a log object with the `msg` key
+   */
   info(msg: LogMessage): void;
+  /**
+   * Logs a summary message for a particular run that has concluded with
+   * execution details.
+   * @param msg a summary object containing at least the conclusion
+   * (success/failure) and duration length (ms) to process the request.
+   */
   summary(msg: SummaryMessage): void;
+  /**
+   * Logs a trace message.
+   * @param msg a string message to be logged or a log object with the `msg` key
+   */
   trace(msg: LogMessage): void;
+  /**
+   * Logs a warning message.
+   * @param msg a string message to be logged or a log object with the `msg` key
+   */
   warn(msg: LogMessage): void;
 }
 
@@ -54,21 +95,33 @@ export interface LoggerEvents {
   on(event: 'end', listener: () => void): this;
 }
 /**
- * Logger that outputs a set of standard properties for each log message:
- * ```
+ * Logger that outputs a set of standard properties for each log message. The
+ * sigil `@` is used to denote these properties for brevity, filtering, and
+ * to avoid collisions with other properties that might be logged. The following
+ * property keys are logged by default:
+ * ```txt
  * '@t': the timestamp of the log message
  * '@h': the hierarchy of the logger in an array. Builds with each child logger.
  * '@m': the message of the log
  * '@l': the level of the log
  * '@a': the application name
  * '@r': the request info for the relevant run
- * '@s': summary info for the relevant run
+ * '@s': summary info for the relevant run (for summary logs only)
  * ```
  */
 export class Logger implements ILogger {
   protected customLevels = { summary: 35 };
   protected logger: P.Logger<{ customLevels: { summary: 35 } }>;
   protected pinoOptions: P.LoggerOptions;
+
+  /**
+   * @param config the optional config object for the logger
+   * @param config.base the base properties to be logged with each message
+   * @param config.formatters the formatters to be used for each message
+   * @param config.level the log level to be used for the logger. Default = info
+   * @param emitter an event emitter to be used to hook into any logger events.
+   * Functions independently of the provided log level. All events are sent.
+   */
   constructor(
     config: LoggerConfig = {},
     protected emitter?: LoggerEvents
@@ -87,6 +140,7 @@ export class Logger implements ILogger {
       messageKey: '@m',
       timestamp: () => `, "@t": ${Date.now()}`,
     };
+
     this.logger = pino(this.pinoOptions) as P.Logger<{
       customLevels: { summary: 35 };
     }>;

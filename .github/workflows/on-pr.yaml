@@ -154,8 +154,8 @@ jobs:
           script: |
             const { CURRENT, PREVIOUS, PR_TITLE, PR_LINK } = process.env;
             const body = [
-              `## ${PR_TITLE} Prerelease`,
-              `_This is a prerelease version of all packages corresponding to [this pull request](${PR_LINK})._`,
+              `## Prerelease: ${PR_TITLE}`,
+              `_This is a trial version of all packages corresponding to [this pull request](${PR_LINK})._`,
               '',
               '```sh',
               `npm install @rapidstack/<pkg>@${CURRENT}`,
@@ -256,7 +256,7 @@ jobs:
           script: |
             const { CURRENT, PREVIOUS, PR_TITLE, PR_LINK } = process.env;
             const body = [
-              `## ${PR_TITLE} Release Candidate`,
+              `## Release Candidate: ${PR_TITLE}`,
               `_This is a release candidate version of all packages corresponding to [this pull request](${PR_LINK})._`,
               '',
               '```sh',

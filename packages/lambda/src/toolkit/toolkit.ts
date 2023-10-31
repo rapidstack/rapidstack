@@ -4,14 +4,7 @@ import type {
   ToolkitOptions,
 } from './toolkit.types.js';
 
-import {
-  COLD_START,
-  Cache,
-  type ICache,
-  type ILogger,
-  LOG_LEVEL,
-  Logger,
-} from '../common/index.js';
+import { COLD_START, Cache, LOG_LEVEL, Logger } from '../common/index.js';
 import { isConstructable } from '../utils/index.js';
 
 /**
@@ -24,21 +17,23 @@ import { isConstructable } from '../utils/index.js';
  */
 export function createToolkit(
   appName?: string,
-  options?: ToolkitOptions
+  options: ToolkitOptions = {}
 ): Toolkit {
   // Used to detect if called from a cold start in handlers
   // eslint-disable-next-line security/detect-object-injection
   process.env[COLD_START] = '1';
   const name =
     appName || process.env.SST_APP || process.env.APP_NAME || 'unnamed app';
+  const loggerDefaults = {
+    // eslint-disable-next-line security/detect-object-injection
+    level: process.env[LOG_LEVEL],
+  };
 
-  const logger = (options?.logger ||
-    new Logger({
-      base: options?.additionalLoggerEntries,
-      // eslint-disable-next-line security/detect-object-injection
-      level: options?.logLevel ?? process.env[LOG_LEVEL],
-    })) as ILogger;
-  const cache = (options?.cache || new Cache()) as ICache;
+  const logger = options.logger
+    ? options.logger
+    : new Logger(options.loggerConfig ?? loggerDefaults);
+
+  const cache = options.cache ? options.cache : new Cache(options.cacheConfig);
 
   const create: CreatableFactory = (...args) => {
     const utils = { cache, create, logger };

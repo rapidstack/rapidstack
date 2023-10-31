@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "vitest --run",
+    "test": "vitest",
     "build": "tsc --noEmit && tsup",
     "build:watch": "tsup --watch"
   },

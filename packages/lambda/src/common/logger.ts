@@ -29,7 +29,7 @@ export interface ILogger {
   warn(msg: LogMessage): void;
 }
 
-interface LoggerEvents {
+export interface LoggerEvents {
   emit(
     event: 'log',
     level: 'debug' | 'error' | 'fatal' | 'info' | 'trace' | 'warn',

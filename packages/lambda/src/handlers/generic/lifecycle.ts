@@ -166,8 +166,10 @@ export const handleRequestHooks = async <Event, Return, Extra>(
           logger: preRequestTriggerLogger,
         })) || ({} as Record<string, any>);
 
-      if (typeof optionalHandlerArgsOrReturnFn === 'function')
-        return optionalHandlerArgsOrReturnFn() as Return;
+      if (typeof optionalHandlerArgsOrReturnFn === 'function') {
+        result = optionalHandlerArgsOrReturnFn() as Return;
+        return result;
+      }
     }
 
     result = await runnerFunction({
@@ -182,7 +184,7 @@ export const handleRequestHooks = async <Event, Return, Extra>(
 
     // On request end
     if (onRequestEnd) {
-      result = (await onRequestEnd({
+      const optionalReturnFnOrUndefined = (await onRequestEnd({
         cache,
         context,
         event,
@@ -191,7 +193,9 @@ export const handleRequestHooks = async <Event, Return, Extra>(
         }),
         result,
       })) as (() => Return) | Return;
-      if (typeof result === 'function') return (result as () => Return)();
+      if (typeof optionalReturnFnOrUndefined === 'function') {
+        result = (optionalReturnFnOrUndefined as () => Return)();
+      }
     }
 
     return result;
@@ -224,6 +228,6 @@ export const handleRequestHooks = async <Event, Return, Extra>(
       ${err.toString()}`
     );
   } finally {
-    logger.trace('Finished request execution.');
+    logger.trace({ msg: 'Finished request execution.', result });
   }
 };

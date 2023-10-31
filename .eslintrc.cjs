@@ -127,6 +127,7 @@ const config = {
       files: ['*.test.ts'],
       rules: {
         'jsdoc/require-jsdoc': 'off',
+        'security/detect-object-injection': 'off',
       },
     },
     // Lambda-specific package rules

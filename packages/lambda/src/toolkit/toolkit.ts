@@ -16,14 +16,21 @@ import { isConstructable } from '../utils/index.js';
 
 /**
  * Creates a new toolkit to be used throughout your serverless application.
- * @param name the name of the app
+ * @param appName the name of the app. If not provided, falls back to the
+ * environment variables `SST_APP` then `APP_NAME`. If neither are provided,
+ * defaults to `unnamed app`.
  * @param options optional parameters for the toolkit
  * @returns a toolkit that can be used to create tools
  */
-export function createToolkit(name: string, options?: ToolkitOptions): Toolkit {
+export function createToolkit(
+  appName?: string,
+  options?: ToolkitOptions
+): Toolkit {
   // Used to detect if called from a cold start in handlers
   // eslint-disable-next-line security/detect-object-injection
   process.env[COLD_START] = '1';
+  const name =
+    appName || process.env.SST_APP || process.env.APP_NAME || 'unnamed app';
 
   const logger = (options?.logger ||
     new Logger({

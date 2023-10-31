@@ -74,6 +74,7 @@ export type ToolkitOptions = {
     | 'error'
     | 'fatal'
     | 'info'
+    | 'silent'
     | 'summary'
     | 'trace'
     | 'warn';

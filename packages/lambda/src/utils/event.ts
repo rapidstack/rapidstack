@@ -19,9 +19,14 @@ export const resolvePossibleRequestIds = (
     event as APIGatewayProxyEventV2,
     'x-amzn-trace-id'
   );
+  const cfId = getApiGatewayHeaderValue(
+    event as APIGatewayProxyEventV2,
+    'x-amz-cf-id'
+  );
 
   if (requestHeaderId) ids['x-request-id'] = requestHeaderId;
   if (amznTraceId) ids['x-amzn-trace-id'] = amznTraceId;
+  if (cfId) ids['x-amz-cf-id'] = cfId;
 
   return ids;
 };

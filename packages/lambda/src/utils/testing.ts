@@ -3,7 +3,7 @@
 
 import { type Context } from 'aws-lambda';
 
-export const MockLambdaContext: Context = {
+export const MockLambdaContext = {
   awsRequestId: '7e577e57-7e57-7e57-7e57-7e577e577e57',
   callbackWaitsForEmptyEventLoop: false,
   clientContext: undefined,
@@ -19,7 +19,7 @@ export const MockLambdaContext: Context = {
   logStreamName: '0000/00/00/[$LATEST]83f325fb53bd4bf9bf0e8724ab0e4616',
   memoryLimitInMB: '1024',
   succeed: () => undefined,
-};
+} as Context;
 
 export const MockLambdaDefaultEvent = {
   key1: 'value1',

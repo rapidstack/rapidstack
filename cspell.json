@@ -1,5 +1,7 @@
 {
-  "dictionaries": ["typescript"],
+  "dictionaries": [
+    "typescript"
+  ],
   "ignorePaths": [
     "./coverage*",
     ".github",
@@ -8,16 +10,17 @@
     "pnpm-lock.yaml"
   ],
   "words": [
-    "rapidstack",
     "codespace",
+    "jetbrains",
+    "Millis",
     "npmignore",
     "pino",
+    "qodana",
     "quickstart",
-    "tsup",
-    "wontfix",
+    "rapidstack",
     "sarif",
+    "tsup",
     "vitest",
-    "jetbrains",
-    "qodana"
+    "wontfix"
   ]
 }

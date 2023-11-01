@@ -6,7 +6,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
-    name: '@rapidstack/create',
+    name: '@rapidstack/create (alias)',
     passWithNoTests: true,
   },
 });

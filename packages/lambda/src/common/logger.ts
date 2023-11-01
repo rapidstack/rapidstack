@@ -9,8 +9,20 @@ type SummaryMessage = {
 } & Record<string, number | string>;
 
 export type LoggerConfig = {
+  /**
+   * The base properties to be logged with each message.
+   */
   base?: Record<string, unknown>;
+  /**
+   * The pino formatters to be used for each message.
+   */
   formatters?: P.LoggerOptions['formatters'];
+  /**
+   * The log level to be used for the logger. Standard pino levels are supported
+   * as well as the `summary` level which is used to log summary messages
+   * between info and warn levels.
+   * @default info
+   */
   level?: P.LoggerOptions['level'];
 };
 

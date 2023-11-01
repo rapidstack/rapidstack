@@ -7,6 +7,5 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
     },
     name: '@rapidstack/lambda',
-    passWithNoTests: true,
   },
 });

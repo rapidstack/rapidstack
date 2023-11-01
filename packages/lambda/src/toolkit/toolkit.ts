@@ -25,6 +25,7 @@ export function createToolkit(
   const name =
     appName || process.env.SST_APP || process.env.APP_NAME || 'unnamed app';
   const loggerDefaults = {
+    base: { '@a': name },
     // eslint-disable-next-line security/detect-object-injection
     level: process.env[LOG_LEVEL],
   };

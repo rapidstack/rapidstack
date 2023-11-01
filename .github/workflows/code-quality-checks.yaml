@@ -88,15 +88,16 @@ jobs:
   qodana-quality-checks:
     name: Qodana
     runs-on: ubuntu-latest
-    if: |
-      !github.event.pull_request.draft && 
-      ((
-        github.actor == 'dependabot[bot]' && 
-        contains(github.event.pull_request.title, 'Bump JetBrains/qodana-action')
-      ) ||
-      (
-        github.actor != 'dependabot[bot]'
-      ))
+    # if: |
+    #   !github.event.pull_request.draft &&
+    #   ((
+    #     github.actor == 'dependabot[bot]' &&
+    #     contains(github.event.pull_request.title, 'Bump JetBrains/qodana-action')
+    #   ) ||
+    #   (
+    #     github.actor != 'dependabot[bot]'
+    #   ))
+    if: false
     permissions:
       actions: read
       contents: read

@@ -19,7 +19,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "@types/aws-lambda": "8.10.124",
+    "@types/aws-lambda": "8.10.125",
     "@types/node": "20.8.0",
     "vitest": "0.34.6"
   },

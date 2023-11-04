@@ -134,8 +134,8 @@ importers:
         specifier: 8.10.125
         version: 8.10.125
       '@types/node':
-        specifier: 20.8.0
-        version: 20.8.0
+        specifier: 20.8.10
+        version: 20.8.10
       vitest:
         specifier: 0.34.6
         version: 0.34.6
@@ -907,10 +907,6 @@ packages:
 
   /@types/minimatch@5.1.2:
     resolution: {integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==}
-    dev: true
-
-  /@types/node@20.8.0:
-    resolution: {integrity: sha512-LzcWltT83s1bthcvjBmiBvGJiiUe84NWRHkw+ZV6Fr41z2FbIzvc815dk2nQ3RAKMuN2fkenM/z3Xv2QzEpYxQ==}
     dev: true
 
   /@types/node@20.8.10:

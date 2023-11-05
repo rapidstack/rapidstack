@@ -20,6 +20,7 @@
     "rapidstack",
     "sarif",
     "tsup",
+    "valibot",
     "vitest",
     "wontfix"
   ]

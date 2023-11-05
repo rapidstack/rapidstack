@@ -23,7 +23,7 @@ export async function action(): Promise<void> {
   const secondGroup = [
     'cli',
     // 'cloud',
-    // 'lambda',
+    'lambda',
     // 'react',
   ];
   const secondGroupJobs = secondGroup.map(async (pkg) => {

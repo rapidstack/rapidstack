@@ -123,6 +123,21 @@ const config = {
         'security/detect-non-literal-regexp': 'off',
       },
     },
+    // Disable certain rules for test because they are only to aid users of code
+    {
+      files: ['*.test.ts'],
+      rules: {
+        'jsdoc/require-jsdoc': 'off',
+        'security/detect-object-injection': 'off',
+      },
+    },
+    // Lambda-specific package rules
+    {
+      files: ['packages/lambda/src/**/*.ts'],
+      rules: {
+        'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
+      },
+    },
   ],
 };
 

@@ -31,8 +31,8 @@
   "devDependencies": {
     "@rapidstack/test-utils": "workspace:*",
     "@types/glob": "8.1.0",
-    "@types/inquirer": "9.0.3",
-    "@types/node": "20.8.3",
+    "@types/inquirer": "9.0.6",
+    "@types/node": "20.8.9",
     "vitest": "0.34.6"
   },
   "files": [
@@ -47,8 +47,8 @@
   ],
   "dependencies": {
     "chalk": "5.3.0",
-    "commander": "11.0.0",
     "esbuild": "0.19.3",
+    "commander": "11.1.0",
     "glob": "10.3.10",
     "inquirer": "9.2.11",
     "node-fetch": "3.3.2",

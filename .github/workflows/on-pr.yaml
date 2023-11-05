@@ -7,7 +7,6 @@ on:
     types:
       - assigned
       - labeled
-      - unlabeled
       - opened
       - synchronize
       - ready_for_review
@@ -40,7 +39,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
 
@@ -85,7 +84,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           scope: '@rapidstack'
@@ -114,7 +113,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.0
+        uses: rapidstack/pr-label-semver-action@v1.3.2
         id: semver
         with:
           label-prefix: 'sv:'
@@ -155,8 +154,8 @@ jobs:
           script: |
             const { CURRENT, PREVIOUS, PR_TITLE, PR_LINK } = process.env;
             const body = [
-              `## ${PR_TITLE} Prerelease`,
-              `_This is a prerelease version of all packages corresponding to [this pull request](${PR_LINK})._`,
+              `## Prerelease: ${PR_TITLE}`,
+              `_This is a trial version of all packages corresponding to [this pull request](${PR_LINK})._`,
               '',
               '```sh',
               `npm install @rapidstack/<pkg>@${CURRENT}`,
@@ -187,7 +186,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           scope: '@rapidstack'
@@ -216,7 +215,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.0
+        uses: rapidstack/pr-label-semver-action@v1.3.2
         id: semver
         with:
           label-prefix: 'sv:'
@@ -257,7 +256,7 @@ jobs:
           script: |
             const { CURRENT, PREVIOUS, PR_TITLE, PR_LINK } = process.env;
             const body = [
-              `## ${PR_TITLE} Release Candidate`,
+              `## Release Candidate: ${PR_TITLE}`,
               `_This is a release candidate version of all packages corresponding to [this pull request](${PR_LINK})._`,
               '',
               '```sh',
@@ -286,7 +285,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Project
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           scope: '@rapidstack'
@@ -315,7 +314,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.0
+        uses: rapidstack/pr-label-semver-action@v1.3.2
         id: semver
         with:
           label-prefix: 'sv:'

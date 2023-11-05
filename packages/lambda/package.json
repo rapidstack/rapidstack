@@ -1,0 +1,36 @@
+{
+  "name": "@rapidstack/lambda",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc --noEmit && tsup",
+    "build:watch": "tsup --watch"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.124",
+    "@types/node": "20.8.0",
+    "vitest": "0.34.6"
+  },
+  "files": [
+    "dist/*",
+    "!**/*.spec.*",
+    "!**/*.test.*",
+    "!**/tests/*.*",
+    "!**/tests/*.ts.map"
+  ],
+  "dependencies": {
+    "pino": "8.16.0"
+  }
+}

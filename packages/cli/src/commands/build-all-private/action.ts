@@ -23,6 +23,7 @@ export async function action(): Promise<void> {
   // group.
   const secondGroup = [
     'create',
+    'create-alias',
     'create-plugin',
     // 'cloud',
     'lambda',

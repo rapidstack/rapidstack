@@ -127,6 +127,12 @@ importers:
         specifier: workspace:*
         version: link:../cli
 
+  packages/create-alias:
+    dependencies:
+      '@rapidstack/cli':
+        specifier: workspace:*
+        version: link:../cli
+
   packages/create-plugin:
     dependencies:
       '@rapidstack/cli':

@@ -33,7 +33,7 @@ export async function action(): Promise<void> {
 
   // Build the third group of rapidstack packages that depend on the second
   // group.
-  const thirdGroup = ['create', 'create-plugin'];
+  const thirdGroup = ['create', 'create-alias', 'create-plugin'];
   const thirdGroupJobs = thirdGroup.map(async (pkg) => {
     await buildPackage(repoRoot, pkg);
   });

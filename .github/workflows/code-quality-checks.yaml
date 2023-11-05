@@ -136,7 +136,7 @@ jobs:
         run: pnpm prep
 
       - name: Build Project
-        run: npm run build
+        run: pnpm build
 
       - name: Qodana Scan
         uses: JetBrains/qodana-action@v2023.2.8

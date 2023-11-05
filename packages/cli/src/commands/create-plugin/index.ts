@@ -16,9 +16,11 @@ if (
 ) {
   process.env.DEBUG_LOGGING = '1';
   log.debug('cli arguments:');
-  JSON.stringify(process.argv, null, 2).split('\n').forEach(log.debug);
+  JSON.stringify(process.argv, null, 2)
+    .split('\n')
+    .forEach((str) => log.debug(str));
 
-  log.debug('calling cwd:');
+  log.debug('the cwd of invocation:');
   log.debug(process.cwd());
 }
 
@@ -30,7 +32,6 @@ if (
 export function buildCreatePluginCommand(): Command {
   return new Command()
     .name('create-plugin')
-    .usage(JSON.stringify(process.argv))
     .description('create a plugin using the template from rapidstack.')
     .argument('[plugin-name]', 'Name of the plugin')
     .option('-d, --debug', 'output extra debug logging')

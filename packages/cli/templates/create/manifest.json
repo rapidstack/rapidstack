@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "name": "rapidstack default templates",
+  "manifest": {
+    "minimal": {
+      "directory": "./minimal",
+      "config": "./minimal/rapidstack-config.ts"
+    },
+    "mono-repo": {
+      "directory": "./monorepo",
+      "config": "./monorepo/rapidstack-config.ts"
+    }
+  }
+}

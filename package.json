@@ -7,6 +7,7 @@
   "scripts": {
     "build": "rapidstack build-all",
     "ci:lint": "eslint . .*js --max-warnings 0 --report-unused-disable-directives -f @microsoft/eslint-formatter-sarif -o eslint.sarif",
+    "clean": "pnpm -r clean",
     "lint": "pnpm run \"/^lint:.*/\"",
     "lint:code": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
     "lint:packages": "pnpm dedupe --check",
@@ -35,6 +36,7 @@
     "eslint-plugin-security": "1.7.1",
     "eslint-plugin-vitest": "0.3.8",
     "prettier": "3.0.3",
+    "rimraf": "5.0.1",
     "tsup": "7.2.0",
     "typescript": "5.2.2",
     "vitest": "0.34.6"

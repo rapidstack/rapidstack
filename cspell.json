@@ -1,7 +1,5 @@
 {
-  "dictionaries": [
-    "typescript"
-  ],
+  "dictionaries": ["typescript"],
   "ignorePaths": [
     "./coverage*",
     ".github",
@@ -13,7 +11,9 @@
     "codespace",
     "jetbrains",
     "Millis",
+    "nodenext",
     "npmignore",
+    "outfile",
     "pino",
     "qodana",
     "quickstart",

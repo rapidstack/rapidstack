@@ -1,48 +1,89 @@
-import inquirer from 'inquirer';
-import { cp, stat } from 'node:fs/promises';
-import { join } from 'node:path';
+import { type Command } from 'commander';
 
-import { DEFAULT_TEMPLATE_DIR, RapidstackCliError, log } from '../../index.js';
+import { RapidstackCliError, log } from '../../index.js';
+import { type TemplateConfig } from './tasks.js';
 
 /**
  * Creates a new rapidstack project. The action to be run whenever the following
  * commands are run in a user's shell:
- * @param appName the name of the application directory to be created
- * @example
- * `rapidstack create`
- * `npm init @rapidstack`
- * @throws a `RapidstackCliError` if the template directory does not exist
+ * @param command the commander command
+ * @param config the rapidstack template config
+ * @param useDefaults whether or not the user is preferring defaults
+ * @throws {RapidstackCliError} if the target directory is not empty
  */
-export async function action(appName?: string): Promise<void> {
-  log.debug(`running 'create' with appName: [${appName ?? ''}]`);
+export async function action(
+  command: Command,
+  config: TemplateConfig,
+  useDefaults?: boolean
+): Promise<void> {
+  logDebugInfo(command, config, useDefaults);
 
-  // Look up directory for templates and ensure it exists
-  const templateDir = join(DEFAULT_TEMPLATE_DIR, 'create');
-  const templateDirExists = await stat(templateDir).catch(() => false);
-  if (!templateDirExists) {
-    throw new RapidstackCliError(
-      `Template directory does not exist: [${templateDir}].`
-    );
+  // Make sure all of the parameters are defined and that no prompting is needed
+  // Make sure the target directory is valid and doesn't already contain a node
+  // project
+
+  // check if the target directory is empty
+
+  // create the temp directory
+
+  // check if all parameters are defined
+
+  // separate parameters into groups: token-replacer, fs-action
+  const tokenReplacerParams = [];
+  const fsActionParams = [];
+  for (const param of config.parameters) {
+    switch (param.type) {
+      case 'token-replacer':
+        tokenReplacerParams.push(param);
+        break;
+      case 'fs-action':
+        fsActionParams.push(param);
+        break;
+      default:
+        throw new RapidstackCliError(
+          `Unknown parameter type in parameter config: ${param.type}`
+        );
+    }
   }
 
-  // Get or create app name:
-  let name = appName as string;
-  if (!name) {
-    const answers = await inquirer.prompt([
-      {
-        default: 'my-rapidstack-app',
-        message: 'Project Name',
-        name: 'name',
-        type: 'input',
-        when: !appName,
-      },
-    ]);
-    name = answers.name;
-  }
+  // Run the cp + token replacement actions (all in parallel):
+  // - Loop through every file in the template directory
+  //   - If the file ends in .template, remove that suffix
+  //   - If the file is a package.json, run the package.json job for deps
+  //   - Apply any token replacements to the file
+  //   - Copy the file to the temp directory
 
-  // Copy the package.json file to the destination (as a proof of concept)
-  const templateParamsFile = join(templateDir, 'package.json');
-  await cp(templateParamsFile, join(process.cwd(), name, 'package.json'), {
-    recursive: true,
-  });
+  // Run the fs actions sequentially
+
+  // Copy the final project to the target directory
+}
+
+/**
+ * Logs the debug info for the inner create command action.
+ * @param command the commander command
+ * @param config the rapidstack template config
+ * @param useDefaults whether or not the user is preferring defaults
+ */
+function logDebugInfo(
+  command: Command,
+  config: TemplateConfig,
+  useDefaults?: boolean
+) {
+  log.debug('running inner create with command options:');
+  JSON.stringify(command.opts(), null, 2)
+    .split('\n')
+    .forEach((line) => {
+      log.debug(line);
+    });
+
+  log.debug(
+    `and with relevant template config options ${
+      useDefaults ? '(preferring defaults)' : ''
+    }:`
+  );
+  JSON.stringify(config, null, 2)
+    .split('\n')
+    .forEach((line) => {
+      log.debug(line);
+    });
 }

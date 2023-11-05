@@ -4,9 +4,10 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "vitest",
-    "build": "tsc --noEmit && tsup",
-    "build:watch": "tsup --watch"
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup",
+    "build:watch": "tsup --watch",
+    "clean": "rimraf dist",
+    "test": "vitest"
   },
   "exports": {
     ".": {
@@ -28,6 +29,7 @@
     "rapidstack": "./bin/rapidstack-cli.mjs"
   },
   "devDependencies": {
+    "@rapidstack/test-utils": "workspace:*",
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.6",
     "@types/node": "20.8.9",
@@ -45,6 +47,7 @@
   ],
   "dependencies": {
     "chalk": "5.3.0",
+    "esbuild": "0.19.3",
     "commander": "11.1.0",
     "glob": "10.3.10",
     "inquirer": "9.2.11",

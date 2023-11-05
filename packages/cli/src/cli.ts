@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 
 import { buildAllCommand } from './commands/build-all-private/index.js';
+import { buildCleanTmpCommand } from './commands/clean-tmp-private/index.js';
 import { buildCreateCommand } from './commands/create/index.js';
 import { buildCreatePluginCommand } from './commands/create-plugin/index.js';
 import { buildVersionCommand } from './commands/version-all-private/index.js';
@@ -13,6 +14,7 @@ const commands: {
 } = {
   private: {
     'build-all': buildAllCommand(),
+    'clean-tmp': buildCleanTmpCommand(),
     'version-all': buildVersionCommand(),
   },
   public: {
@@ -22,13 +24,17 @@ const commands: {
 };
 
 if (
-  process.argv.includes('--debug') ||
-  process.argv.some((arg) => DEBUG_FLAG_REGEX.test(arg))
+  !process.env.DEBUG_LOGGING &&
+  (process.argv.includes('--debug') ||
+    process.argv.some((arg) => DEBUG_FLAG_REGEX.test(arg)))
 ) {
+  process.env.DEBUG_LOGGING = '1';
   log.debug('cli arguments:');
-  JSON.stringify(process.argv, null, 2).split('\n').forEach(log.debug);
+  JSON.stringify(process.argv, null, 2)
+    .split('\n')
+    .forEach((str) => log.debug(str));
 
-  log.debug('calling cwd:');
+  log.debug('the cwd of invocation:');
   log.debug(process.cwd());
 }
 
@@ -51,7 +57,7 @@ if (await isLocal()) {
 const publicCommands = Object.entries(commands.public);
 publicCommands.forEach(([name, command]) => {
   program.addCommand(command);
-  log.debug(`added public command: [${name}]`);
+  log.debug(`added command: [${name}]`);
 });
 
 /**

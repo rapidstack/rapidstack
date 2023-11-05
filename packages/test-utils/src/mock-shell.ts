@@ -1,7 +1,11 @@
 import { spawn } from 'node:child_process';
 
 /**
- * Executes a shell command in a given directory
+ * Executes a shell command in a given directory.
+ *
+ * This is the same function that
+ * is exported from the `@rapidstack/cli` package but is designed to just have
+ * the stdio available for successes and errors.
  * @param params the params object
  * @param params.cmd The shell command to execute, including all arguments
  * @param params.dir The directory to run the shell command in
@@ -14,10 +18,10 @@ import { spawn } from 'node:child_process';
  * @returns A promise that resolves with the stdout and stderr of the command if
  * called without `stdio: 'inherit'`, otherwise resolves with an empty string.
  */
-export async function shell(params: {
+async function shell(params: {
   cmd: string;
   dir: string;
-  env?: NodeJS.ProcessEnv;
+  env?: { [key: string]: null | string | undefined };
   stdio?: 'inherit' | undefined;
 }): Promise<{ stderr: string; stdout: string }> {
   let stdout = '';
@@ -29,7 +33,7 @@ export async function shell(params: {
       env: {
         ...process.env,
         ...params.env,
-      },
+      } as NodeJS.ProcessEnv,
       shell: true,
       stdio: params.stdio,
     });
@@ -59,4 +63,19 @@ export async function shell(params: {
       });
     }
   });
+}
+
+/**
+ * Executes a shell command in a given directory to inspect the stdout and
+ * stderr for behavior.
+ * @param params the params object
+ * @param params.cmd The shell command to execute, including all arguments
+ * @param params.dir The directory to run the shell command in
+ * @param params.env Any optional shell env vars to set when running the command
+ * @returns A promise that resolves with the stdout and stderr of the command
+ */
+export async function mockShell(
+  params: Omit<Parameters<typeof shell>[0], 'stdio'>
+): Promise<{ stderr: string; stdout: string }> {
+  return await shell(params).catch((err) => JSON.parse(err.message));
 }

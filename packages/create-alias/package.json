@@ -1,5 +1,5 @@
 {
-  "name": "rapidstack-create",
+  "name": "@rapidstack/create",
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",

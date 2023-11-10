@@ -1578,11 +1578,6 @@ packages:
       repeat-string: 1.6.1
     dev: true
 
-  /comment-parser@1.4.0:
-    resolution: {integrity: sha512-QLyTNiZ2KDOibvFPlZ6ZngVsZ/0gYnE6uTXi5aoDg8ed3AkJAz4sEje3Y8a29hQ1s6A99MZXe47fLAXQ1rTqaw==}
-    engines: {node: '>= 12.0.0'}
-    dev: true
-
   /comment-parser@1.4.1:
     resolution: {integrity: sha512-buhp5kePrmda3vhc5B9t7pUQXAb2Tnd0qgpkIhPhkHXxJpiPJ11H0ZEU0oBpJ2QztSbzG/ZxMj/CHsYJqRHmyg==}
     engines: {node: '>= 12.0.0'}
@@ -2177,7 +2172,7 @@ packages:
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.53.0)
       '@eslint-community/regexpp': 4.9.1
-      comment-parser: 1.4.0
+      comment-parser: 1.4.1
       eslint: 8.53.0
       jsdoc-type-pratt-parser: 4.0.0
       refa: 0.12.1

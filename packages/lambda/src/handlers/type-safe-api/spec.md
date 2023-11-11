@@ -3,9 +3,9 @@
 ## End Goal
 
 Existing solutions for a end-to-end type-safe API like tRPC work well, but don't
-take advantage of the full HTTP and REST protocol. I would like to have the same
-sort of functionality, but be broader with what routes and verbs can be used to
-call the API. Ideally this would function like the following:
+take advantage of the full set of features from HTTP and follow conventional
+RESTful apis with verbs and whatnot. I would like to have the same sort of
+functionality, but be broader with what routes and verbs can be used to call the API. Ideally this would function like the following:
 
 ```ts
 // api-handler.ts
@@ -26,13 +26,17 @@ import { SupplierHandler } from './routes/supplier.js';
 import { WebStoreHandler } from './routes/web-store.js';
 
 // Instantiate handler wrapper. Available options include:
-// - name of handler
+// - name of handler (logging)
 // - timeout budget (for inefficiency reporting hook below)
-// - base path?
+// - base path? -- not sure how I would tie this in with the inferred ts
 // - OpenAPI spec route. Would generate a webpage with the API spec and download
-// - disable dev levers (explained further below)
-// - disable JSON body coercion
-// - enable method override header
+//   of the typescript type and postman/openAPI yaml
+// - disable debug-lever headers (explained further below)
+// - disable JSON body coercion (probably not going with this since type
+//   handling gets way too complicated
+// - enable method override header (is this a bad practice though? see: OWASP
+//   reports)
+// - route resolving strategy function - can be custom implementation passed in
 const makeRestApi = appToolkit.create(TypedApiHandler);
 
 const routes = {
@@ -84,14 +88,16 @@ const hooks = {
 export const handler = makeRestApi(routes, hooks);
 
 // The type-safe version of the api that can be used for react-query, rtk-query,
-// etc... and imported to your front-end project.
+// etc... and imported to your front-end project. There would also be a CLI
+// command that could be pointed at the file that has this 'MakeApiTypes'
+// wrapper in it
 export type TypedApi = MakeApiTypes<typeof routes>;
 ```
 
-Actual usage would be a lot less verbose. For the imported handlers, they would
-be wrapped in a function to take care of all the type validations for you. This
-would be handled by a library such as zod or valibot. Probably the latter due
-to the tree-shakable nature of it. This would look something like the following:
+For the imported handlers, they would be wrapped in a function to take care of
+all the type validations for you. This would be handled by a library such as zod
+or valibot. Probably the latter due to the tree-shakable nature of it.
+This would look something like the following:
 
 ```ts
 // routes/products.ts
@@ -149,10 +155,10 @@ const postValidator = {
     price: number([notValue(0), minValue(0)]),
   }),
   cookies: {
-    'my-cookie': string(),
+    'my-required-cookie': string(),
   },
   headers: {
-    'my-header': string(),
+    'my-required-header': string(),
   },
 } satisfies RouteValidator;
 
@@ -205,11 +211,11 @@ event and return based upon some headers passed in:
    * log group name in the header `x-request-log-group` for easier
    * troubleshooting from the client-side.
    */
-  "x-debug-logs": "any-value",
+  "x-debug-logs": "true",
   /**
    * Would skip the cache for this run. Probably would need to set a max?
    */
-  "x-debug-no-cache": "any-value",
+  "x-debug-no-cache": "any-value or debug password of sorts",
   /**
    * Would return unix ts metrics for when the call was received and completed
    * so the following times could be analyzed:
@@ -222,6 +228,24 @@ event and return based upon some headers passed in:
    * connection, server execution time, and latency of delivery.
    * Return header: `x-debug-perf-metric-result`
    */
-  "x-debug-perf-metrics": "unix-epoch"
+  "x-debug-perf-metrics": "client's unit epoch"
 }
 ```
+
+## Assumptions
+
+- You are either looking to host this via lambda URL or API Gateway. Interop
+  should be easy.
+- You are not defining api routes from API Gateway and are just using the proxy.
+- You must be using JSON for populated body messages. Don't have a good method
+  to support making this type safe and support multiple content-types
+
+## Not yet considered
+
+- API versioning: most advanced APIs use headers to route to specific versions.
+  How could this be handled?
+  - Can we have something built in so the version slug (alternate route) is not
+    explicitly defined in the routes obj?
+- Typescript max nesting of generics = 50 issue.
+- Untyped routes? Allow them or no?
+- Interop with a different type validator?

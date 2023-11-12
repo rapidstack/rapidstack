@@ -9,8 +9,16 @@ import type {
 } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 
-import { HOT_FUNCTION_TRIGGER, type ILogger } from '../../common/index.js';
-import { resolvePossibleRequestIds } from '../../utils/index.js';
+import {
+  HOT_FUNCTION_TRIGGER,
+  HandlerExecuteError,
+  type ILogger,
+  PerformanceKeys,
+} from '../../common/index.js';
+import {
+  getHandlerPerformance,
+  resolvePossibleRequestIds,
+} from '../../utils/index.js';
 import {
   handleHotFunctionHook,
   handleRequestHooks,
@@ -42,8 +50,12 @@ export const TypeSafeApiHandler = (
   const { name } = config ?? {};
 
   return (runnerFunction, options) => async (event, context) => {
-    performance.mark('handler-start');
+    performance.mark(PerformanceKeys.HANDLER_START);
     let conclusion = 'success' as 'failure' | 'success';
+
+    if (typeof event !== 'object') {
+      throw new HandlerExecuteError('event must be an object');
+    }
 
     const {
       onError,
@@ -65,40 +77,14 @@ export const TypeSafeApiHandler = (
 
     // outer try/catch to determine conclusion for the summary log
     try {
-      handleShutdownHook(onLambdaShutdown, logger);
-
-      if (isHotTrigger) {
-        return await handleHotFunctionHook({
-          cache,
-          context,
-          event,
-          logger,
-          onHotFunctionTrigger,
-        });
-      }
-
-      return await handleRequestHooks({
-        cache,
-        context,
-        event,
-        logger,
-        onError,
-        onRequestEnd,
-        onRequestStart,
-        runnerFunction,
-      });
+      // Execution
     } catch (err) {
       conclusion = 'failure';
       throw err;
     } finally {
-      performance.mark('handler-end');
-      const { duration } = performance.measure(
-        'handler',
-        'handler-start',
-        'handler-end'
-      );
+      performance.mark(PerformanceKeys.HANDLER_END);
+      const { duration } = getHandlerPerformance();
       logger.summary({ conclusion, duration });
-      performance.clearMarks();
       logger.end();
     }
   };

@@ -9,8 +9,15 @@ import type {
 } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 
-import { HOT_FUNCTION_TRIGGER, type ILogger } from '../../common/index.js';
-import { resolvePossibleRequestIds } from '../../utils/index.js';
+import {
+  HOT_FUNCTION_TRIGGER,
+  type ILogger,
+  PerformanceKeys,
+} from '../../common/index.js';
+import {
+  getHandlerPerformance,
+  resolvePossibleRequestIds,
+} from '../../utils/index.js';
 import {
   handleColdStartHook,
   handleHotFunctionHook,
@@ -44,7 +51,7 @@ export const GenericHandler = (
   const { name } = config ?? {};
 
   return (runnerFunction, options) => async (event, context) => {
-    performance.mark('handler-start');
+    performance.mark(PerformanceKeys.HANDLER_START);
     let conclusion = 'success' as 'failure' | 'success';
 
     const {
@@ -102,12 +109,8 @@ export const GenericHandler = (
       conclusion = 'failure';
       throw err;
     } finally {
-      performance.mark('handler-end');
-      const { duration } = performance.measure(
-        'handler',
-        'handler-start',
-        'handler-end'
-      );
+      performance.mark(PerformanceKeys.HANDLER_END);
+      const { duration } = getHandlerPerformance();
       logger.summary({ conclusion, duration });
       performance.clearMarks();
       logger.end();

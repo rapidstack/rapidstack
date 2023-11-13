@@ -1,1 +1,87 @@
-export {};
+/* eslint-disable perfectionist/sort-union-types */
+/* eslint-disable perfectionist/sort-object-types */
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
+
+export type Http400s = {
+  BadRequest: 400;
+  Unauthorized: 401;
+  PaymentRequired: 402;
+  Forbidden: 403;
+  NotFound: 404;
+  MethodNotAllowed: 405;
+  NotAcceptable: 406;
+  ProxyAuthenticationRequired: 407;
+  RequestTimeout: 408;
+  Conflict: 409;
+  Gone: 410;
+  LengthRequired: 411;
+  PreconditionFailed: 412;
+  PayloadTooLarge: 413;
+  URITooLong: 414;
+  UnsupportedMediaType: 415;
+  RangeNotSatisfiable: 416;
+  ExpectationFailed: 417;
+  ImATeapot: 418;
+  MisdirectedRequest: 421;
+  UnprocessableEntity: 422;
+  Locked: 423;
+  FailedDependency: 424;
+  TooEarly: 425;
+  UpgradeRequired: 426;
+  PreconditionRequired: 428;
+  TooManyRequests: 429;
+  RequestHeaderFieldsTooLarge: 431;
+  UnavailableForLegalReasons: 451;
+};
+
+export type Http400ErrorNames = Simplify<keyof Http400s>;
+export type Http400ErrorCodes = Http400s[keyof Http400s];
+
+export type Http500s = {
+  InternalServerError: 500;
+  NotImplemented: 501;
+  BadGateway: 502;
+  ServiceUnavailable: 503;
+  GatewayTimeout: 504;
+  HTTPVersionNotSupported: 505;
+  VariantAlsoNegotiates: 506;
+  InsufficientStorage: 507;
+  LoopDetected: 508;
+  NotExtended: 510;
+  NetworkAuthenticationRequired: 511;
+};
+
+export type Http500ErrorNames = Simplify<keyof Http500s>;
+export type Http500ErrorCodes = Http500s[keyof Http500s];
+
+export type HttpErrorCodes = Http400ErrorCodes | Http500ErrorCodes;
+export type HttpErrors = Simplify<Http400ErrorNames | Http500ErrorNames>;
+
+export type HttpVerbs =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'COPY'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'LINK'
+  | 'UNLINK'
+  | 'PURGE'
+  | 'LOCK'
+  | 'UNLOCK'
+  | 'PROPFIND'
+  | 'VIEW';
+
+export type HttpUpgradeHeaderOptions =
+  | 'HTTP/2.0'
+  | 'SHTTP/1.3'
+  | 'WebSocket'
+  | 'IRC/6.9'
+  | 'RTA/x11'
+  | 'TLS/1.0'
+  | 'HTTP/1.1'
+  | string;

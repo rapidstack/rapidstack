@@ -1,24 +1,28 @@
+// hypothetical?
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type APIGatewayProxyEventV2, type Context } from 'aws-lambda';
 import {
   type BaseSchema,
   type BaseSchemaAsync,
   type Output,
-  object,
   parse,
   parseAsync,
   string,
+  object,
+  ObjectEntries,
+  ObjectSchema,
 } from 'valibot';
 
 import { type ICache, type ILogger } from '../../index.js';
 
 type ValibotSchema = BaseSchema | BaseSchemaAsync;
+type ValibotSchemaRecord = ObjectEntries;
 
 type HttpCallValidationSchema<
-  Body extends ValibotSchema | undefined = undefined,
-  QSPs extends ValibotSchema | undefined = undefined,
-  Headers extends ValibotSchema | undefined = undefined,
-  Cookies extends ValibotSchema | undefined = undefined,
+  Body extends ValibotSchemaRecord | undefined = undefined,
+  QSPs extends ValibotSchemaRecord | undefined = undefined,
+  Headers extends ValibotSchemaRecord | undefined = undefined,
+  Cookies extends ValibotSchemaRecord | undefined = undefined,
 > = {
   body?: Body;
   cookies?: Cookies;
@@ -28,8 +32,7 @@ type HttpCallValidationSchema<
 
 export type HttpRunnerFunction<
   Validated extends HttpCallValidationSchema<any, any, any, any>,
-  Return,
-> = (props: {
+> = <Return>(props: {
   cache: ICache;
   context: Context;
   logger: ILogger;
@@ -40,7 +43,7 @@ export type ValidatedSchemaOutput<
   Schema extends HttpCallValidationSchema<any, any, any, any>,
 > = {
   body: Schema['body'] extends ValibotSchema
-    ? Output<Schema['body']>
+    ? Output<ObjectSchema<Schema['body']>>
     : undefined;
   cookies: Schema['cookies'] extends ValibotSchema
     ? Output<Schema['cookies']>
@@ -51,37 +54,32 @@ export type ValidatedSchemaOutput<
   qsp: Schema['qsp'] extends ValibotSchema ? Output<Schema['qsp']> : undefined;
 };
 
-export type TypeSafeApiRouteProps<
-  Schema extends HttpCallValidationSchema<any, any, any, any>,
-> = {
+export type TypeSafeApiRouteProps = {
   cache: ICache;
   context: Context;
   event: APIGatewayProxyEventV2;
   logger: ILogger;
-} & {
-  _schema: Schema;
 };
 
-// This isn't needed?
-// export type HttpRouteValidator = <
-//   ValidationSchema extends HttpCallValidationSchema<
-//     Body,
-//     QSPs,
-//     Headers,
-//     Cookies
-//   >,
-//   Body extends ValibotSchema | undefined,
-//   QSPs extends ValibotSchema | undefined = undefined,
-//   Headers extends ValibotSchema | undefined = undefined,
-//   Cookies extends ValibotSchema | undefined = undefined,
-// >(
-//   schema: ValidationSchema,
-//   runnerFunction: HttpRunnerFunction<ValidationSchema>
-// ) => (props: TypeSafeApiRouteProps) => Promise<{
-//   body: string;
-//   headers: Record<string, string>;
-//   statusCode: number;
-// }>;
+export type HttpRouteValidator = <
+  ValidationSchema extends HttpCallValidationSchema<
+    Body,
+    QSPs,
+    Headers,
+    Cookies
+  >,
+  Body extends ValibotSchemaRecord | undefined,
+  QSPs extends ValibotSchemaRecord | undefined = undefined,
+  Headers extends ValibotSchemaRecord | undefined = undefined,
+  Cookies extends ValibotSchemaRecord | undefined = undefined,
+>(
+  schema: ValidationSchema,
+  runnerFunction: HttpRunnerFunction<ValidationSchema>
+) => (props: TypeSafeApiRouteProps) => Promise<{
+  body: string;
+  headers: Record<string, string>;
+  statusCode: number;
+}>;
 
 export const validate = <
   ValidationSchema extends HttpCallValidationSchema<
@@ -90,21 +88,20 @@ export const validate = <
     Headers,
     Cookies
   >,
-  Return,
-  Body extends ValibotSchema | undefined,
-  QSPs extends ValibotSchema | undefined = undefined,
-  Headers extends ValibotSchema | undefined = undefined,
-  Cookies extends ValibotSchema | undefined = undefined,
+  Body extends ValibotSchemaRecord | undefined,
+  QSPs extends ValibotSchemaRecord | undefined = undefined,
+  Headers extends ValibotSchemaRecord | undefined = undefined,
+  Cookies extends ValibotSchemaRecord | undefined = undefined,
 >(
   schema: ValidationSchema,
-  runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
+  runnerFunction: HttpRunnerFunction<ValidationSchema>
 ) => {
   return async ({
     cache,
     context,
     event,
     logger,
-  }: TypeSafeApiRouteProps<ValidationSchema>): Promise<Return> => {
+  }: TypeSafeApiRouteProps): Promise<unknown> => {
     // Validation would happen here and `validated` formatting would be applied
     const validated = await validateSchema(schema as object, event);
 
@@ -124,10 +121,10 @@ const validateSchema = async <
     Headers,
     Cookies
   >,
-  Body extends ValibotSchema | undefined = undefined,
-  QSPs extends ValibotSchema | undefined = undefined,
-  Headers extends ValibotSchema | undefined = undefined,
-  Cookies extends ValibotSchema | undefined = undefined,
+  Body extends ValibotSchemaRecord | undefined = undefined,
+  QSPs extends ValibotSchemaRecord | undefined = undefined,
+  Headers extends ValibotSchemaRecord | undefined = undefined,
+  Cookies extends ValibotSchemaRecord | undefined = undefined,
 >(
   schema: ValidationSchema,
   event: APIGatewayProxyEventV2
@@ -147,9 +144,7 @@ const validateSchema = async <
   // Validate each part of the schema against incoming data
   const validated = {} as ValidatedSchemaOutput<ValidationSchema>;
   if (schema.body) {
-    const parsedBody = schema.body.async
-      ? await parseAsync(schema.body, body)
-      : parse(schema.body, body);
+    const parsedBody = await parseAsync(object(schema.body), body);
 
     validated.body = parsedBody;
   }
@@ -181,16 +176,12 @@ const validateSchema = async <
   return validated;
 };
 
-const test = validate(
-  {
-    body: object({
-      foo: string(),
-    }),
-  },
-  async ({ logger, validated }) => {
-    logger.info('validated foo: ' + validated.body.foo);
-    return validated.body.foo;
-  }
-);
 
-type tt = Output<Parameters<typeof test>[0]['_schema']['body']>;
+
+const test = validate({
+  body: {
+    foo: string(),
+  }
+}, async ({ validated }) => {
+  validated.body.
+});

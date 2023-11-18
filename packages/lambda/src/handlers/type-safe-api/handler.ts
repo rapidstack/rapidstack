@@ -38,7 +38,7 @@ interface TypeSafeApiHandlerConfig extends ICreatableConfig {
   msTimeoutBudget?: number;
   name?: `${string}Handler`;
   openApiRoute?: true;
-  respectMethodOverride?: true;
+  respectMethodOverrideHeader?: true;
   routeResolver?: () => null;
 }
 

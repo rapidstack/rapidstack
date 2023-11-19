@@ -4,6 +4,7 @@ import {
   type BaseSchema,
   type BaseSchemaAsync,
   type Output,
+  number,
   object,
   parse,
   parseAsync,
@@ -62,28 +63,7 @@ export type TypeSafeApiRouteProps<
   _schema: Schema;
 };
 
-// This isn't needed?
-// export type HttpRouteValidator = <
-//   ValidationSchema extends HttpCallValidationSchema<
-//     Body,
-//     QSPs,
-//     Headers,
-//     Cookies
-//   >,
-//   Body extends ValibotSchema | undefined,
-//   QSPs extends ValibotSchema | undefined = undefined,
-//   Headers extends ValibotSchema | undefined = undefined,
-//   Cookies extends ValibotSchema | undefined = undefined,
-// >(
-//   schema: ValidationSchema,
-//   runnerFunction: HttpRunnerFunction<ValidationSchema>
-// ) => (props: TypeSafeApiRouteProps) => Promise<{
-//   body: string;
-//   headers: Record<string, string>;
-//   statusCode: number;
-// }>;
-
-export const validate = <
+export type HttpRouteValidator = <
   ValidationSchema extends HttpCallValidationSchema<
     Body,
     QSPs,
@@ -95,6 +75,27 @@ export const validate = <
   QSPs extends ValibotSchema | undefined = undefined,
   Headers extends ValibotSchema | undefined = undefined,
   Cookies extends ValibotSchema | undefined = undefined,
+>(
+  schema: ValidationSchema,
+  runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
+) => (props: TypeSafeApiRouteProps<ValidationSchema>) => Promise<{
+  body: string;
+  headers: Record<string, string>;
+  statusCode: number;
+}>;
+
+export const validate = <
+  ValidationSchema extends HttpCallValidationSchema<
+    Body,
+    QSPs,
+    Headers,
+    Cookies
+  >,
+  Return,
+  Body extends ValibotSchema | undefined,
+  QSPs extends ValibotSchema | undefined,
+  Headers extends ValibotSchema | undefined,
+  Cookies extends ValibotSchema | undefined,
 >(
   schema: ValidationSchema,
   runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
@@ -135,7 +136,7 @@ const validateSchema = async <
   // Extract details from event shape
   const body =
     event.isBase64Encoded && event.body
-      ? Buffer.from(event.body, 'base64')
+      ? Buffer.from(event.body, 'base64').toString()
       : event.body;
 
   const headers = event.headers;
@@ -184,13 +185,19 @@ const validateSchema = async <
 const test = validate(
   {
     body: object({
+      bar: number(),
       foo: string(),
+    }),
+    headers: object({
+      'x-foo': string(),
     }),
   },
   async ({ logger, validated }) => {
     logger.info('validated foo: ' + validated.body.foo);
+    logger.info('validated bar: ' + validated.body.bar);
     return validated.body.foo;
   }
 );
 
 type tt = Output<Parameters<typeof test>[0]['_schema']['body']>;
+//    ^?

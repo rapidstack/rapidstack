@@ -4,6 +4,36 @@
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
+export type Http100s = {
+  Continue: 100;
+  SwitchingProtocols: 101;
+  Processing: 102;
+  EarlyHints: 103;
+};
+
+export type Http200s = {
+  OK: 200;
+  Created: 201;
+  Accepted: 202;
+  NonAuthoritativeInformation: 203;
+  NoContent: 204;
+  ResetContent: 205;
+  PartialContent: 206;
+  MultiStatus: 207;
+  AlreadyReported: 208;
+  IMUsed: 226;
+};
+
+export type Http300s = {
+  MultipleChoices: 300;
+  MovedPermanently: 301;
+  Found: 302;
+  SeeOther: 303;
+  NotModified: 304;
+  TemporaryRedirect: 307;
+  PermanentRedirect: 308;
+};
+
 export type Http400s = {
   BadRequest: 400;
   Unauthorized: 401;

@@ -52,16 +52,16 @@ export type ValidatedSchemaOutput<
   qsp: Schema['qsp'] extends ValibotSchema ? Output<Schema['qsp']> : undefined;
 };
 
-export type TypeSafeApiRouteProps<
-  Schema extends HttpCallValidationSchema<any, any, any, any>,
-> = {
+export type BaseApiRouteProps = {
   cache: ICache;
   context: Context;
   event: APIGatewayProxyEventV2;
   logger: ILogger;
-} & {
-  _schema: Schema;
 };
+
+export type TypeSafeApiRouteProps<
+  Schema extends HttpCallValidationSchema<any, any, any, any>,
+> = BaseApiRouteProps & { _schema: Schema };
 
 export type HttpRouteValidator = <
   ValidationSchema extends HttpCallValidationSchema<
@@ -134,6 +134,8 @@ const validateSchema = async <
   event: APIGatewayProxyEventV2
 ): Promise<ValidatedSchemaOutput<ValidationSchema>> => {
   // Extract details from event shape
+  // TODO: in the future it would be nice to support different content types for
+  // the body, but for now we will assume JSON
   const body =
     event.isBase64Encoded && event.body
       ? Buffer.from(event.body, 'base64').toString()

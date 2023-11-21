@@ -11,6 +11,9 @@ export type Http100s = {
   EarlyHints: 103;
 };
 
+export type Http100Names = Simplify<keyof Http100s>;
+export type Http100Codes = Http100s[keyof Http100s];
+
 export type Http200s = {
   OK: 200;
   Created: 201;
@@ -24,6 +27,9 @@ export type Http200s = {
   IMUsed: 226;
 };
 
+export type Http200Names = Simplify<keyof Http200s>;
+export type Http200Codes = Http200s[keyof Http200s];
+
 export type Http300s = {
   MultipleChoices: 300;
   MovedPermanently: 301;
@@ -33,6 +39,9 @@ export type Http300s = {
   TemporaryRedirect: 307;
   PermanentRedirect: 308;
 };
+
+export type Http300Names = Simplify<keyof Http300s>;
+export type Http300Codes = Http300s[keyof Http300s];
 
 export type Http400s = {
   BadRequest: 400;
@@ -66,8 +75,8 @@ export type Http400s = {
   UnavailableForLegalReasons: 451;
 };
 
-export type Http400ErrorNames = Simplify<keyof Http400s>;
-export type Http400ErrorCodes = Http400s[keyof Http400s];
+export type Http400Names = Simplify<keyof Http400s>;
+export type Http400Codes = Http400s[keyof Http400s];
 
 export type Http500s = {
   InternalServerError: 500;
@@ -83,11 +92,15 @@ export type Http500s = {
   NetworkAuthenticationRequired: 511;
 };
 
-export type Http500ErrorNames = Simplify<keyof Http500s>;
-export type Http500ErrorCodes = Http500s[keyof Http500s];
+export type Http500Names = Simplify<keyof Http500s>;
+export type Http500Codes = Http500s[keyof Http500s];
 
-export type HttpErrorCodes = Http400ErrorCodes | Http500ErrorCodes;
-export type HttpErrors = Simplify<Http400ErrorNames | Http500ErrorNames>;
+export type HttpNonErrorCodes = Http100Codes | Http200Codes | Http300Codes;
+export type HttpNonErrors = Simplify<
+  Http100Names | Http200Names | Http300Names
+>;
+export type HttpErrorCodes = Http400Codes | Http500Codes;
+export type HttpErrors = Simplify<Http400Names | Http500Names>;
 
 export type HttpVerbs =
   | 'GET'

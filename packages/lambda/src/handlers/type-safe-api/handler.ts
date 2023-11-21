@@ -57,13 +57,8 @@ export const TypeSafeApiHandler = (
       throw new HandlerExecuteError('event must be an object');
     }
 
-    const {
-      onError,
-      onHotFunctionTrigger,
-      onLambdaShutdown,
-      onRequestEnd,
-      onRequestStart,
-    } = options ?? {};
+    const { onError, onHotFunctionTrigger, onRequestEnd, onRequestStart } =
+      options ?? {};
 
     const logger = _log.child({
       '@r': resolvePossibleRequestIds(event, context),
@@ -77,7 +72,26 @@ export const TypeSafeApiHandler = (
 
     // outer try/catch to determine conclusion for the summary log
     try {
-      // Execution
+      if (isHotTrigger) {
+        return await handleHotFunctionHook({
+          cache,
+          context,
+          event,
+          logger,
+          onHotFunctionTrigger,
+        });
+      }
+
+      return await handleRequestHooks({
+        cache,
+        context,
+        event,
+        logger,
+        onError,
+        onRequestEnd,
+        onRequestStart,
+        runnerFunction,
+      });
     } catch (err) {
       conclusion = 'failure';
       throw err;

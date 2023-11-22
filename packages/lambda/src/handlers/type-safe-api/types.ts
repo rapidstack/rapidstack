@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type APIGatewayProxyEventV2, type Context } from 'aws-lambda';
 
-import { type HttpNonErrorCodes } from '../../api/index.js';
+import { type HttpCodes, type HttpNonErrorCodes } from '../../api/index.js';
 import { type ICache, type ILogger } from '../../index.js';
 
 type CommonHookUtils = {
@@ -16,6 +16,7 @@ type CommonHookProps = {
 
 type OnErrorHookProps = {
   error: unknown;
+  event: APIGatewayProxyEventV2;
 } & CommonHookProps;
 
 type OnRequestEndHookProps = {
@@ -94,7 +95,7 @@ export type TypeSafeApiHandlerOptions = {
   ) => Promise<(() => ApiHandlerReturn) | void>;
 };
 
-type BaseApiHandlerReturn = {
+export type BaseApiHandlerReturn = {
   body?: any;
   cookies?: {
     [key: string]: {
@@ -111,11 +112,11 @@ type BaseApiHandlerReturn = {
     };
   };
   headers?: Record<string, string>;
-  statusCode: HttpNonErrorCodes;
+  statusCode: HttpCodes;
 };
 
 // TODO: add more?
-type ApiHandler302Return = {
+export type ApiHandler302Return = {
   body?: any;
   cookies?: undefined;
   headers: {
@@ -124,7 +125,7 @@ type ApiHandler302Return = {
   statusCode: 302;
 };
 
-type ApiHandlerReturn = ApiHandler302Return | BaseApiHandlerReturn;
+export type ApiHandlerReturn = ApiHandler302Return | BaseApiHandlerReturn;
 
 // My take on JSend:
 type ApiSuccessResponse = {

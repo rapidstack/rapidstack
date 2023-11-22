@@ -11,7 +11,7 @@ import { HttpErrorExplanations } from './constants.js';
 
 // TODO: needs rework for overloading
 export class HttpError extends Error {
-  public code: number;
+  public code: HttpErrorCodes;
   public headers?: Record<string, string>;
   public message: string;
 
@@ -109,3 +109,5 @@ export class HttpError extends Error {
     this.code = code;
   }
 }
+
+export class HttpValidationError extends Error {}

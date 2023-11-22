@@ -1,4 +1,4 @@
-import type { Context } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
 import { performance } from 'node:perf_hooks';
 
@@ -9,6 +9,7 @@ import type {
 } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 
+import { HttpError } from '../../api/http-errors.js';
 import {
   HOT_FUNCTION_TRIGGER,
   HandlerExecuteError,
@@ -19,18 +20,20 @@ import {
   getHandlerPerformance,
   resolvePossibleRequestIds,
 } from '../../utils/index.js';
+import { handleHotFunctionHook, handleRequestHooks } from './lifecycle.js';
 import {
-  handleHotFunctionHook,
-  handleRequestHooks,
-  handleShutdownHook,
-} from './lifecycle.js';
-import { type TypeSafeApiHandlerOptions } from './types.js';
+  type ApiHandlerReturn,
+  type ApiResponse,
+  type BaseApiHandlerReturn,
+  type TypeSafeApiHandlerOptions,
+} from './types.js';
+import { type BaseApiRouteProps } from './validator.js';
 
 interface TypeSafeApiHandlerReturn extends ICreatableReturn {
-  <Event, Return>(
+  (
     routes: {},
     options?: TypeSafeApiHandlerOptions
-  ): LambdaEntryPoint<Event, Return>;
+  ): LambdaEntryPoint<APIGatewayProxyEventV2, BaseApiHandlerReturn | void>;
 }
 
 interface TypeSafeApiHandlerConfig extends ICreatableConfig {
@@ -39,7 +42,10 @@ interface TypeSafeApiHandlerConfig extends ICreatableConfig {
   name?: `${string}Handler`;
   openApiRoute?: true;
   respectMethodOverrideHeader?: true;
-  routeResolver?: () => null;
+  routeResolver?: (
+    event: APIGatewayProxyEventV2,
+    routes: {}
+  ) => ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined;
 }
 
 export const TypeSafeApiHandler = (
@@ -49,7 +55,7 @@ export const TypeSafeApiHandler = (
   const { cache, logger: _log } = utils;
   const { name } = config ?? {};
 
-  return (runnerFunction, options) => async (event, context) => {
+  return (routes, options) => async (event, context) => {
     performance.mark(PerformanceKeys.HANDLER_START);
     let conclusion = 'success' as 'failure' | 'success';
 
@@ -66,9 +72,8 @@ export const TypeSafeApiHandler = (
     });
 
     const isHotTrigger =
-      typeof event === 'object' &&
       // eslint-disable-next-line security/detect-object-injection
-      (event as { [k: string]: unknown })[HOT_FUNCTION_TRIGGER];
+      !!(event as unknown as { [k: string]: unknown })[HOT_FUNCTION_TRIGGER];
 
     // outer try/catch to determine conclusion for the summary log
     try {
@@ -82,6 +87,11 @@ export const TypeSafeApiHandler = (
         });
       }
 
+      const route = config?.routeResolver
+        ? config.routeResolver(event, routes)
+        : resolveRoute(event, routes);
+      if (!route) throw new HttpError(404);
+
       return await handleRequestHooks({
         cache,
         context,
@@ -90,7 +100,7 @@ export const TypeSafeApiHandler = (
         onError,
         onRequestEnd,
         onRequestStart,
-        runnerFunction,
+        route,
       });
     } catch (err) {
       conclusion = 'failure';
@@ -103,3 +113,14 @@ export const TypeSafeApiHandler = (
     }
   };
 };
+
+/**
+ *
+ * @param event
+ */
+function resolveRoute(
+  event: APIGatewayProxyEventV2,
+  routes: {}
+): ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined {
+  return (routes as any)[event.version as any] as any;
+}

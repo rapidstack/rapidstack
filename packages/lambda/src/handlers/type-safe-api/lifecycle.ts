@@ -1,27 +1,29 @@
-import { type Context } from 'aws-lambda';
+import { type APIGatewayProxyEventV2, type Context } from 'aws-lambda';
 
+import { HttpError } from '../../api/http-errors.js';
 import {
   COLD_START,
   HandlerExecuteError,
   type ICache,
   type ILogger,
 } from '../../index.js';
-import { type GenericHandlerWrapperOptions } from '../generic/types.js';
+import {
+  type ApiHandlerReturn,
+  type BaseApiHandlerReturn,
+  type TypeSafeApiHandlerOptions,
+} from './types.js';
+import { type BaseApiRouteProps } from './validator.js';
 
-type HotFunctionHook<Event, Return> = {
+type HotFunctionHook = {
   cache: ICache;
   context: Context;
   event: unknown;
   logger: ILogger;
-  onHotFunctionTrigger: GenericHandlerWrapperOptions<
-    Event,
-    Return,
-    never
-  >['onHotFunctionTrigger'];
+  onHotFunctionTrigger: TypeSafeApiHandlerOptions['onHotFunctionTrigger'];
 };
-export const handleHotFunctionHook = async <Event, Return>(
-  props: HotFunctionHook<Event, Return>
-): Promise<Return> => {
+export const handleHotFunctionHook = async (
+  props: HotFunctionHook
+): Promise<void> => {
   const { cache, context, logger, onHotFunctionTrigger } = props;
   if (!onHotFunctionTrigger) {
     const message =
@@ -39,15 +41,135 @@ export const handleHotFunctionHook = async <Event, Return>(
     hierarchicalName: 'handler-hook:onHotFunctionTrigger',
   });
   try {
-    return (await onHotFunctionTrigger({
+    return await onHotFunctionTrigger({
       cache,
       context,
       logger: hotFunctionTriggerLogger,
-    })) as Return;
+    });
   } catch (err) {
     hotFunctionTriggerLogger.fatal({ err, msg: 'An error occurred' });
     throw new HandlerExecuteError(
       'An error occurred in the onHotFunctionTrigger handler.'
     );
+  }
+};
+
+type RequestHooks = {
+  cache: ICache;
+  context: Context;
+  event: APIGatewayProxyEventV2;
+  logger: ILogger;
+  onError: TypeSafeApiHandlerOptions['onError'];
+  onRequestEnd: TypeSafeApiHandlerOptions['onRequestEnd'];
+  onRequestStart: TypeSafeApiHandlerOptions['onRequestStart'];
+  route: (params: BaseApiRouteProps) => Promise<ApiHandlerReturn>;
+};
+export const handleRequestHooks = async (
+  props: RequestHooks
+): Promise<BaseApiHandlerReturn> => {
+  const {
+    cache,
+    context,
+    event,
+    logger,
+    onError,
+    onRequestEnd,
+    onRequestStart,
+    route,
+  } = props;
+
+  logger.trace({ context, event, msg: 'Starting request execution.' });
+
+  // The following are handled by the onError handler (critical path)
+  let result;
+  try {
+    let maybeReturnEarly: (() => ApiHandlerReturn) | void;
+    const preRequestTriggerLogger = logger.child({
+      hierarchicalName: 'handler-hook:onRequestStart',
+    });
+
+    if (onRequestStart) {
+      maybeReturnEarly = await onRequestStart({
+        cache,
+        context,
+        event,
+        logger: preRequestTriggerLogger,
+      });
+
+      if (typeof maybeReturnEarly === 'function') {
+        result = maybeReturnEarly() as ApiHandlerReturn;
+        return result;
+      }
+    }
+
+    result = await route({
+      cache,
+      context,
+      event,
+      logger: logger.child({
+        hierarchicalName: 'exe-fn',
+      }),
+    });
+
+    // On request end
+    if (onRequestEnd) {
+      const maybeReturnEarly = await onRequestEnd({
+        cache,
+        context,
+        event,
+        logger: logger.child({
+          hierarchicalName: 'handler-hook:onRequestEnd',
+        }),
+        result,
+      });
+      if (typeof maybeReturnEarly === 'function') {
+        result = maybeReturnEarly();
+      }
+    }
+
+    return result;
+  } catch (err) {
+    if (onError) {
+      if (!(err instanceof Error)) {
+        logger.warn({
+          err,
+          msg: 'The error caught to be processed by the handler onError hook \
+          is not an instance of an Error. This is preferred for \
+          troubleshooting.',
+        });
+      }
+
+      result = await onError({
+        cache,
+        context,
+        error: err,
+        event,
+        logger: logger.child({
+          hierarchicalName: 'handler-hook:onError',
+        }),
+      });
+      return result;
+    }
+
+    // Standard handling of an HTTP errors when no hook is supplied
+    else if (err instanceof HttpError) {
+      return {
+        // TODO:
+        // somehow need to make this type ok with error codes while not exposing
+        // them as an option for the standard handler return type
+        body: {
+          status: 'error',
+        },
+        statusCode: err.code,
+      };
+    }
+
+    // else: Standard handling of an error without an onError handler
+    throw new HandlerExecuteError(
+      `An error occurred attempting to execute the lambda handler: \
+      ${err.toString()}`
+    );
+  } finally {
+    logger.trace({ msg: 'Finished request execution.', result });
   }
 };

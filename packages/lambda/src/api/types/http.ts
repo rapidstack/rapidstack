@@ -102,6 +102,9 @@ export type HttpNonErrors = Simplify<
 export type HttpErrorCodes = Http400Codes | Http500Codes;
 export type HttpErrors = Simplify<Http400Names | Http500Names>;
 
+export type HttpCodes = HttpNonErrorCodes | HttpErrorCodes;
+export type HttpNames = Simplify<HttpNonErrors | HttpErrors>;
+
 export type HttpVerbs =
   | 'GET'
   | 'POST'

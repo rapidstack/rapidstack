@@ -1,4 +1,3 @@
-export * from './api-gateway.js';
 export * from './event.js';
 export * from './function.js';
 export * from './object.js';

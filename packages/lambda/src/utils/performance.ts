@@ -4,7 +4,6 @@ import { PerformanceKeys } from '../index.js';
 
 export const getHandlerPerformance = (): {
   duration: number;
-  roundedDuration: number;
 } => {
   const { duration } = performance.measure(
     'handler',
@@ -14,5 +13,5 @@ export const getHandlerPerformance = (): {
   performance.clearMarks(PerformanceKeys.HANDLER_START);
   performance.clearMarks(PerformanceKeys.HANDLER_END);
 
-  return { duration, roundedDuration: Math.round(duration) };
+  return { duration: +duration.toPrecision(4) };
 };

@@ -114,7 +114,15 @@ export const TypeSafeApiHandler = (
       return {
         body: JSON.stringify(result.body),
         cookies: buildCookiesFromObject(result.cookies),
-        headers: result.headers,
+        // TODO: further infer content type from body
+        headers: {
+          ...(typeof result.body === 'object'
+            ? {
+                'content-type': 'application/json',
+              }
+            : {}),
+          ...result.headers,
+        },
         statusCode: result.statusCode,
       } satisfies APIGatewayProxyResultV2;
     } catch (err) {
@@ -175,6 +183,9 @@ function makeHttpErrorResponse(
 
   return {
     body: JSON.stringify(errOutput),
+    headers: {
+      'content-type': 'application/json',
+    },
     statusCode: err.code,
   };
 }

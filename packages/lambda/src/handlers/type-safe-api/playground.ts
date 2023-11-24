@@ -4,8 +4,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+export {};
 
-import type { Context } from 'aws-lambda';
+/* import type { Context } from 'aws-lambada';
 import type { BaseSchema, BaseSchemaAsync, Output } from 'valibot';
 
 import { number, object, parse, parseAsync, string } from 'valibot';
@@ -119,3 +120,4 @@ export const validator: APIValidatorFunction = async <T>(
     return;
   }
 }
+ */

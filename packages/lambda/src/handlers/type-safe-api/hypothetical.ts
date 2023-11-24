@@ -1,5 +1,7 @@
-// hypothetical?
+export {};
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* // hypothetical?
 import { type APIGatewayProxyEventV2, type Context } from 'aws-lambda';
 import {
   type BaseSchema,
@@ -184,4 +186,4 @@ const test = validate({
   }
 }, async ({ validated }) => {
   validated.body.
-});
+}); */

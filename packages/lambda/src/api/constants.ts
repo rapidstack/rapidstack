@@ -1,4 +1,4 @@
-import { type HttpErrorCodes } from './types/http.js';
+import type { HttpErrorCodes } from './types/http.js';
 
 export const HttpErrorExplanations = {
   400: {

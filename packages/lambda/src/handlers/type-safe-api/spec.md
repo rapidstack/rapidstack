@@ -102,7 +102,9 @@ This would look something like the following:
 ```ts
 // routes/products.ts
 
-import { type RouteValidator, ValidateRoute } from '@rapidstack/lambda';
+import type { RouteValidator } from '@rapidstack/lambda';
+
+import { ValidateRoute } from '@rapidstack/lambda';
 import {
   maxValue,
   minValue,

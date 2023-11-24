@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type Context } from 'aws-lambda';
+import type { Context } from 'aws-lambda';
 
 import {
   COLD_START,

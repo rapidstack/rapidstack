@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type Context } from 'aws-lambda';
+import type { Context } from 'aws-lambda';
 
-import { type ICache, type ILogger } from '../../index.js';
+import type { ICache, ILogger } from '../../index.js';
 
 type CommonHookUtils = {
   cache: ICache;

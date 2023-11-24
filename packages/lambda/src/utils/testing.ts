@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { type Context } from 'aws-lambda';
+import type { Context } from 'aws-lambda';
 
 export const MockLambdaContext = {
   awsRequestId: '7e577e57-7e57-7e57-7e57-7e577e577e57',

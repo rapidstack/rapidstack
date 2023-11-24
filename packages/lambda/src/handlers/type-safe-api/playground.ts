@@ -5,17 +5,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { type Context } from 'aws-lambda';
-import {
-  type BaseSchema,
-  type BaseSchemaAsync,
-  type Output,
-  number,
-  object,
-  parse,
-  parseAsync,
-  string,
-} from 'valibot';
+import type { Context } from 'aws-lambda';
+import type { BaseSchema, BaseSchemaAsync, Output } from 'valibot';
+
+import { number, object, parse, parseAsync, string } from 'valibot';
 
 type ValibotSchema = BaseSchema | BaseSchemaAsync;
 

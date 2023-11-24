@@ -2,18 +2,16 @@ import type { Context } from 'aws-lambda';
 
 import { performance } from 'node:perf_hooks';
 
+import type { ILogger } from '../../common/index.js';
 import type {
   CreatableUtils,
   ICreatableConfig,
   ICreatableReturn,
 } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
+import type { GenericHandlerWrapperOptions } from './types.js';
 
-import {
-  HOT_FUNCTION_TRIGGER,
-  type ILogger,
-  PerformanceKeys,
-} from '../../common/index.js';
+import { HOT_FUNCTION_TRIGGER, PerformanceKeys } from '../../common/index.js';
 import {
   getHandlerPerformance,
   resolvePossibleRequestIds,
@@ -24,7 +22,6 @@ import {
   handleRequestHooks,
   handleShutdownHook,
 } from './lifecycle.js';
-import { type GenericHandlerWrapperOptions } from './types.js';
 
 interface GenericHandlerReturn extends ICreatableReturn {
   <Event, Return, Extra extends Record<string, unknown> | object = object>(

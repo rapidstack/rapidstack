@@ -1,17 +1,8 @@
+/* 
 import { type Output, object, optional, string } from 'valibot';
 
 import { type HttpVerbs } from '../../api/index.js';
 import { type TypeSafeApiRouteProps, validate } from './validator.js';
-
-export type TypedApiRouteConfig = {
-  [key: string]: HttpRoute | TypedApiRouteConfig;
-};
-
-type HttpRoute = {
-  [key in Lowercase<HttpVerbs>]?: (
-    p: TypeSafeApiRouteProps<any>
-  ) => Promise<any>;
-};
 
 const test1 = {
   api: {
@@ -70,8 +61,8 @@ type LookupFlattenedObject<
       : never // If no flattened object, return never
     : never // If key is not an object, return never
   : K extends keyof T // if key is not a key of object T, check K as a key of T
-  ? T[K] // type key of T as K ---- type: {"a": typeof K}
-  : never; // Otherwise return never --- type: never
+    ? T[K] // type key of T as K ---- type: {"a": typeof K}
+    : never; // Otherwise return never --- type: never
 
 type tt2 = LookupFlattenedObject<typeof test1, 'api/v1'>; // { get: () => Promise<string>; }
 
@@ -105,3 +96,4 @@ type test6 = Output<
     Override<test5, test5>['api/business/products']['get']
   >[0]['_schema']['body']
 >;
+ */

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type APIGatewayProxyEventV2, type Context } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
-import { type HttpCodes, type HttpNonErrorCodes } from '../../api/index.js';
-import { type ICache, type ILogger } from '../../index.js';
+import type { HttpCodes, HttpVerbs } from '../../api/index.js';
+import type { ICache, ILogger } from '../../index.js';
+import type { TypeSafeApiRouteProps } from './validator.js';
 
 type CommonHookUtils = {
   cache: ICache;
@@ -74,7 +75,7 @@ export type TypeSafeApiHandlerOptions = {
    */
   onRequestEnd?: (
     params: OnRequestEndHookProps
-  ) => Promise<(() => ApiHandlerReturn) | void>;
+  ) => Promise<(() => ApiHandlerReturn) | undefined>;
   /**
    * A function to run before the main lambda handler function is called. Can be
    * used to transform and/or enrich the main function's parameters by returning
@@ -92,7 +93,7 @@ export type TypeSafeApiHandlerOptions = {
    */
   onRequestStart?: (
     params: CommonHookProps
-  ) => Promise<(() => ApiHandlerReturn) | void>;
+  ) => Promise<(() => ApiHandlerReturn) | undefined>;
 };
 
 export type BaseApiHandlerReturn = {
@@ -128,13 +129,13 @@ export type ApiHandler302Return = {
 export type ApiHandlerReturn = ApiHandler302Return | BaseApiHandlerReturn;
 
 // My take on JSend:
-type ApiSuccessResponse = {
+export type ApiSuccessResponse = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   data: {} | null;
   status: 'success';
 };
 
-type ApiFailResponse = {
+export type ApiFailResponse = {
   data: {
     description: string;
     title: string;
@@ -142,26 +143,45 @@ type ApiFailResponse = {
   status: 'fail';
 };
 
-type ApiErrorResponse = {
+export type ApiErrorResponseNoDev = {
   data: {
     description: string;
     requestId: string;
     title: string;
-  } & (DevDisabledErrorData | DevEnabledErrorData);
+  };
+  status: 'error';
+};
+export type ApiErrorResponseDev = {
+  data: {
+    description: string;
+    requestId: string;
+    title: string;
+  } & DevEnabledErrorData;
   status: 'error';
 };
 
 type DevEnabledErrorData = {
   devMode: true;
+  error: {
+    cause?: string;
+    message?: string;
+    stackTrace?: string;
+  };
   logGroup?: string;
-  stackTrace?: string;
-};
-
-type DevDisabledErrorData = {
-  devMode: false;
 };
 
 export type ApiResponse =
-  | ApiErrorResponse
+  | ApiErrorResponseDev
+  | ApiErrorResponseNoDev
   | ApiFailResponse
   | ApiSuccessResponse;
+
+export type TypedApiRouteConfig = {
+  [key: string]: HttpRoute | TypedApiRouteConfig;
+};
+
+export type HttpRoute = {
+  [key in Lowercase<HttpVerbs>]?: (
+    p: TypeSafeApiRouteProps<any>
+  ) => Promise<any>;
+};

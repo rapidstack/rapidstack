@@ -1,18 +1,11 @@
-import { type APIGatewayProxyEventV2, type Context } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+
+import type { ICache, ILogger } from '../../index.js';
+import type { ApiHandlerReturn, TypeSafeApiHandlerOptions } from './types.js';
+import type { BaseApiRouteProps } from './validator.js';
 
 import { HttpError } from '../../api/http-errors.js';
-import {
-  COLD_START,
-  HandlerExecuteError,
-  type ICache,
-  type ILogger,
-} from '../../index.js';
-import {
-  type ApiHandlerReturn,
-  type BaseApiHandlerReturn,
-  type TypeSafeApiHandlerOptions,
-} from './types.js';
-import { type BaseApiRouteProps } from './validator.js';
+import { COLD_START, HandlerExecuteError } from '../../index.js';
 
 type HotFunctionHook = {
   cache: ICache;
@@ -66,7 +59,7 @@ type RequestHooks = {
 };
 export const handleRequestHooks = async (
   props: RequestHooks
-): Promise<BaseApiHandlerReturn> => {
+): Promise<ApiHandlerReturn> => {
   const {
     cache,
     context,

@@ -1,17 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type APIGatewayProxyEventV2, type Context } from 'aws-lambda';
-import {
-  type BaseSchema,
-  type BaseSchemaAsync,
-  type Output,
-  number,
-  object,
-  parse,
-  parseAsync,
-  string,
-} from 'valibot';
+import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+import type { BaseSchema, BaseSchemaAsync, Output } from 'valibot';
 
-import { type ICache, type ILogger } from '../../index.js';
+import { parse, parseAsync } from 'valibot';
+
+import type { ICache, ILogger } from '../../index.js';
 
 type ValibotSchema = BaseSchema | BaseSchemaAsync;
 
@@ -184,22 +177,22 @@ const validateSchema = async <
   return validated;
 };
 
-const test = validate(
-  {
-    body: object({
-      bar: number(),
-      foo: string(),
-    }),
-    headers: object({
-      'x-foo': string(),
-    }),
-  },
-  async ({ logger, validated }) => {
-    logger.info('validated foo: ' + validated.body.foo);
-    logger.info('validated bar: ' + validated.body.bar);
-    return validated.body.foo;
-  }
-);
+// const test = validate(
+//   {
+//     body: object({
+//       bar: number(),
+//       foo: string(),
+//     }),
+//     headers: object({
+//       'x-foo': string(),
+//     }),
+//   },
+//   async ({ logger, validated }) => {
+//     logger.info('validated foo: ' + validated.body.foo);
+//     logger.info('validated bar: ' + validated.body.bar);
+//     return validated.body.foo;
+//   }
+// );
 
-type tt = Output<Parameters<typeof test>[0]['_schema']['body']>;
-//    ^?
+// type tt = Output<Parameters<typeof test>[0]['_schema']['body']>;
+// //    ^?

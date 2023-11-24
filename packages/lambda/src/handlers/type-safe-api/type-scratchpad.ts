@@ -1,4 +1,5 @@
-const obj = {
+export {};
+/* const obj = {
   a: {
     b: {
       c: {
@@ -110,3 +111,4 @@ type Override<A, B> = Omit<A, keyof B> & {
 };
 
 type test6 = Override<test5, test5>;
+ */

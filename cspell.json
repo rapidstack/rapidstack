@@ -1,17 +1,17 @@
 {
-  "dictionaries": [
-    "typescript"
-  ],
+  "dictionaries": ["typescript"],
   "ignorePaths": [
     "./coverage*",
     ".github",
     "dist",
     "node_modules",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    "testing.ts"
   ],
   "words": [
     "codespace",
     "jetbrains",
+    "KHTML",
     "Millis",
     "npmignore",
     "OWASP",

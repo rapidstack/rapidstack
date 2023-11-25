@@ -66,10 +66,6 @@ export const TypeSafeApiHandler = (
     performance.mark(PerformanceKeys.HANDLER_START);
     let conclusion = 'success' as 'failure' | 'success';
 
-    if (typeof event !== 'object') {
-      throw new HandlerExecuteError('event must be an object');
-    }
-
     const { onError, onHotFunctionTrigger, onRequestEnd, onRequestStart } =
       options ?? {};
 
@@ -79,11 +75,16 @@ export const TypeSafeApiHandler = (
     });
 
     const isHotTrigger =
+      typeof event === 'object' &&
       // eslint-disable-next-line security/detect-object-injection
       !!(event as unknown as { [k: string]: unknown })[HOT_FUNCTION_TRIGGER];
 
     // outer try/catch to determine conclusion for the summary log
     try {
+      if (typeof event !== 'object' || !Boolean(event.requestContext)) {
+        throw new HandlerExecuteError('event must be a valid API event object');
+      }
+
       if (isHotTrigger) {
         return await handleHotFunctionHook({
           cache,

@@ -19,8 +19,8 @@ export function resolveRoute(
   event: APIGatewayProxyEventV2,
   routes: TypedApiRouteConfig
 ): ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined {
-  const { rawPath } = event;
-  const route = routes[rawPath as string] as (
+  // const { rawPath } = event;
+  const route = routes['get'] as (
     params: BaseApiRouteProps
   ) => Promise<ApiHandlerReturn>;
   return route;

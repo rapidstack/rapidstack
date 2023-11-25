@@ -45,8 +45,8 @@ importers:
         specifier: 46.9.0
         version: 46.9.0(eslint@8.54.0)
       eslint-plugin-local-rules:
-        specifier: 2.0.0
-        version: 2.0.0
+        specifier: 2.0.1
+        version: 2.0.1
       eslint-plugin-markdown:
         specifier: 3.0.1
         version: 3.0.1(eslint@8.54.0)
@@ -2423,8 +2423,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-local-rules@2.0.0:
-    resolution: {integrity: sha512-sWueme0kUcP0JC1+6OBDQ9edBDVFJR92WJHSRbhiRExlenMEuUisdaVBPR+ItFBFXo2Pdw6FD2UfGZWkz8e93g==}
+  /eslint-plugin-local-rules@2.0.1:
+    resolution: {integrity: sha512-AJhGd+GcI5r2dbjiGPixM8jnBl0XFxqoVbqzwKbYz+nTk+Cj5dNE3+OlhC176bl5r25KsGsIthLi1VqIW5Ga+A==}
     dev: true
 
   /eslint-plugin-markdown@3.0.1(eslint@8.54.0):

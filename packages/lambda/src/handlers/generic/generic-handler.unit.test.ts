@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import type { LoggerEvents } from '../../index.js';
+
 import {
-  COLD_START,
+  EnvKeys,
   HOT_FUNCTION_TRIGGER,
   HandlerExecuteError,
   Logger,
-  type LoggerEvents,
   MockLambdaRuntime,
   createToolkit,
 } from '../../index.js';
@@ -16,7 +17,7 @@ let logger = new Logger({ level: 'silent' }, loggerEvents);
 let toolkit = createToolkit('unit-tests', { logger });
 
 beforeEach(() => {
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.COLD_START];
   loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
   logger = new Logger({ level: 'silent' }, loggerEvents);
   toolkit = createToolkit('unit-tests', { logger });
@@ -119,7 +120,7 @@ describe('`GenericHandler` tests:', () => {
       });
       test('coldStart: should fire only if in a cold start', async () => {
         const wrapper = toolkit.create(GenericHandler);
-        expect(process.env[COLD_START]).toBeTruthy();
+        expect(process.env[EnvKeys.COLD_START]).toBeTruthy();
         const fn = vi.fn();
         const text = 'hello, world';
 

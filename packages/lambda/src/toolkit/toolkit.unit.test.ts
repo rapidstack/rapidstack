@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import {
   Logger as BaseLogger,
-  COLD_START,
   type CreatableParameters,
+  EnvKeys,
   type ICache,
   type ICreatableConfig,
   type LoggerEvents,
@@ -28,9 +28,9 @@ const Util = (...args: CreatableParameters<UtilConfig>) => {
 };
 
 beforeEach(() => {
-  delete process.env.APP_NAME;
-  delete process.env.SST_APP;
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.APP_NAME];
+  delete process.env[EnvKeys.SST_APP_NAME];
+  delete process.env[EnvKeys.COLD_START];
   loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 });
 describe('`createToolkit` tests:', () => {
@@ -62,7 +62,7 @@ describe('`createToolkit` tests:', () => {
     test('should set the "cold start" env flag', () => {
       createToolkit();
 
-      expect(process.env[COLD_START]).toBeTruthy();
+      expect(process.env[EnvKeys.COLD_START]).toBeTruthy();
     });
   });
   describe('toolkit options', () => {

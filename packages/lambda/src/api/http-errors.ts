@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   Http400s,
   Http500s,
@@ -15,7 +14,7 @@ export class HttpError extends Error {
   public headers?: Record<string, string>;
   public message: string;
 
-  constructor(code: HttpErrorCodes, message?: any, other?: never);
+  constructor(code: HttpErrorCodes, message?: string, other?: never);
 
   constructor(
     code: Http400s['MethodNotAllowed'],
@@ -41,7 +40,11 @@ export class HttpError extends Error {
     message?: string
   );
 
-  constructor(code: HttpErrorCodes, message?: any, other?: never) {
+  constructor(
+    code: HttpErrorCodes,
+    message?: HttpUpgradeHeaderOptions[] | HttpVerbs[] | number | string,
+    other?: string
+  ) {
     switch (code) {
       case 405: {
         const m =
@@ -85,19 +88,22 @@ export class HttpError extends Error {
         this.message = m;
 
         this.headers = {
-          'Retry-After': message,
+          'retry-after': (message as number).toString(),
         };
         break;
       }
 
       default: {
         if (message) {
+          // eslint-disable-next-line security/detect-object-injection
           super(`${code} ${HttpErrorExplanations[code].name} - ${message}`);
-          this.message = message;
+          this.message = message as string;
         } else {
           super(
+            // eslint-disable-next-line security/detect-object-injection
             `${code} ${HttpErrorExplanations[code].name} - ${HttpErrorExplanations[code].message}`
           );
+          // eslint-disable-next-line security/detect-object-injection
           this.message = HttpErrorExplanations[code].message;
         }
 

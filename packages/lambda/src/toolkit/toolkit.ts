@@ -4,8 +4,11 @@ import type {
   ToolkitOptions,
 } from './toolkit.types.js';
 
-import { COLD_START, Cache, LOG_LEVEL, Logger } from '../common/index.js';
-import { isConstructable } from '../utils/index.js';
+import { Cache, EnvKeys, Logger } from '../common/index.js';
+import {
+  getInternalEnvironmentVariable,
+  isConstructable,
+} from '../utils/index.js';
 
 /**
  * Creates a new toolkit to be used throughout your serverless application.
@@ -20,14 +23,16 @@ export function createToolkit(
   options: ToolkitOptions = {}
 ): Toolkit {
   // Used to detect if called from a cold start in handlers
-  // eslint-disable-next-line security/detect-object-injection
-  process.env[COLD_START] = '1';
+  process.env[EnvKeys.COLD_START] = '1';
   const name =
-    appName || process.env.SST_APP || process.env.APP_NAME || 'unnamed app';
+    appName ||
+    getInternalEnvironmentVariable(EnvKeys.SST_APP_NAME) ||
+    getInternalEnvironmentVariable(EnvKeys.APP_NAME) ||
+    'unnamed app';
+
   const loggerDefaults = {
     base: { '@a': name },
-    // eslint-disable-next-line security/detect-object-injection
-    level: process.env[LOG_LEVEL],
+    level: getInternalEnvironmentVariable(EnvKeys.LOG_LEVEL),
   };
 
   const logger = options.logger

@@ -1,9 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable jsdoc/require-jsdoc */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export {};
 
 /* import type { Context } from 'aws-lambada';

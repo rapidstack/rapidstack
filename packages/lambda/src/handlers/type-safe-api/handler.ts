@@ -25,16 +25,19 @@ import { HttpErrorExplanations } from '../../api/constants.js';
 import { HttpError } from '../../api/http-errors.js';
 import { resolveRoute } from '../../api/index.js';
 import {
+  EnvKeys,
   HOT_FUNCTION_TRIGGER,
   HandlerExecuteError,
   PerformanceKeys,
 } from '../../common/index.js';
 import {
   getHandlerPerformance,
+  getInternalEnvironmentVariable,
+  makeCloudwatchUrl,
   resolvePossibleRequestIds,
 } from '../../utils/index.js';
-import { handleHotFunctionHook, handleRequestHooks } from './lifecycle.js';
 import { handleShutdownHook } from '../generic/lifecycle.js';
+import { handleHotFunctionHook, handleRequestHooks } from './lifecycle.js';
 
 export type RouteResolver = (
   event: APIGatewayProxyEventV2,
@@ -72,9 +75,9 @@ export const TypeSafeApiHandler = (
     const {
       onError,
       onHotFunctionTrigger,
+      onLambdaShutdown,
       onRequestEnd,
       onRequestStart,
-      onLambdaShutdown,
     } = options ?? {};
 
     const logger = _log.child({
@@ -142,6 +145,7 @@ export const TypeSafeApiHandler = (
               response.headers!['content-type'] = 'text/html';
               break;
             }
+
             response.headers!['content-type'] = 'text/plain';
             break;
         }
@@ -176,8 +180,9 @@ export const TypeSafeApiHandler = (
       } as Parameters<typeof logger.summary>[0];
       if (!isHotTrigger) {
         summary.route =
-          event?.requestContext?.domainName + event?.requestContext?.http?.path;
+          event.requestContext.domainName + event.requestContext.http.path;
       }
+
       logger.summary(summary);
       logger.end();
     }
@@ -207,10 +212,14 @@ function makeHttpErrorResponse(
   if (devMode) {
     const errOutputPtr = errOutput as unknown as ApiErrorResponseDev;
     errOutputPtr.data.devMode = true;
-    errOutputPtr.data.logGroup = context.logGroupName;
     errOutputPtr.data.error.stackTrace = err.stack?.toString();
     errOutputPtr.data.error.message = err.message;
     errOutputPtr.data.error.cause = err.cause?.toString();
+
+    // If sst is running locally, logs will be available in the terminal
+    if (!getInternalEnvironmentVariable(EnvKeys.SST_LOCAL)) {
+      errOutputPtr.data.logs = makeCloudwatchUrl(context);
+    }
   }
 
   return {
@@ -245,7 +254,10 @@ function makeOtherErrorResponse(
   if (devMode) {
     const errOutputPtr = errOutput as unknown as ApiErrorResponseDev;
     errOutputPtr.data.devMode = true;
-    errOutputPtr.data.logGroup = context.logGroupName;
+
+    if (!getInternalEnvironmentVariable(EnvKeys.SST_LOCAL)) {
+      errOutputPtr.data.logs = makeCloudwatchUrl(context);
+    }
 
     if (err instanceof Error) {
       errOutputPtr.data.error.stackTrace = err.stack?.toString();

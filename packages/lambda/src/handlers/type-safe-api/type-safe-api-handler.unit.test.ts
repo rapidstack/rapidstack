@@ -1,3 +1,8 @@
+import type {
+  APIGatewayProxyResultV2,
+  APIGatewayProxyStructuredResultV2,
+} from 'aws-lambda';
+
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { LoggerEvents } from '../../index.js';
@@ -9,7 +14,7 @@ import type {
 
 import { HttpError } from '../../api/http-errors.js';
 import {
-  COLD_START,
+  EnvKeys,
   HOT_FUNCTION_TRIGGER,
   HandlerExecuteError,
   Logger,
@@ -18,10 +23,6 @@ import {
   makeMockApiEvent,
 } from '../../index.js';
 import { TypeSafeApiHandler } from './handler.js';
-import {
-  APIGatewayProxyResultV2,
-  APIGatewayProxyStructuredResultV2,
-} from 'aws-lambda';
 
 let loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 let logger = new Logger({ level: 'silent' }, loggerEvents);
@@ -33,12 +34,12 @@ const routes = {
       throw new HttpError(400);
     },
   },
+  'get': async () => ({ body: 'test' }),
   'non-http-error': {
     get: async () => {
       throw new Error('test');
     },
   },
-  'get': async () => ({ body: 'test' }),
   'test': {
     nested: {
       get: async () => 'test',
@@ -47,7 +48,7 @@ const routes = {
 } as TypedApiRouteConfig;
 
 beforeEach(() => {
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.COLD_START];
   loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
   logger = new Logger({ level: 'silent' }, loggerEvents);
   toolkit = createToolkit('unit-tests', { logger });
@@ -172,8 +173,8 @@ describe('`TypeSafeApiHandler` tests:', () => {
         expect(loggerEvents.emit).toHaveBeenCalledWith('end');
         expect(res).toEqual({
           body: expect.stringContaining('invalid'),
-          statusCode: 400,
           headers: expect.any(Object),
+          statusCode: 400,
         });
       });
     });
@@ -226,7 +227,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
         const exeFn = vi.fn();
         const text = 'early return';
         const onRequestStart = async () => () =>
-          ({ statusCode: 201, body: text }) satisfies ApiHandlerReturn;
+          ({ body: text, statusCode: 201 }) satisfies ApiHandlerReturn;
 
         const theseRoutes = routes;
         (routes as HttpRoute)['get'] = async () => {
@@ -256,7 +257,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
 
         const exeFn = vi.fn().mockResolvedValue('not seen');
         const onRequestEnd = async () => () =>
-          ({ statusCode: 202, body: text }) satisfies ApiHandlerReturn;
+          ({ body: text, statusCode: 202 }) satisfies ApiHandlerReturn;
 
         const theseRoutes = routes;
         (routes as HttpRoute)['get'] = async () => {

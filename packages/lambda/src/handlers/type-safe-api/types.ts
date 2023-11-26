@@ -167,7 +167,7 @@ type DevEnabledErrorData = {
     message?: string;
     stackTrace?: string;
   };
-  logGroup?: string;
+  logs?: string;
 };
 
 export type ApiResponse =

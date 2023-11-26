@@ -5,10 +5,11 @@ import type {
   TypedApiRouteConfig,
 } from '../../handlers/type-safe-api/types.js';
 import type { BaseApiRouteProps } from '../../handlers/type-safe-api/validator.js';
+
 import { isSafeKey } from '../../index.js';
 
 /**
- *
+ * Resolve a route from an API Gateway event
  * @param event The API Gateway event
  * @param routes The routes object to resolve from
  * @returns The route handler function, or undefined if no route was found
@@ -30,15 +31,15 @@ export function resolveRoute(
 }
 
 /**
- *
- * @param route
- * @param path
- * @returns
+ * Recursively resolve a route from a path
+ * @param route The route object to resolve from
+ * @param path The path to resolve
+ * @returns The route handler function, or undefined if no route was found
  * @author [source]('https://gist.github.com/harish2704/
  * d0ee530e6ee75bad6fd30c98e5ad9dab?permalink_comment_id=3973327#gistcomment-3973327')
  */
 function getRoute(
-  route: TypedApiRouteConfig,
+  route: TypedApiRouteConfig | undefined,
   path: string | string[]
 ): ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined {
   const _path: string[] = Array.isArray(path) ? path : path.split('.');

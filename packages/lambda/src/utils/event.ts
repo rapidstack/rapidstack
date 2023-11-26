@@ -1,5 +1,8 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
+import { EnvKeys } from '../index.js';
+import { getInternalEnvironmentVariable } from './index.js';
+
 export const resolvePossibleRequestIds = (
   event: unknown,
   context: Context
@@ -42,4 +45,30 @@ export const resolvePossibleRequestIds = (
   }
 
   return ids;
+};
+
+export const makeCloudwatchUrl = (context: Context): string => {
+  const { logGroupName, logStreamName } = context;
+  const region = getInternalEnvironmentVariable(EnvKeys.AWS_REGION);
+
+  if (!region) return 'could not find region';
+
+  // These replacements appear to be ascii hex equiv with a $25 prefix?
+  const formattedLogGroupName = logGroupName
+    .replace(/\$/g, '$$2524')
+    .replace(/\[/g, '$$255B')
+    .replace(/\]/g, '$$255D')
+    .replace(/\//g, '$$252F');
+
+  const formattedLogStreamName = logStreamName
+    .replace(/\$/g, '$$2524')
+    .replace(/\[/g, '$$255B')
+    .replace(/\]/g, '$$255D')
+    .replace(/\//g, '$$252F');
+
+  return (
+    `https://${region}.console.aws.amazon.com/cloudwatch/home` +
+    `?region=${region}#logsV2:log-groups/log-group/${formattedLogGroupName}` +
+    `/log-events/${formattedLogStreamName}`
+  );
 };

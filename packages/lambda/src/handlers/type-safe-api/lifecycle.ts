@@ -1,5 +1,7 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
+import { ValiError } from 'valibot';
+
 import type { ICache, ILogger, RouteResolver } from '../../index.js';
 import type {
   ApiHandlerReturn,
@@ -7,10 +9,9 @@ import type {
   TypedApiRouteConfig,
 } from './types.js';
 
-import { HttpError } from '../../api/http-errors.js';
-import { COLD_START, HandlerExecuteError } from '../../index.js';
-import { ValiError } from 'valibot';
 import { HttpErrorExplanations } from '../../api/constants.js';
+import { HttpError } from '../../api/http-errors.js';
+import { EnvKeys, HandlerExecuteError } from '../../index.js';
 
 type HotFunctionHook = {
   cache: ICache;
@@ -32,8 +33,7 @@ export const handleHotFunctionHook = async (
   }
 
   // Prevent the cold start handler from running on subsequent invocations
-  // eslint-disable-next-line security/detect-object-injection
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.COLD_START];
 
   const hotFunctionTriggerLogger = logger.child({
     hierarchicalName: 'handler-hook:onHotFunctionTrigger',
@@ -163,6 +163,12 @@ export const handleRequestHooks = async (
   }
 };
 
+/**
+ * Handles non-http errors
+ * @param error The error to handle
+ * @returns The handler return object
+ * @throws {HandlerExecuteError} If the error is not an instance of Error
+ */
 function defaultErrorHandler(error: unknown): ApiHandlerReturn {
   let status = 'error' as 'error' | 'fail';
 
@@ -175,11 +181,11 @@ function defaultErrorHandler(error: unknown): ApiHandlerReturn {
       // somehow need to make this type ok with error codes while not exposing
       // them as an option for the standard handler return type
       body: {
-        status,
         data: {
           description: HttpErrorExplanations[error.code].message,
           title: HttpErrorExplanations[error.code].name,
         },
+        status,
       },
       statusCode: error.code,
     };
@@ -190,8 +196,8 @@ function defaultErrorHandler(error: unknown): ApiHandlerReturn {
     status = 'fail';
     return {
       body: {
-        status,
         errors: error.message,
+        status,
       },
       statusCode: 400,
     };

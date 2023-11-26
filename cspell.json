@@ -1,5 +1,7 @@
 {
-  "dictionaries": ["typescript"],
+  "dictionaries": [
+    "typescript"
+  ],
   "ignorePaths": [
     "./coverage*",
     ".github",
@@ -23,6 +25,7 @@
     "sarif",
     "SHTTP",
     "tsup",
+    "Vali",
     "valibot",
     "vitest",
     "wontfix"

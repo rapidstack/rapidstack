@@ -189,6 +189,19 @@ describe('`GenericHandler` tests:', () => {
           expect.objectContaining(exampleProp)
         );
       });
+      test('start: should be able to return void (transparent)', async () => {
+        const wrapper = toolkit.create(GenericHandler);
+        const text = 'hello, world';
+
+        const exeFn = vi.fn().mockResolvedValue(text);
+        const onRequestStart = vi.fn().mockResolvedValue(undefined);
+
+        const handler = wrapper(exeFn, { onRequestStart });
+
+        const res = await MockLambdaRuntime(handler);
+        expect(res).toBe(text);
+        expect(exeFn).toHaveBeenCalled();
+      });
       test('end: should be able to return with result early', async () => {
         const wrapper = toolkit.create(GenericHandler);
         const text = 'early return';
@@ -201,22 +214,6 @@ describe('`GenericHandler` tests:', () => {
         const res = await MockLambdaRuntime(handler);
         expect(res).toBe(text);
         expect(exeFn).toHaveBeenCalled();
-      });
-      test('start: should be able to return void (transparent)', async () => {
-        const wrapper = toolkit.create(GenericHandler);
-        const text = 'hello, world';
-
-        const exeFn = vi.fn().mockResolvedValue(text);
-        const onRequestEnd = vi.fn().mockResolvedValue(undefined);
-
-        const handler = wrapper(exeFn, { onRequestEnd });
-
-        const res = await MockLambdaRuntime(handler);
-        expect(res).toBe(text);
-        expect(exeFn).toHaveBeenCalled();
-        expect(onRequestEnd).toHaveBeenCalledWith(
-          expect.objectContaining({ result: text })
-        );
       });
     });
   });

@@ -113,7 +113,7 @@ export type BaseApiHandlerReturn = {
     };
   };
   headers?: Record<string, string>;
-  statusCode: HttpCodes;
+  statusCode?: HttpCodes;
 };
 
 // TODO: add more?

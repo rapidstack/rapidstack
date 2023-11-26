@@ -34,6 +34,12 @@ import {
   resolvePossibleRequestIds,
 } from '../../utils/index.js';
 import { handleHotFunctionHook, handleRequestHooks } from './lifecycle.js';
+import { handleShutdownHook } from '../generic/lifecycle.js';
+
+export type RouteResolver = (
+  event: APIGatewayProxyEventV2,
+  routes: TypedApiRouteConfig
+) => ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined;
 
 interface TypeSafeApiHandlerReturn extends ICreatableReturn {
   (
@@ -42,17 +48,14 @@ interface TypeSafeApiHandlerReturn extends ICreatableReturn {
   ): LambdaEntryPoint<APIGatewayProxyEventV2, APIGatewayProxyResultV2 | void>;
 }
 
-interface TypeSafeApiHandlerConfig extends ICreatableConfig {
+export interface TypeSafeApiHandlerConfig extends ICreatableConfig {
   basePath?: string;
   devMode?: true;
   msTimeoutBudget?: number;
   name?: `${string}Handler`;
   // openApiRoute?: true;
   respectMethodOverrideHeader?: true;
-  routeResolver?: (
-    event: APIGatewayProxyEventV2,
-    routes: TypedApiRouteConfig
-  ) => ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined;
+  routeResolver?: RouteResolver;
 }
 
 export const TypeSafeApiHandler = (
@@ -66,8 +69,13 @@ export const TypeSafeApiHandler = (
     performance.mark(PerformanceKeys.HANDLER_START);
     let conclusion = 'success' as 'failure' | 'success';
 
-    const { onError, onHotFunctionTrigger, onRequestEnd, onRequestStart } =
-      options ?? {};
+    const {
+      onError,
+      onHotFunctionTrigger,
+      onRequestEnd,
+      onRequestStart,
+      onLambdaShutdown,
+    } = options ?? {};
 
     const logger = _log.child({
       '@r': resolvePossibleRequestIds(event, context),
@@ -79,12 +87,12 @@ export const TypeSafeApiHandler = (
       // eslint-disable-next-line security/detect-object-injection
       !!(event as unknown as { [k: string]: unknown })[HOT_FUNCTION_TRIGGER];
 
+    const isInvalidApiEvent =
+      typeof event !== 'object' || !Boolean(event.requestContext);
+
     // outer try/catch to determine conclusion for the summary log
     try {
-      if (typeof event !== 'object' || !Boolean(event.requestContext)) {
-        throw new HandlerExecuteError('event must be a valid API event object');
-      }
-
+      handleShutdownHook(onLambdaShutdown, logger);
       if (isHotTrigger) {
         return await handleHotFunctionHook({
           cache,
@@ -95,10 +103,9 @@ export const TypeSafeApiHandler = (
         });
       }
 
-      const route = config?.routeResolver
-        ? config.routeResolver(event, routes)
-        : resolveRoute(event, routes);
-      if (!route) throw new HttpError(404);
+      if (isInvalidApiEvent) {
+        throw new HandlerExecuteError('event must be a valid API event object');
+      }
 
       const result = await handleRequestHooks({
         cache,
@@ -108,26 +115,45 @@ export const TypeSafeApiHandler = (
         onError,
         onRequestEnd,
         onRequestStart,
-        route,
+        routeResolver: config?.routeResolver ?? resolveRoute,
+        routes,
       });
 
-      // Format the result for Lambda's expected API response shape
-      return {
-        body: JSON.stringify(result.body),
-        cookies: buildCookiesFromObject(result.cookies),
-        // TODO: further infer content type from body
+      const cookies = buildCookiesFromObject(result.cookies);
+
+      const response: APIGatewayProxyResultV2 = {
+        body:
+          typeof result.body === 'string'
+            ? result.body
+            : JSON.stringify(result.body),
         headers: {
-          ...(typeof result.body === 'object'
-            ? {
-                'content-type': 'application/json',
-              }
-            : {}),
           ...result.headers,
         },
-        statusCode: result.statusCode,
-      } satisfies APIGatewayProxyResultV2;
+        statusCode: result.statusCode ?? 200,
+      };
+
+      if (result.body) {
+        switch (typeof result.body) {
+          case 'object':
+            response.headers!['content-type'] = 'application/json';
+            break;
+          case 'string':
+            if (result.body.startsWith('<!DOCTYPE html>')) {
+              response.headers!['content-type'] = 'text/html';
+              break;
+            }
+            response.headers!['content-type'] = 'text/plain';
+            break;
+        }
+      }
+
+      if (cookies) response.cookies = cookies;
+
+      // Format the result for Lambda's expected API response shape
+      return response;
     } catch (err) {
       conclusion = 'failure';
+      if (isHotTrigger || isInvalidApiEvent) throw err;
 
       // Format HTTP 5xx errors re-thrown from the route handler
       if (err instanceof HttpError && err.code.toString().startsWith('5')) {
@@ -143,11 +169,16 @@ export const TypeSafeApiHandler = (
     } finally {
       performance.mark(PerformanceKeys.HANDLER_END);
       const { duration } = getHandlerPerformance();
-      logger.summary({
+
+      const summary = {
         conclusion,
         duration,
-        route: event.requestContext.domainName + event.requestContext.http.path,
-      });
+      } as Parameters<typeof logger.summary>[0];
+      if (!isHotTrigger) {
+        summary.route =
+          event?.requestContext?.domainName + event?.requestContext?.http?.path;
+      }
+      logger.summary(summary);
       logger.end();
     }
   };
@@ -239,8 +270,8 @@ function makeOtherErrorResponse(
  */
 function buildCookiesFromObject(
   cookieObject: ApiHandlerReturn['cookies']
-): string[] {
-  if (!cookieObject) return [];
+): string[] | undefined {
+  if (!cookieObject) return undefined;
 
   let cookieString = '';
   const cookiesArray = [];

@@ -1,11 +1,16 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
-import type { ICache, ILogger } from '../../index.js';
-import type { ApiHandlerReturn, TypeSafeApiHandlerOptions } from './types.js';
-import type { BaseApiRouteProps } from './validator.js';
+import type { ICache, ILogger, RouteResolver } from '../../index.js';
+import type {
+  ApiHandlerReturn,
+  TypeSafeApiHandlerOptions,
+  TypedApiRouteConfig,
+} from './types.js';
 
 import { HttpError } from '../../api/http-errors.js';
 import { COLD_START, HandlerExecuteError } from '../../index.js';
+import { ValiError } from 'valibot';
+import { HttpErrorExplanations } from '../../api/constants.js';
 
 type HotFunctionHook = {
   cache: ICache;
@@ -55,7 +60,8 @@ type RequestHooks = {
   onError: TypeSafeApiHandlerOptions['onError'];
   onRequestEnd: TypeSafeApiHandlerOptions['onRequestEnd'];
   onRequestStart: TypeSafeApiHandlerOptions['onRequestStart'];
-  route: (params: BaseApiRouteProps) => Promise<ApiHandlerReturn>;
+  routeResolver: RouteResolver;
+  routes: TypedApiRouteConfig;
 };
 export const handleRequestHooks = async (
   props: RequestHooks
@@ -68,7 +74,8 @@ export const handleRequestHooks = async (
     onError,
     onRequestEnd,
     onRequestStart,
-    route,
+    routeResolver,
+    routes,
   } = props;
 
   logger.trace({ context, event, msg: 'Starting request execution.' });
@@ -94,6 +101,11 @@ export const handleRequestHooks = async (
         return result;
       }
     }
+
+    // Resolve the route and execute it
+    const route = routeResolver(event, routes);
+
+    if (!route) throw new HttpError(404);
 
     result = await route({
       cache,
@@ -144,25 +156,50 @@ export const handleRequestHooks = async (
       return result;
     }
 
-    // Standard handling of an HTTP errors when no hook is supplied
-    else if (err instanceof HttpError) {
-      return {
-        // TODO:
-        // somehow need to make this type ok with error codes while not exposing
-        // them as an option for the standard handler return type
-        body: {
-          status: 'error',
-        },
-        statusCode: err.code,
-      };
-    }
-
-    // else: Standard handling of an error without an onError handler
-    throw new HandlerExecuteError(
-      `An error occurred attempting to execute the lambda handler: \
-      ${err.toString()}`
-    );
+    result = defaultErrorHandler(err);
+    return result;
   } finally {
     logger.trace({ msg: 'Finished request execution.', result });
   }
 };
+
+function defaultErrorHandler(error: unknown): ApiHandlerReturn {
+  let status = 'error' as 'error' | 'fail';
+
+  // Standard handling of an HTTP errors
+  if (error instanceof HttpError) {
+    if (error.code.toString().startsWith('4')) status = 'fail';
+
+    return {
+      // TODO:
+      // somehow need to make this type ok with error codes while not exposing
+      // them as an option for the standard handler return type
+      body: {
+        status,
+        data: {
+          description: HttpErrorExplanations[error.code].message,
+          title: HttpErrorExplanations[error.code].name,
+        },
+      },
+      statusCode: error.code,
+    };
+  }
+
+  // Standard handling of valibot errors
+  if (error instanceof ValiError) {
+    status = 'fail';
+    return {
+      body: {
+        status,
+        errors: error.message,
+      },
+      statusCode: 400,
+    };
+  }
+
+  // Handling of bad errors (not an instance of Error)
+  throw new HandlerExecuteError(
+    'An error occurred attempting to execute the lambda handler:' +
+      error?.toString()
+  );
+}

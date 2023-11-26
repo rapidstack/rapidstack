@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { LoggerEvents } from '../../index.js';
-import type { ApiHandlerReturn, TypedApiRouteConfig } from './types.js';
+import type {
+  ApiHandlerReturn,
+  HttpRoute,
+  TypedApiRouteConfig,
+} from './types.js';
 
 import { HttpError } from '../../api/http-errors.js';
 import {
@@ -14,19 +18,28 @@ import {
   makeMockApiEvent,
 } from '../../index.js';
 import { TypeSafeApiHandler } from './handler.js';
+import {
+  APIGatewayProxyResultV2,
+  APIGatewayProxyStructuredResultV2,
+} from 'aws-lambda';
 
 let loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 let logger = new Logger({ level: 'silent' }, loggerEvents);
 let toolkit = createToolkit('unit-tests', { logger });
 
 const routes = {
-  error: {
+  'error': {
     get: async () => {
       throw new HttpError(400);
     },
   },
-  get: async () => 'test',
-  test: {
+  'non-http-error': {
+    get: async () => {
+      throw new Error('test');
+    },
+  },
+  'get': async () => ({ body: 'test' }),
+  'test': {
     nested: {
       get: async () => 'test',
     },
@@ -41,7 +54,7 @@ beforeEach(() => {
 });
 describe('`TypeSafeApiHandler` tests:', () => {
   describe('base functionality/success cases:', () => {
-    describe.only('logging:', () => {
+    describe('logging:', () => {
       test('should have `trace` for execution start', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
         const handler = makeApi(routes);
@@ -148,18 +161,35 @@ describe('`TypeSafeApiHandler` tests:', () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
         const handler = makeApi(routes);
 
-        await MockLambdaRuntime(handler).catch(() => {});
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/error',
+          })
+        )) as APIGatewayProxyResultV2;
+
         expect(loggerEvents.emit).toHaveBeenCalledWith('end');
+        expect(res).toEqual({
+          body: expect.stringContaining('invalid'),
+          statusCode: 400,
+          headers: expect.any(Object),
+        });
       });
     });
     describe('lifecycle hooks:', () => {
-      test('exeFn: should transparently return result', async () => {
-        const text = 'hello, world';
+      test('route: should return result matching schema', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
         const handler = makeApi(routes);
 
-        const res = await MockLambdaRuntime(handler);
-        expect(res).toBe(text);
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/',
+          })
+        )) as APIGatewayProxyStructuredResultV2;
+        expect(res.body).toBe('test');
       });
       test('hotFn: should be called when key is present in event', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
@@ -181,7 +211,14 @@ describe('`TypeSafeApiHandler` tests:', () => {
           onLambdaShutdown: async () => undefined,
         });
 
-        await MockLambdaRuntime(handler);
+        await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/',
+          })
+        );
+
         expect(spy).toHaveBeenCalledWith('SIGTERM', expect.any(Function));
       });
       test('start: should be able to return with result early', async () => {
@@ -189,95 +226,206 @@ describe('`TypeSafeApiHandler` tests:', () => {
         const exeFn = vi.fn();
         const text = 'early return';
         const onRequestStart = async () => () =>
-          ({ statusCode: 200 }) satisfies ApiHandlerReturn;
+          ({ statusCode: 201, body: text }) satisfies ApiHandlerReturn;
 
-        const handler = makeApi(routes, { onRequestStart });
+        const theseRoutes = routes;
+        (routes as HttpRoute)['get'] = async () => {
+          exeFn();
+          return {
+            body: 'not seen',
+          };
+        };
 
-        const res = await MockLambdaRuntime(handler);
-        expect(res).toBe(text);
+        const handler = makeApi(theseRoutes, { onRequestStart });
+
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/',
+          })
+        )) as APIGatewayProxyStructuredResultV2;
+
+        expect(res.body).toBe(text);
+        expect(res.statusCode).toBe(201);
         expect(exeFn).not.toHaveBeenCalled();
       });
       test('end: should be able to return with result early', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
-        const text = 'early return';
+        const text = 'post return';
 
         const exeFn = vi.fn().mockResolvedValue('not seen');
         const onRequestEnd = async () => () =>
-          ({ statusCode: 200 }) satisfies ApiHandlerReturn;
+          ({ statusCode: 202, body: text }) satisfies ApiHandlerReturn;
 
-        const handler = makeApi(routes, { onRequestEnd });
+        const theseRoutes = routes;
+        (routes as HttpRoute)['get'] = async () => {
+          exeFn();
+          return {
+            body: 'not seen',
+          };
+        };
 
-        const res = await MockLambdaRuntime(handler);
-        expect(res).toBe(text);
+        const handler = makeApi(theseRoutes, { onRequestEnd });
+
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/',
+          })
+        )) as APIGatewayProxyStructuredResultV2;
+
+        expect(res.body).toBe(text);
+        expect(res.statusCode).toBe(202);
         expect(exeFn).toHaveBeenCalled();
       });
       test('start: should be able to return void (transparent)', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
-        const text = 'hello, world';
+        const text = 'test';
+        const exeFn = vi.fn();
+        const onRequestStart = vi.fn().mockResolvedValue(undefined);
 
-        const exeFn = vi.fn().mockResolvedValue(text);
-        const onRequestEnd = vi.fn().mockResolvedValue(undefined);
+        const theseRoutes = routes;
+        (routes as HttpRoute)['get'] = async () => {
+          exeFn();
+          return {
+            body: text,
+          };
+        };
 
-        const handler = makeApi(routes, { onRequestEnd });
+        const handler = makeApi(theseRoutes, { onRequestStart });
 
-        const res = await MockLambdaRuntime(handler);
-        expect(res).toBe(text);
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/',
+          })
+        )) as APIGatewayProxyStructuredResultV2;
+
+        expect(res.body).toBe(text);
         expect(exeFn).toHaveBeenCalled();
-        expect(onRequestEnd).toHaveBeenCalledWith(
-          expect.objectContaining({ result: text })
-        );
+        expect(onRequestStart).toHaveBeenCalled();
       });
     });
     describe('api functionality:', () => {
       test('should return 404 if route not found', async () => {
-        expect(1).toBe(1);
+        const makeApi = toolkit.create(TypeSafeApiHandler);
+        const handler = makeApi(routes);
+
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/not-found',
+          })
+        )) as APIGatewayProxyStructuredResultV2;
+
+        expect(JSON.parse(res.body as string)).toMatchObject({
+          data: {
+            description: expect.stringContaining('not be found'),
+            title: 'Not Found',
+          },
+        });
+        expect(res.statusCode).toBe(404);
+      });
+      test('should return 404 if route contains forbidden slug', async () => {
+        const makeApi = toolkit.create(TypeSafeApiHandler);
+        const handler = makeApi(routes);
+
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/__proto__',
+          })
+        )) as APIGatewayProxyStructuredResultV2;
+
+        expect(JSON.parse(res.body as string)).toMatchObject({
+          data: {
+            description: expect.stringContaining('not be found'),
+            title: 'Not Found',
+          },
+        });
+        expect(res.statusCode).toBe(404);
       });
     });
   });
   describe('fail cases:', () => {
-    test('should throw if `exeFn` throws (no `onError`)', async () => {
+    test('should 500 on non-HTTP thrown err (no `onError`)', async () => {
       const makeApi = toolkit.create(TypeSafeApiHandler);
-      const errText = 'test error';
-
       const handler = makeApi(routes);
 
-      await expect(async () => MockLambdaRuntime(handler)).rejects.toThrow(
-        errText
-      );
-    });
-    test('should throw if `onRequestStart` throws (no `onError`)', async () => {
-      const makeApi = toolkit.create(TypeSafeApiHandler);
-      const errText = 'test error';
+      const res = (await MockLambdaRuntime(
+        handler,
+        makeMockApiEvent({
+          method: 'GET',
+          path: '/non-http-error',
+        })
+      )) as APIGatewayProxyStructuredResultV2;
 
+      expect(res.statusCode).toBe(500);
+      expect(JSON.parse(res.body as string)).toMatchObject({
+        data: {
+          description: expect.stringContaining('server has encountered'),
+          title: 'Internal Server Error',
+        },
+      });
+    });
+    test('should 500 if `onRequestStart` throws (no `onError`)', async () => {
+      const makeApi = toolkit.create(TypeSafeApiHandler);
       const handler = makeApi(routes, {
         onRequestStart: async () => {
-          throw new Error(errText);
+          throw new Error('test error');
         },
       });
 
-      await expect(async () => MockLambdaRuntime(handler)).rejects.toThrow(
-        errText
-      );
-    });
-    test('should throw if `onRequestEnd` throws (no `onError`)', async () => {
-      const makeApi = toolkit.create(TypeSafeApiHandler);
-      const errText = 'test error';
+      const res = (await MockLambdaRuntime(
+        handler,
+        makeMockApiEvent({
+          method: 'GET',
+          path: '/',
+        })
+      )) as APIGatewayProxyStructuredResultV2;
 
+      expect(res.statusCode).toBe(500);
+      expect(JSON.parse(res.body as string)).toMatchObject({
+        data: {
+          description: expect.stringContaining('server has encountered'),
+          title: 'Internal Server Error',
+        },
+      });
+    });
+    test('should 500 if `onRequestEnd` throws (no `onError`)', async () => {
+      const makeApi = toolkit.create(TypeSafeApiHandler);
       const handler = makeApi(routes, {
         onRequestEnd: async () => {
-          throw new Error(errText);
+          throw new Error('test error');
         },
       });
 
-      await expect(async () => MockLambdaRuntime(handler)).rejects.toThrow(
-        errText
-      );
+      const res = (await MockLambdaRuntime(
+        handler,
+        makeMockApiEvent({
+          method: 'GET',
+          path: '/',
+        })
+      )) as APIGatewayProxyStructuredResultV2;
+
+      expect(res.statusCode).toBe(500);
+      expect(JSON.parse(res.body as string)).toMatchObject({
+        data: {
+          description: expect.stringContaining('server has encountered'),
+          title: 'Internal Server Error',
+        },
+      });
     });
     test('should throw if `onHotFunctionTrigger` throws', async () => {
       const makeApi = toolkit.create(TypeSafeApiHandler);
       const handler = makeApi(routes, {
         onHotFunctionTrigger: async () => {
-          throw new Error();
+          throw new Error('test error');
         },
       });
 
@@ -295,18 +443,29 @@ describe('`TypeSafeApiHandler` tests:', () => {
         HandlerExecuteError
       );
     });
-    test('should throw if `onError` throws', async () => {
+    test('should 500 if `onError` throws', async () => {
       const makeApi = toolkit.create(TypeSafeApiHandler);
-      const err2 = 'hook error';
-      const onError = async () => {
-        throw new Error(err2);
-      };
+      const handler = makeApi(routes, {
+        onError: async () => {
+          throw new Error('test error');
+        },
+      });
 
-      const handler = makeApi(routes, { onError });
+      const res = (await MockLambdaRuntime(
+        handler,
+        makeMockApiEvent({
+          method: 'GET',
+          path: '/non-http-error',
+        })
+      )) as APIGatewayProxyStructuredResultV2;
 
-      await expect(async () => MockLambdaRuntime(handler)).rejects.toThrow(
-        err2
-      );
+      expect(res.statusCode).toBe(500);
+      expect(JSON.parse(res.body as string)).toMatchObject({
+        data: {
+          description: expect.stringContaining('server has encountered'),
+          title: 'Internal Server Error',
+        },
+      });
     });
     test('should throw if event is not a valid API event', async () => {
       const makeApi = toolkit.create(TypeSafeApiHandler);

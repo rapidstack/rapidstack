@@ -178,7 +178,7 @@ export const TypeSafeApiHandler = (
         conclusion,
         duration,
       } as Parameters<typeof logger.summary>[0];
-      if (!isHotTrigger) {
+      if (!isHotTrigger && Boolean(event.requestContext)) {
         summary.route =
           event.requestContext.domainName + event.requestContext.http.path;
       }

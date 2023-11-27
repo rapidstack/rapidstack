@@ -7,19 +7,27 @@
     ".github",
     "dist",
     "node_modules",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    "testing.ts"
   ],
   "words": [
     "codespace",
+    "gistcomment",
     "jetbrains",
+    "KHTML",
     "Millis",
     "npmignore",
+    "OWASP",
     "pino",
+    "PROPFIND",
     "qodana",
     "quickstart",
     "rapidstack",
     "sarif",
+    "SHTTP",
     "tsup",
+    "Vali",
+    "valibot",
     "vitest",
     "wontfix"
   ]

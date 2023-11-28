@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import {
   Logger as BaseLogger,
-  COLD_START,
   type CreatableParameters,
+  EnvKeys,
   type ICache,
   type ICreatableConfig,
   type LoggerEvents,
@@ -28,9 +28,9 @@ const Util = (...args: CreatableParameters<UtilConfig>) => {
 };
 
 beforeEach(() => {
-  delete process.env.APP_NAME;
-  delete process.env.SST_APP;
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.APP_NAME];
+  delete process.env[EnvKeys.SST_APP_NAME];
+  delete process.env[EnvKeys.COLD_START];
   loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 });
 describe('`createToolkit` tests:', () => {
@@ -51,7 +51,7 @@ describe('`createToolkit` tests:', () => {
       expect(t3.name).toBe(process.env.SST_APP);
 
       // explicit name
-      const t4 = createToolkit('explicit-name');
+      const t4 = createToolkit({ appName: 'explicit-name' });
       expect(t4.name).toBe('explicit-name');
     });
     test('should return an abstract `create` factory', () => {
@@ -62,12 +62,13 @@ describe('`createToolkit` tests:', () => {
     test('should set the "cold start" env flag', () => {
       createToolkit();
 
-      expect(process.env[COLD_START]).toBeTruthy();
+      expect(process.env[EnvKeys.COLD_START]).toBeTruthy();
     });
   });
   describe('toolkit options', () => {
     test('should use provided logger, if provided', () => {
-      const toolkit = createToolkit('name', {
+      const toolkit = createToolkit({
+        appName: 'name',
         logger: new Logger(loggerEvents),
       });
 
@@ -83,7 +84,7 @@ describe('`createToolkit` tests:', () => {
     });
     test('should use provided cache, if provided', () => {
       const cache = { getItem: vi.fn() } as unknown as ICache;
-      const toolkit = createToolkit('name', { cache });
+      const toolkit = createToolkit({ appName: 'name', cache });
 
       const util = toolkit.create(Util);
       util.callCache();

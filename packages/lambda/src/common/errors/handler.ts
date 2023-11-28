@@ -7,7 +7,7 @@ export class HandlerExecuteError extends Error {
    * @param message the message to be displayed with the error
    */
   constructor(message: string) {
-    super(`HandlerExecuteError: ${message}`);
+    super(`${message}`);
     this.name = 'HandlerExecuteError';
   }
 }
@@ -21,7 +21,7 @@ export class RouteNotFoundError extends Error {
    */
   constructor(route: string) {
     super(
-      `RouteNotFoundError: A route handler matching the route [${route}] was \
+      `A route handler matching the route [${route}] was \
       not found.`
     );
     this.name = 'RouteNotFoundError';

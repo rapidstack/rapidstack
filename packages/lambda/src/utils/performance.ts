@@ -53,8 +53,10 @@ export const getApiHandlerPerformance = (
 
   performance.clearMarks();
 
-  if (clientUnix && gatewayUnix) {
-    result.clientLatencyDuration = gatewayUnix - clientUnix;
+  if (clientUnix) {
+    result.clientPerceivedDuration = now - clientUnix;
+
+    if (gatewayUnix) result.clientLatencyDuration = gatewayUnix - clientUnix;
   }
 
   if (handlerDuration && gatewayUnix) {

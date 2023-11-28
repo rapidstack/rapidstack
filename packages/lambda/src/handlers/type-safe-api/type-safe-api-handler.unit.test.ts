@@ -107,12 +107,13 @@ describe('`TypeSafeApiHandler` tests:', () => {
           'log',
           'summary',
           expect.objectContaining({
+            clientLatencyDuration: expect.any(Number),
+            clientPerceivedDuration: expect.any(Number),
             conclusion: 'success',
             duration: expect.any(Number),
             gatewayLatencyDuration: expect.any(Number),
             routeHandlerDuration: expect.any(Number),
             serverPostprocessingDuration: expect.any(Number),
-            serverPreprocessingDuration: expect.any(Number),
           }),
           expect.any(Object)
         );
@@ -132,13 +133,13 @@ describe('`TypeSafeApiHandler` tests:', () => {
           'log',
           'summary',
           expect.objectContaining({
+            clientLatencyDuration: expect.any(Number),
+            clientPerceivedDuration: expect.any(Number),
             conclusion: 'success',
             duration: expect.any(Number),
             gatewayLatencyDuration: expect.any(Number),
-            route: expect.any(String),
             routeHandlerDuration: expect.any(Number),
             serverPostprocessingDuration: expect.any(Number),
-            serverPreprocessingDuration: expect.any(Number),
           }),
           expect.objectContaining({
             '@h': expect.any(Array),

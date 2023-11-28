@@ -18,4 +18,6 @@ export const HOT_FUNCTION_TRIGGER =
 export const PerformanceKeys = {
   HANDLER_END: 'handler-end',
   HANDLER_START: 'handler-start',
+  ROUTE_END: 'route-end',
+  ROUTE_START: 'route-start',
 } as const;

@@ -11,7 +11,7 @@ import type {
 
 import { HttpErrorExplanations } from '../../api/constants.js';
 import { HttpError } from '../../api/http-errors.js';
-import { EnvKeys, HandlerExecuteError } from '../../index.js';
+import { EnvKeys, HandlerExecuteError, PerformanceKeys } from '../../index.js';
 
 type HotFunctionHook = {
   cache: ICache;
@@ -107,6 +107,7 @@ export const handleRequestHooks = async (
 
     if (!route) throw new HttpError(404);
 
+    performance.mark(PerformanceKeys.ROUTE_START);
     result = await route({
       cache,
       context,
@@ -114,7 +115,11 @@ export const handleRequestHooks = async (
       logger: logger.child({
         hierarchicalName: 'exe-fn',
       }),
+    }).catch((err) => {
+      performance.mark(PerformanceKeys.ROUTE_END);
+      throw err;
     });
+    performance.mark(PerformanceKeys.ROUTE_END);
 
     // On request end
     if (onRequestEnd) {

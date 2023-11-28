@@ -43,6 +43,7 @@ export const makeMockApiEvent = (params: {
   queryString?: string;
   source?: 'api-gateway' | 'lambda-url';
 }): APIGatewayProxyEventV2 => {
+  const now = Date.now();
   const headers = {} as Record<string, string>;
   const requestContext = {
     accountId: '123456789012',
@@ -59,7 +60,7 @@ export const makeMockApiEvent = (params: {
     routeKey: '$default',
     stage: '$default',
     time: '23/Nov/2023:00:35:06 +0000',
-    timeEpoch: 1700699706309,
+    timeEpoch: now - 50,
   } as APIGatewayProxyEventV2['requestContext'];
 
   const body = params.body
@@ -86,6 +87,7 @@ export const makeMockApiEvent = (params: {
   headers['x-forwarded-proto'] = 'https';
   headers['x-amzn-trace-id'] = 'Root=1-5fbb3bdf-7e577e577e577e577e577e57';
   headers['x-request-id'] = 'this-is-a-test-request-id';
+  headers['x-perf-unix'] = `${now - 100}`;
 
   switch (params.source ?? 'api-gateway') {
     case 'api-gateway':

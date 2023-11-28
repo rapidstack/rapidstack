@@ -31,7 +31,7 @@ import {
   PerformanceKeys,
 } from '../../common/index.js';
 import {
-  getHandlerPerformance,
+  getApiHandlerPerformance,
   getInternalEnvironmentVariable,
   makeCloudwatchUrl,
   resolvePossibleRequestIds,
@@ -172,11 +172,15 @@ export const TypeSafeApiHandler = (
       return makeOtherErrorResponse(err, !!config?.devMode, context);
     } finally {
       performance.mark(PerformanceKeys.HANDLER_END);
-      const { duration } = getHandlerPerformance();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clientUnix = (event as any)?.headers?.['x-perf-unix'];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gatewayUnix = (event as any)?.requestContext?.timeEpoch;
+      const durations = getApiHandlerPerformance(clientUnix, gatewayUnix);
 
       const summary = {
         conclusion,
-        duration,
+        ...durations,
       } as Parameters<typeof logger.summary>[0];
       if (!isHotTrigger && Boolean(event.requestContext)) {
         summary.route =

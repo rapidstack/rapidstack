@@ -27,6 +27,7 @@ export type HttpRunnerFunction<
   cache: ICache;
   context: Context;
   logger: ILogger;
+  rawEvent: APIGatewayProxyEventV2;
   validated: ValidatedSchemaOutput<Validated>;
 }) => Promise<Return>;
 
@@ -106,6 +107,7 @@ export const validate = <
       cache,
       context,
       logger,
+      rawEvent: event,
       validated,
     });
   };
@@ -129,18 +131,30 @@ const validateSchema = async <
   // Extract details from event shape
   // TODO: in the future it would be nice to support different content types for
   // the body, but for now we will assume JSON
-  const body =
+  const bodyString =
     event.isBase64Encoded && event.body
       ? Buffer.from(event.body, 'base64').toString()
       : event.body;
 
+  // FIXME: need to throw a 400 here manually if the body is not valid JSON
+  const body = bodyString ? JSON.parse(bodyString) : undefined;
+
   const headers = event.headers;
 
-  const cookies = event.cookies;
+  const cookies = {} as Record<string, string>;
+  if (event.cookies) {
+    for (const cookie of event.cookies) {
+      const [key, value] = cookie.split('=');
+
+      // eslint-disable-next-line security/detect-object-injection
+      cookies[key] = value;
+    }
+  }
 
   const qsp = event.queryStringParameters;
 
   // Validate each part of the schema against incoming data
+  // FIXME: collect the errors for each segment and return them all at once
   const validated = {} as ValidatedSchemaOutput<ValidationSchema>;
   if (schema.body) {
     const parsedBody = schema.body.async

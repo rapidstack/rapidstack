@@ -1,7 +1,10 @@
+/* eslint-disable security/detect-object-injection */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+
+import type { HttpVerbs } from '../api/index.js';
 
 export const MockLambdaContext = {
   awsRequestId: '7e577e57-7e57-7e57-7e57-7e577e577e57',
@@ -38,9 +41,11 @@ export const MockLambdaRuntime = async (
 export const makeMockApiEvent = (params: {
   addCloudFrontHeaders?: true;
   body?: any;
-  method: Uppercase<string>;
+  cookies?: `${string}=${string}`[];
+  headers?: Record<string, string>;
+  method: HttpVerbs;
   path: `/${string}`;
-  queryString?: string;
+  queryString?: `?${string}`;
   source?: 'api-gateway' | 'lambda-url';
 }): APIGatewayProxyEventV2 => {
   const now = Date.now();
@@ -88,6 +93,15 @@ export const makeMockApiEvent = (params: {
   headers['x-amzn-trace-id'] = 'Root=1-5fbb3bdf-7e577e577e577e577e577e57';
   headers['x-request-id'] = 'this-is-a-test-request-id';
   headers['x-perf-unix'] = `${now - 100}`;
+  if (params.cookies) {
+    headers['cookie'] = params.cookies.join('; ');
+  }
+
+  if (params.headers) {
+    for (const [key, value] of Object.entries(params.headers)) {
+      headers[key] = value;
+    }
+  }
 
   switch (params.source ?? 'api-gateway') {
     case 'api-gateway':
@@ -181,6 +195,7 @@ export const makeMockApiEvent = (params: {
 
   return {
     body,
+    cookies: params.cookies,
     headers,
     isBase64Encoded: true,
     queryStringParameters: params.queryString
@@ -209,13 +224,9 @@ function parseQueryStringParameters(url: string): { [key: string]: string } {
       const [key, value] = pair.split('=');
       const decodedKey = decodeURIComponent(key);
       const decodedValue = decodeURIComponent(value);
-      if (decodedKey in params) {
-        // eslint-disable-next-line security/detect-object-injection
-        params[decodedKey] += `,${decodedValue}`;
-      } else {
-        // eslint-disable-next-line security/detect-object-injection
-        params[decodedKey] = decodedValue;
-      }
+
+      if (decodedKey in params) params[decodedKey] += `,${decodedValue}`;
+      else params[decodedKey] = decodedValue;
     }
   }
 

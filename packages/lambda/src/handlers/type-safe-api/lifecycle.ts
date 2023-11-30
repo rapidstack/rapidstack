@@ -198,6 +198,7 @@ function defaultErrorHandler(error: unknown): ApiHandlerReturn {
 
   // Standard handling of valibot errors
   if (error instanceof ValiError) {
+    console.log('valierror', error.issues);
     status = 'fail';
     return {
       body: {

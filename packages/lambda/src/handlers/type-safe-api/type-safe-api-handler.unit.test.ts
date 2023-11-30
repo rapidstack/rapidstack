@@ -26,7 +26,7 @@ import { TypeSafeApiHandler } from './handler.js';
 
 let loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 let logger = new Logger({ level: 'silent' }, loggerEvents);
-let toolkit = createToolkit({ appName: 'unit-tests', logger });
+let toolkit = createToolkit({ logger });
 
 const routes = {
   'error': {
@@ -51,7 +51,7 @@ beforeEach(() => {
   delete process.env[EnvKeys.COLD_START];
   loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
   logger = new Logger({ level: 'silent' }, loggerEvents);
-  toolkit = createToolkit({ appName: 'unit-tests', logger });
+  toolkit = createToolkit({ logger });
 });
 describe('`TypeSafeApiHandler` tests:', () => {
   describe('base functionality/success cases:', () => {
@@ -126,7 +126,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
           handler,
           makeMockApiEvent({
             method: 'GET',
-            path: '/',
+            path: '/non-http-error',
           })
         ).catch(() => {});
         expect(loggerEvents.emit).toHaveBeenCalledWith(
@@ -135,7 +135,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
           expect.objectContaining({
             clientLatencyDuration: expect.any(Number),
             clientPerceivedDuration: expect.any(Number),
-            conclusion: 'success',
+            conclusion: 'failure',
             duration: expect.any(Number),
             gatewayLatencyDuration: expect.any(Number),
             routeHandlerDuration: expect.any(Number),
@@ -319,7 +319,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
         expect(onRequestStart).toHaveBeenCalled();
       });
     });
-    describe('api functionality:', () => {
+    describe('api event handling functionality:', () => {
       test('should return 404 if route not found', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
         const handler = makeApi(routes);

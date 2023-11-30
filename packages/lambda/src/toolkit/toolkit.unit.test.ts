@@ -51,7 +51,7 @@ describe('`createToolkit` tests:', () => {
       expect(t3.name).toBe(process.env.SST_APP);
 
       // explicit name
-      const t4 = createToolkit({ appName: 'explicit-name' });
+      const t4 = createToolkit({ app: 'explicit-name' });
       expect(t4.name).toBe('explicit-name');
     });
     test('should return an abstract `create` factory', () => {
@@ -68,7 +68,7 @@ describe('`createToolkit` tests:', () => {
   describe('toolkit options', () => {
     test('should use provided logger, if provided', () => {
       const toolkit = createToolkit({
-        appName: 'name',
+        app: 'name',
         logger: new Logger(loggerEvents),
       });
 
@@ -84,7 +84,7 @@ describe('`createToolkit` tests:', () => {
     });
     test('should use provided cache, if provided', () => {
       const cache = { getItem: vi.fn() } as unknown as ICache;
-      const toolkit = createToolkit({ appName: 'name', cache });
+      const toolkit = createToolkit({ app: 'name', cache });
 
       const util = toolkit.create(Util);
       util.callCache();

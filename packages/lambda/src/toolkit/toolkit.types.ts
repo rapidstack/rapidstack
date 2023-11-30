@@ -75,7 +75,7 @@ export type Toolkit = {
  * for the default logger and cache, or to provide their own instances of each.
  */
 export type ToolkitOptions = {
-  appName?: string;
+  app?: string;
 } & (
   | {
       cache?: ICache;

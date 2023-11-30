@@ -14,13 +14,13 @@ import { GenericHandler } from './handler.js';
 
 let loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 let logger = new Logger({ level: 'silent' }, loggerEvents);
-let toolkit = createToolkit({ appName: 'unit-tests', logger });
+let toolkit = createToolkit({ logger });
 
 beforeEach(() => {
   delete process.env[EnvKeys.COLD_START];
   loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
   logger = new Logger({ level: 'silent' }, loggerEvents);
-  toolkit = createToolkit({ appName: 'unit-tests', logger });
+  toolkit = createToolkit({ logger });
 });
 describe('`GenericHandler` tests:', () => {
   describe('base functionality/success cases:', () => {

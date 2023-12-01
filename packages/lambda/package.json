@@ -20,7 +20,7 @@
   "types": "./dist/index.d.ts",
   "devDependencies": {
     "@types/aws-lambda": "8.10.130",
-    "@types/node": "20.10.1",
+    "@types/node": "20.10.2",
     "vitest": "0.34.6"
   },
   "files": [

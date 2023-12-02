@@ -139,7 +139,7 @@ jobs:
         run: npm run build
 
       - name: Qodana Scan
-        uses: JetBrains/qodana-action@v2023.2.8
+        uses: JetBrains/qodana-action@v2023.2.9
         with:
           pr-mode: false
           post-pr-comment: false

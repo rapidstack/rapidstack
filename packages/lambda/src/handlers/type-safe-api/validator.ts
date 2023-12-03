@@ -2,7 +2,7 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import type { BaseSchema, BaseSchemaAsync, Output } from 'valibot';
 
-import { parse, parseAsync } from 'valibot';
+import { ValiError, parse, parseAsync } from 'valibot';
 
 import type { ICache, ILogger } from '../../index.js';
 
@@ -157,11 +157,16 @@ const validateSchema = async <
   // FIXME: collect the errors for each segment and return them all at once
   const validated = {} as ValidatedSchemaOutput<ValidationSchema>;
   if (schema.body) {
-    const parsedBody = schema.body.async
-      ? await parseAsync(schema.body, body)
-      : parse(schema.body, body);
+    // console.log(schema.body);
+    try {
+      const parsedBody = schema.body.async
+        ? await parseAsync(schema.body, body)
+        : parse(schema.body, body);
+    } catch (e) {
+      console.log(resolveSchemaError(e, schema.body!));
+    }
 
-    validated.body = parsedBody;
+    validated.body = {} as any;
   }
 
   if (schema.cookies) {
@@ -190,6 +195,89 @@ const validateSchema = async <
 
   return validated;
 };
+
+// const resolveSchemaError = (error: unknown, schema: ValibotSchema) => {
+//   if (!(error instanceof ValiError)) return error; // idk tbd
+
+//   // deduce the problem and whole schema
+// };
+
+const resolveSchemaError = (error: unknown, schema: ValibotSchema) => {
+  if (!(error instanceof ValiError)) {
+    // Handle non-validation errors in some way. Perhaps rethrowing them.
+    throw error;
+  }
+
+  console.log('schema', JSON.stringify(schema, null, 2));
+
+  const selected = schema;
+
+  // need to recursively go through the schema entries:
+  // while (selected.entries!) {
+  // console.log(schema.entries);
+  //   selected = selected.entries[]
+  // }
+};
+// const resolveSchemaError = (error: unknown, schema: BaseSchema) => {
+//   if (!(error instanceof ValiError)) {
+//     // Handle non-validation errors in some way. Perhaps rethrowing them.
+//     throw error;
+//   }
+
+//   // Initialize an errors object that will hold user-friendly error messages
+//   const errors: Record<string, string> = {};
+
+//   // Iterate over all issues to build a meaningful error object
+//   error.issues.forEach((issue) => {
+//     let errorMsg = issue.message;
+//     // Issue could be related to a specific path in the schema
+//     // If the path is available, we use it to show a precise error location
+//     const path = issue.path?.join('.') || '';
+
+//     if (path) {
+//       errorMsg += ` at ${path}`;
+//     }
+
+//     if (!errors[issue.validation]) {
+//       errors[issue.validation] = errorMsg;
+//     }
+//   });
+
+//   // Now let’s gather the expected schema structure for the missing parts
+//   const gatherSchemaInfo = (
+//     schema: BaseSchema,
+//     pathPrefix: string = ''
+//   ): Record<string, string> => {
+//     const schemaInfo: Record<string, string> = {};
+//     // @ts-ignore
+//     if (schema.type === 'object' && schema.entries) {
+//       // @ts-ignore
+//       Object.entries(schema.entries).forEach(([key, entrySchema]) => {
+//         const fullPath = pathPrefix ? `${pathPrefix}.${key}` : key;
+//         // @ts-ignore
+//         schemaInfo[fullPath] = `Expected type ${entrySchema.type}`;
+//         // @ts-ignore
+//         if (entrySchema.type === 'object') {
+//           // @ts-ignore
+//           Object.assign(schemaInfo, gatherSchemaInfo(entrySchema, fullPath));
+//         }
+//       });
+//     }
+
+//     // You can extend this function to handle other schema types like arrays, etc.
+//     return schemaInfo;
+//   };
+
+//   const expectedSchemaStructure = gatherSchemaInfo(schema);
+
+//   // Merge the validation issues with the expected schema structure
+//   const validationResult = {
+//     errors,
+//     expectedSchema: expectedSchemaStructure,
+//   };
+
+//   return validationResult;
+// };
 
 // const test = validate(
 //   {

@@ -1,6 +1,18 @@
 import type { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 
-import { object, optional, string } from 'valibot';
+import {
+  array,
+  literal,
+  nonOptional,
+  number,
+  object,
+  optional,
+  string,
+  tuple,
+  union,
+  value,
+  variant,
+} from 'valibot';
 import { describe, expect, test, vi } from 'vitest';
 
 import type {
@@ -436,14 +448,26 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
       });
     });
     describe('behavior for schema failures (HTTP 400):', () => {
-      test('should list missing expected values for the body', async () => {
+      test.only('should list missing expected values for the body', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
         const spy = vi.fn();
 
         const validationSchema = {
           body: object({
-            bodyKey1: string('needed!'),
-            bodyKey2: string('needed!'),
+            bodyKey1: string('needed1!'),
+            bodyKey2: optional(
+              object({
+                nestedKey1: optional(string()),
+                requiredKey2: string('needed2!'),
+              })
+            ),
+            bodyKey3: tuple([string('needed3!'), number('needed4!')]),
+            bodyKey4: nonOptional(array(object({ foo: string() }))),
+            bodyKey5: union([string('needed5!'), number('needed6!')]),
+            bodyKey6: variant('foo', [
+              object({ bar: string(), foo: literal('bar') }),
+              object({ bar: number(), foo: literal('baz') }),
+            ]),
           }),
         };
 

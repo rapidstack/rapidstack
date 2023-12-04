@@ -6,6 +6,12 @@ import { ValiError, parse, parseAsync } from 'valibot';
 
 import type { ICache, ILogger } from '../../index.js';
 
+import {
+  isObjectSchema,
+  parseGatewayEventBody,
+  parseGatewayEventCookies,
+} from '../../index.js';
+
 type ValibotSchema = BaseSchema | BaseSchemaAsync;
 
 type HttpCallValidationSchema<
@@ -100,7 +106,6 @@ export const validate = <
     event,
     logger,
   }: TypeSafeApiRouteProps<ValidationSchema>): Promise<Return> => {
-    // Validation would happen here and `validated` formatting would be applied
     const validated = await validateSchema(schema as object, event);
 
     return await runnerFunction({
@@ -128,79 +133,81 @@ const validateSchema = async <
   schema: ValidationSchema,
   event: APIGatewayProxyEventV2
 ): Promise<ValidatedSchemaOutput<ValidationSchema>> => {
-  // Extract details from event shape
-  // TODO: in the future it would be nice to support different content types for
-  // the body, but for now we will assume JSON
-  const bodyString =
-    event.isBase64Encoded && event.body
-      ? Buffer.from(event.body, 'base64').toString()
-      : event.body;
-
-  // FIXME: need to throw a 400 here manually if the body is not valid JSON
-  const body = bodyString ? JSON.parse(bodyString) : undefined;
-
-  const headers = event.headers;
-
-  const cookies = {} as Record<string, string>;
-  if (event.cookies) {
-    for (const cookie of event.cookies) {
-      const [key, value] = cookie.split('=');
-
-      // eslint-disable-next-line security/detect-object-injection
-      cookies[key] = value;
-    }
+  // Validate that the schemas that are passed in are valid:
+  // - body can be any schema
+  // - cookies, headers, and qsp must be an object schema
+  // this can possibly be built into the type later on?
+  if (
+    !isObjectSchema(schema.cookies) ||
+    !isObjectSchema(schema.headers) ||
+    !isObjectSchema(schema.qsp)
+  ) {
+    throw new Error('cookies, headers, and qsp must be an object schemas');
   }
 
+  const bodyString = parseGatewayEventBody(event);
+  const headers = event.headers;
+  const cookies = parseGatewayEventCookies(event);
   const qsp = event.queryStringParameters;
 
+  let body: object | string | undefined;
+  try {
+    bodyString ? JSON.parse(bodyString) : undefined;
+  } catch {}
+
   // Validate each part of the schema against incoming data
-  // FIXME: collect the errors for each segment and return them all at once
   const validated = {} as ValidatedSchemaOutput<ValidationSchema>;
-  if (schema.body) {
-    // console.log(schema.body);
-    try {
-      const parsedBody = schema.body.async
-        ? await parseAsync(schema.body, body)
-        : parse(schema.body, body);
-    } catch (e) {
-      console.log(resolveSchemaError(e, schema.body!));
-    }
+  const errors: [Error, ValibotSchema][] = [];
 
-    validated.body = {} as any;
+  try {
+    validated.body = await parseWithSchema(schema.body, body);
+  } catch (e) {
+    if (!(e instanceof ValiError)) throw e;
+    errors.push([e, schema.body!]);
   }
 
-  if (schema.cookies) {
-    const parsedCookies = schema.cookies.async
-      ? await parseAsync(schema.cookies, cookies)
-      : parse(schema.cookies, cookies);
-
-    validated.cookies = parsedCookies;
+  try {
+    validated.headers = await parseWithSchema(schema.headers, headers);
+  } catch (e) {
+    if (!(e instanceof ValiError)) throw e;
+    errors.push([e, schema.headers!]);
   }
 
-  if (schema.headers) {
-    const parsedHeaders = schema.headers.async
-      ? await parseAsync(schema.headers, headers)
-      : parse(schema.headers, headers);
-
-    validated.headers = parsedHeaders;
+  try {
+    validated.cookies = await parseWithSchema(schema.cookies, cookies);
+  } catch (e) {
+    if (!(e instanceof ValiError)) throw e;
+    errors.push([e, schema.cookies!]);
   }
 
-  if (schema.qsp) {
-    const parsedQsp = schema.qsp.async
-      ? await parseAsync(schema.qsp, qsp)
-      : parse(schema.qsp, qsp);
+  try {
+    validated.qsp = await parseWithSchema(schema.qsp, qsp);
+  } catch (e) {
+    if (!(e instanceof ValiError)) throw e;
+    errors.push([e, schema.qsp!]);
+  }
 
-    validated.qsp = parsedQsp;
+  if (errors.length) {
+    throw new Error(errors.join(', '));
   }
 
   return validated;
 };
 
-// const resolveSchemaError = (error: unknown, schema: ValibotSchema) => {
-//   if (!(error instanceof ValiError)) return error; // idk tbd
+/**
+ *
+ * @param schema
+ * @param data
+ */
+async function parseWithSchema<T extends ValibotSchema>(
+  schema?: T,
+  data?: unknown
+): Promise<Output<ValibotSchema> | undefined> {
+  if (!data || !schema) return;
 
-//   // deduce the problem and whole schema
-// };
+  if (schema.async) return await parseAsync(schema, data);
+  return parse(schema, data);
+}
 
 const resolveSchemaError = (error: unknown, schema: ValibotSchema) => {
   if (!(error instanceof ValiError)) {

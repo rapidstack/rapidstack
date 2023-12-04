@@ -72,3 +72,33 @@ export const makeCloudwatchUrl = (context: Context): string => {
     `/log-events/${formattedLogStreamName}`
   );
 };
+
+/**
+ *
+ * @param event
+ */
+export function parseGatewayEventCookies(
+  event: APIGatewayProxyEventV2
+): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  if (!event.cookies) return cookies;
+
+  for (const cookie of event.cookies) {
+    const [key, value] = cookie.split('=');
+    cookies[key] = value;
+  }
+
+  return cookies;
+}
+
+/**
+ *
+ * @param event
+ */
+export function parseGatewayEventBody(
+  event: APIGatewayProxyEventV2
+): string | undefined {
+  return event.isBase64Encoded && event.body
+    ? Buffer.from(event.body, 'base64').toString()
+    : event.body;
+}

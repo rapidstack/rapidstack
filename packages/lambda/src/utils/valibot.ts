@@ -208,6 +208,26 @@ export function getFlattenedSchemaInfo(
 }
 
 /**
+ *
+ * @param schema
+ */
+export function isObjectSchema(schema?: ValibotSchema): boolean {
+  const interpretedSchema = schema as AnyValibotSchema;
+
+  if (!schema) return false;
+  if (interpretedSchema.type === 'object') return true;
+
+  // if we have wrappers, recurse to unwrap
+  // @ts-expect-error - ts can't pick this out of the union
+  if (interpretedSchema.wrapped) {
+    // @ts-expect-error - ts can't pick this out of the union
+    return isObjectSchema(interpretedSchema.wrapped);
+  }
+
+  return false;
+}
+
+/**
  * Returns the TypeScript string representation of a schema
  * @param schema the schema (sync or async) to stringify
  * @param spaces the number of spaces to indent each line

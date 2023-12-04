@@ -57,8 +57,8 @@ importers:
         specifier: 5.0.1
         version: 5.0.1(@types/eslint@8.44.8)(eslint-config-prettier@9.1.0)(eslint@8.55.0)(prettier@3.1.0)
       eslint-plugin-regexp:
-        specifier: 2.1.1
-        version: 2.1.1(eslint@8.55.0)
+        specifier: 2.1.2
+        version: 2.1.2(eslint@8.55.0)
       eslint-plugin-security:
         specifier: 1.7.1
         version: 1.7.1
@@ -2427,8 +2427,8 @@ packages:
       synckit: 0.8.5
     dev: true
 
-  /eslint-plugin-regexp@2.1.1(eslint@8.55.0):
-    resolution: {integrity: sha512-FGa/idrL5tzMCnGylyx8DCWTX3vDuEtE/CVqTx+yYwe5qY3JRppbNVkOVGIkQF0klVlrG+LxwAXRXTUr5yU5uA==}
+  /eslint-plugin-regexp@2.1.2(eslint@8.55.0):
+    resolution: {integrity: sha512-nnhNqHblaD8YTJiEHfyVRhiw8sm0eFQ9h+ee3rMqJhf2R9sJWbSXkjrLxIeCNZSNqitUOdaYFfrPVyvS9i72AA==}
     engines: {node: ^18 || >=20}
     peerDependencies:
       eslint: '>=8.44.0'

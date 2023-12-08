@@ -448,7 +448,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
       });
     });
     describe('behavior for schema failures (HTTP 400):', () => {
-      test.only('should list missing expected values for the body', async () => {
+      test('should list missing expected values for the body', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
         const spy = vi.fn();
 
@@ -482,7 +482,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const res = (await MockLambdaRuntime(
           handler,
           makeMockApiEvent({
-            // body: {},
+            body: { bodyKey1: 'bar' },
             method: 'POST',
             path: '/',
           })

@@ -12,14 +12,12 @@ export const HttpErrorExplanations = {
   },
   402: {
     message:
-      'Your request or action limit has been reached or you have insufficient \
-      funds.',
+      'Your request or action limit has been reached or you have insufficient funds.',
     name: 'Payment Required',
   },
   403: {
     message:
-      'The request or action is prohibited or you do not have necessary \
-      permissions with your current credentials.',
+      'The request or action is prohibited or you do not have necessary permissions with your current credentials.',
     name: 'Forbidden',
   },
   404: {
@@ -32,8 +30,7 @@ export const HttpErrorExplanations = {
   },
   406: {
     message:
-      'The server cannot respond with the accept-header specified in the \
-      request.',
+      'The server cannot respond with the accept-header specified in the request.',
     name: 'Not Acceptable',
   },
   407: {
@@ -50,20 +47,17 @@ export const HttpErrorExplanations = {
   },
   410: {
     message:
-      'The resource requested is no longer available and will not be available \
-      again.',
+      'The resource requested is no longer available and will not be available again.',
     name: 'Gone',
   },
   411: {
     message:
-      'The request did not specify the length of its content, which is \
-      required by the requested resource.',
+      'The request did not specify the length of its content, which is required by the requested resource.',
     name: 'Length Required',
   },
   412: {
     message:
-      'The request was denied as it failed several conditions defined in the \
-      request-headers.',
+      'The request was denied as it failed several conditions defined in the request-headers.',
     name: 'Precondition Failed',
   },
   413: {
@@ -76,8 +70,7 @@ export const HttpErrorExplanations = {
   },
   415: {
     message:
-      'The request entity has a media type which the server or resource does \
-      not support.',
+      'The request entity has a media type which the server or resource does not support.',
     name: 'Unsupported Media Type',
   },
   416: {
@@ -86,8 +79,7 @@ export const HttpErrorExplanations = {
   },
   417: {
     message:
-      'The server cannot meet the requirements of the Expect request-header \
-      field.',
+      'The server cannot meet the requirements of the Expect request-header field.',
     name: 'Expectation Failed',
   },
   418: {
@@ -96,15 +88,12 @@ export const HttpErrorExplanations = {
   },
   421: {
     message:
-      'The request was directed to a server that is not able to produce a \
-      response.',
+      'The request was directed to a server that is not able to produce a response.',
     name: 'Misdirected Request',
   },
   422: {
     message:
-      'The server understands the content type, and the syntax is correct, but \
-      it was unable to process the contained instructions. Do not repeat \
-      request without modification!',
+      'The server understands the content type, and the syntax is correct, but it was unable to process the contained instructions. Do not repeat request without modification!',
     name: 'Unprocessable Entity',
   },
   423: {
@@ -113,14 +102,12 @@ export const HttpErrorExplanations = {
   },
   424: {
     message:
-      'The request failed because it depended on another request and that \
-      request failed.',
+      'The request failed because it depended on another request and that request failed.',
     name: 'Failed Dependency',
   },
   425: {
     message:
-      'The request failed because the server was not ready or it had not \
-      completed a security handshake with the client.',
+      'The request failed because the server was not ready or it had not completed a security handshake with the client.',
     name: 'Too Early',
   },
   426: {
@@ -138,15 +125,12 @@ export const HttpErrorExplanations = {
   },
   431: {
     message:
-      'The server is unwilling to process the request because either an \
-      individual header field, or all the header fields collectively, are too \
-      large.',
+      'The server is unwilling to process the request because either an individual header field, or all the header fields collectively, are too large.',
     name: 'Request Header Fields Too Large',
   },
   451: {
     message:
-      'We have received a legal demand to deny access to a resource or to a \
-      set of resources that includes the requested resource.',
+      'We have received a legal demand to deny access to a resource or to a set of resources that includes the requested resource.',
     name: 'Unavailable For Legal Reasons',
   },
   500: {
@@ -156,44 +140,37 @@ export const HttpErrorExplanations = {
   },
   501: {
     message:
-      'The request method is not supported by the server and cannot be \
-      handled.',
+      'The request method is not supported by the server and cannot be handled.',
     name: 'Not Implemented',
   },
   502: {
     message:
-      'The server received a bad response when attempting to fulfill the \
-      request.',
+      'The server received a bad response when attempting to fulfill the request.',
     name: 'Bad Gateway',
   },
   503: {
     message:
-      'The server cannot handle the request because it is overloaded or down \
-      for maintenance.',
+      'The server cannot handle the request because it is overloaded or down for maintenance.',
     name: 'Service Unavailable',
   },
   504: {
     message:
-      'The gateway did not receive a timely response from the upstream server \
-      handling the request.',
+      'The gateway did not receive a timely response from the upstream server handling the request.',
     name: 'Gateway Timeout',
   },
   505: {
     message:
-      'The server does not support the HTTP protocol version used in the \
-      request.',
+      'The server does not support the HTTP protocol version used in the request.',
     name: 'HTTP Version Not Supported',
   },
   506: {
     message:
-      'The content negotiation for the request results in a circular \
-      reference.',
+      'The content negotiation for the request results in a circular reference.',
     name: 'Variant Also Negotiates',
   },
   507: {
     message:
-      'The server is unable to store the representation needed to complete the \
-      request.',
+      'The server is unable to store the representation needed to complete the request.',
     name: 'Insufficient Storage',
   },
   508: {
@@ -203,8 +180,7 @@ export const HttpErrorExplanations = {
   },
   510: {
     message:
-      'Further extensions to the request are required for the server to \
-      fulfill it.',
+      'Further extensions to the request are required for the server to fulfill it.',
     name: 'Not Extended',
   },
   511: {

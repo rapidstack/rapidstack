@@ -138,9 +138,9 @@ const validateSchema = async <
   // - cookies, headers, and qsp must be an object schema
   // this can possibly be built into the type later on?
   if (
-    !isObjectSchema(schema.cookies) ||
-    !isObjectSchema(schema.headers) ||
-    !isObjectSchema(schema.qsp)
+    (schema.cookies && !isObjectSchema(schema.cookies)) ||
+    (schema.headers && !isObjectSchema(schema.headers)) ||
+    (schema.qsp && !isObjectSchema(schema.qsp))
   ) {
     throw new Error('cookies, headers, and qsp must be an object schemas');
   }
@@ -152,43 +152,51 @@ const validateSchema = async <
 
   let body: object | string | undefined;
   try {
-    bodyString ? JSON.parse(bodyString) : undefined;
-  } catch {}
+    body = bodyString ? JSON.parse(bodyString) : undefined;
+  } catch {
+    body = bodyString;
+  }
 
   // Validate each part of the schema against incoming data
   const validated = {} as ValidatedSchemaOutput<ValidationSchema>;
-  const errors: [Error, ValibotSchema][] = [];
+  const errors = {} as {
+    [key in 'body' | 'cookies' | 'headers' | 'qsp']?: {
+      error: ValiError;
+      schema: ValibotSchema;
+    };
+  };
 
   try {
     validated.body = await parseWithSchema(schema.body, body);
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
-    errors.push([e, schema.body!]);
+    errors.body = { error: e, schema: schema.body! };
   }
 
   try {
     validated.headers = await parseWithSchema(schema.headers, headers);
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
-    errors.push([e, schema.headers!]);
+    errors.headers = { error: e, schema: schema.headers! };
   }
 
   try {
     validated.cookies = await parseWithSchema(schema.cookies, cookies);
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
-    errors.push([e, schema.cookies!]);
+    errors.cookies = { error: e, schema: schema.cookies! };
   }
 
   try {
     validated.qsp = await parseWithSchema(schema.qsp, qsp);
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
-    errors.push([e, schema.qsp!]);
+    errors.qsp = { error: e, schema: schema.qsp! };
   }
 
-  if (errors.length) {
-    throw new Error(errors.join(', '));
+  if (Object.keys(errors).length) {
+    console.log(errors.body?.error);
+    throw new Error('validation error');
   }
 
   return validated;
@@ -203,7 +211,7 @@ async function parseWithSchema<T extends ValibotSchema>(
   schema?: T,
   data?: unknown
 ): Promise<Output<ValibotSchema> | undefined> {
-  if (!data || !schema) return;
+  if (!schema) return;
 
   if (schema.async) return await parseAsync(schema, data);
   return parse(schema, data);

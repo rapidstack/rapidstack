@@ -16,7 +16,7 @@ type AnyValibotSchema =
   | v.BlobSchema                    // done
   | v.BooleanSchema                 // done
   | v.DateSchema                    // done
-  | v.EnumSchema<any>
+  | v.EnumSchema<any>               // done
   | v.InstanceSchema<any>
   | v.IntersectSchema<any>
   | v.LiteralSchema<any>            // done
@@ -199,6 +199,29 @@ export function getFlattenedSchemaInfo(
         })
         .join('');
 
+    case 'enum':
+      const enumString =
+        'enum { ' +
+        Object.entries(interpretedSchema.enum).reduce(
+          (acc, [key, val], i, a) => {
+            // Skip if the key is a number (reverse mapping for enums)
+            if (!isNaN(parseFloat(key))) return acc;
+
+            if (acc) acc += ', ';
+            acc += `${key} = ${typeof val === 'string' ? `'${val}'` : val}`;
+            if (i === a.length - 1) acc += ' ';
+            return acc;
+          },
+          ''
+        ) +
+        '}';
+      return printPrimitive(
+        `${path || 'root'}${optional ? '?' : ''}`,
+        enumString,
+        nullable,
+        optional
+      );
+
     /**
      * Fallback case. Could not interpret schema.
      */
@@ -208,20 +231,20 @@ export function getFlattenedSchemaInfo(
 }
 
 /**
- *
- * @param schema
+ * Returns whether a schema is a valibot object schema
+ * @param schema the valibot schema (sync or async) to check
+ * @returns whether the schema is a valibot object schema
  */
 export function isObjectSchema(schema?: ValibotSchema): boolean {
-  const interpretedSchema = schema as AnyValibotSchema;
-
+  console.log('schema', schema);
   if (!schema) return false;
-  if (interpretedSchema.type === 'object') return true;
+  if ((schema as AnyValibotSchema).type === 'object') return true;
 
   // if we have wrappers, recurse to unwrap
   // @ts-expect-error - ts can't pick this out of the union
-  if (interpretedSchema.wrapped) {
+  if ((schema as AnyValibotSchema).wrapped) {
     // @ts-expect-error - ts can't pick this out of the union
-    return isObjectSchema(interpretedSchema.wrapped);
+    return isObjectSchema((schema as AnyValibotSchema).wrapped);
   }
 
   return false;

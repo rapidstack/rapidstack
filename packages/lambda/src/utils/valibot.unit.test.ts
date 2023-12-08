@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable vitest/valid-title */
 import * as v from 'valibot';
 import { describe, expect, test } from 'vitest';
@@ -56,6 +57,24 @@ const optionalPrimitiveSchemaMap = Object.entries(primitiveSchemaMap).reduce(
   },
   {} as Record<string, v.BaseSchema>
 );
+
+enum Enum {
+  TEST_KEY = 'TEST_VALUE',
+}
+
+const ObjEnum = {
+  TEST_KEY: 'TEST_VALUE',
+} as const;
+
+enum Enum2 {
+  TEST_NUMBER = 42,
+  TEST_STRING = 'TEST_STRING',
+}
+
+const ObjEnum2 = {
+  TEST_NUMBER: 42,
+  TEST_STRING: 'TEST_STRING',
+} as const;
 
 describe(`\`${getFlattenedSchemaInfo.name}\`s function tests:`, () => {
   describe('schemas of primitives:', () => {
@@ -542,6 +561,41 @@ describe(`\`${getFlattenedSchemaInfo.name}\`s function tests:`, () => {
           'root[]?.unknown?: unknown',
           'root[]?.void?: void',
         ].join('\n') + '\n'
+      );
+    });
+  });
+
+  describe('schemas of enums', () => {
+    test(`test of typescript enum`, async () => {
+      const result = getFlattenedSchemaInfo(v.enum_(Enum));
+      expect(result).toBe(`root: enum { TEST_KEY = 'TEST_VALUE' }\n`);
+    });
+    test(`test of const object enum`, async () => {
+      const result = getFlattenedSchemaInfo(v.enum_(ObjEnum));
+      expect(result).toBe(`root: enum { TEST_KEY = 'TEST_VALUE' }\n`);
+    });
+    test(`test of enum array`, async () => {
+      const resultE = getFlattenedSchemaInfo(v.array(v.enum_(Enum)));
+      const resultO = getFlattenedSchemaInfo(v.array(v.enum_(ObjEnum)));
+      expect(resultE).toBe(`root[]: enum { TEST_KEY = 'TEST_VALUE' }\n`);
+      expect(resultO).toBe(`root[]: enum { TEST_KEY = 'TEST_VALUE' }\n`);
+    });
+    test(`test of object with value as enum`, async () => {
+      const resultE = getFlattenedSchemaInfo(v.object({ foo: v.enum_(Enum) }));
+      const resultO = getFlattenedSchemaInfo(
+        v.object({ foo: v.enum_(ObjEnum) })
+      );
+      expect(resultE).toBe(`root.foo: enum { TEST_KEY = 'TEST_VALUE' }\n`);
+      expect(resultO).toBe(`root.foo: enum { TEST_KEY = 'TEST_VALUE' }\n`);
+    });
+    test(`test of multiple property listing`, async () => {
+      const resultE = getFlattenedSchemaInfo(v.enum_(Enum2));
+      const resultO = getFlattenedSchemaInfo(v.enum_(ObjEnum2));
+      expect(resultE).toBe(
+        `root: enum { TEST_NUMBER = 42, TEST_STRING = 'TEST_STRING' }\n`
+      );
+      expect(resultO).toBe(
+        `root: enum { TEST_NUMBER = 42, TEST_STRING = 'TEST_STRING' }\n`
       );
     });
   });

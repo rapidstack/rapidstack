@@ -58,8 +58,7 @@ export const makeMockApiEvent = (params: {
       protocol: 'HTTP/1.1',
       sourceIp: '10.0.0.1',
       userAgent:
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) \
-        AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
     },
     requestId: 'O02pKigLIAMEYlw=',
     routeKey: '$default',

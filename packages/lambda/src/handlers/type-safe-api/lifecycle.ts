@@ -26,8 +26,7 @@ export const handleHotFunctionHook = async (
   const { cache, context, logger, onHotFunctionTrigger } = props;
   if (!onHotFunctionTrigger) {
     const message =
-      'A hot function trigger was received, but no onHotFunctionTrigger \
-      handler was provided.';
+      'A hot function trigger was received, but no onHotFunctionTrigger handler was provided.';
     logger.fatal(message);
     throw new HandlerExecuteError(message);
   }
@@ -143,9 +142,7 @@ export const handleRequestHooks = async (
       if (!(err instanceof Error)) {
         logger.warn({
           err,
-          msg: 'The error caught to be processed by the handler onError hook \
-          is not an instance of an Error. This is preferred for \
-          troubleshooting.',
+          msg: 'The error caught to be processed by the handler onError hook is not an instance of an Error. This is preferred for troubleshooting.',
         });
       }
 

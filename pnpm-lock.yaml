@@ -63,8 +63,8 @@ importers:
         specifier: 1.7.1
         version: 1.7.1
       eslint-plugin-vitest:
-        specifier: 0.3.10
-        version: 0.3.10(@typescript-eslint/eslint-plugin@6.13.2)(eslint@8.55.0)(typescript@5.3.3)(vitest@1.0.2)
+        specifier: 0.3.12
+        version: 0.3.12(@typescript-eslint/eslint-plugin@6.13.2)(eslint@8.55.0)(typescript@5.3.3)(vitest@1.0.2)
       prettier:
         specifier: 3.1.0
         version: 3.1.0
@@ -2240,9 +2240,9 @@ packages:
       safe-regex: 2.1.1
     dev: true
 
-  /eslint-plugin-vitest@0.3.10(@typescript-eslint/eslint-plugin@6.13.2)(eslint@8.55.0)(typescript@5.3.3)(vitest@1.0.2):
-    resolution: {integrity: sha512-08lj4rdhZHYyHk+Py2nJ7SlE6arP8GNfGXl9jVqhe9s5JoZIGiBpIkLGX+VNBiB6vXTn56H6Ant7Koc6XzRjtQ==}
-    engines: {node: 14.x || >= 16}
+  /eslint-plugin-vitest@0.3.12(@typescript-eslint/eslint-plugin@6.13.2)(eslint@8.55.0)(typescript@5.3.3)(vitest@1.0.2):
+    resolution: {integrity: sha512-Zi5sKbZUrJXE11MKCS6Wg108RAoPC7/lT9mH59LKuHO6K/b9s6S+SHFP4MCIxkpGnhSmYOhKZicHESaXywIveA==}
+    engines: {node: ^18.0.0 || >= 20.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': '*'
       eslint: '>=8.0.0'

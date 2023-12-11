@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
 import { EnvKeys } from '../index.js';
-import { getInternalEnvironmentVariable } from './index.js';
+import { getInternalEnvironmentVariable, isSafeKey } from './index.js';
 
 export const resolvePossibleRequestIds = (
   event: unknown,
@@ -74,8 +74,9 @@ export const makeCloudwatchUrl = (context: Context): string => {
 };
 
 /**
- *
- * @param event
+ * Parses the cookies from an API Gateway event
+ * @param event the API Gateway event
+ * @returns the cookies as a key-value object
  */
 export function parseGatewayEventCookies(
   event: APIGatewayProxyEventV2
@@ -85,6 +86,8 @@ export function parseGatewayEventCookies(
 
   for (const cookie of event.cookies) {
     const [key, value] = cookie.split('=');
+    if (!isSafeKey(key)) continue;
+    // eslint-disable-next-line security/detect-object-injection
     cookies[key] = value;
   }
 
@@ -92,8 +95,9 @@ export function parseGatewayEventCookies(
 }
 
 /**
- *
- * @param event
+ * Parses the sometimes-encoded body from an API Gateway event as a string
+ * @param event the API Gateway event
+ * @returns the body as a string
  */
 export function parseGatewayEventBody(
   event: APIGatewayProxyEventV2

@@ -264,6 +264,7 @@ function makeOtherErrorResponse(
     }
 
     if (err instanceof Error) {
+      errOutputPtr.data.error = {};
       errOutputPtr.data.error.stackTrace = err.stack?.toString();
       errOutputPtr.data.error.message = err.message;
       errOutputPtr.data.error.cause = err.cause?.toString();

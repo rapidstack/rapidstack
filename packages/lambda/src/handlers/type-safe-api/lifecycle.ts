@@ -1,17 +1,21 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
-import { ValiError } from 'valibot';
-
 import type { ICache, ILogger, RouteResolver } from '../../index.js';
 import type {
+  ApiFailResponse,
   ApiHandlerReturn,
   TypeSafeApiHandlerOptions,
   TypedApiRouteConfig,
 } from './types.js';
 
 import { HttpErrorExplanations } from '../../api/constants.js';
-import { HttpError } from '../../api/http-errors.js';
-import { EnvKeys, HandlerExecuteError, PerformanceKeys } from '../../index.js';
+import { HttpError, HttpValidationError } from '../../api/http-errors.js';
+import {
+  EnvKeys,
+  HandlerExecuteError,
+  PerformanceKeys,
+  getFlattenedSchemaInfo,
+} from '../../index.js';
 
 type HotFunctionHook = {
   cache: ICache;
@@ -172,38 +176,14 @@ export const handleRequestHooks = async (
  * @throws {HandlerExecuteError} If the error is not an instance of Error
  */
 function defaultErrorHandler(error: unknown): ApiHandlerReturn {
-  let status = 'error' as 'error' | 'fail';
-
   // Standard handling of an HTTP errors
-  if (error instanceof HttpError) {
-    if (error.code.toString().startsWith('4')) status = 'fail';
-
-    return {
-      // TODO:
-      // somehow need to make this type ok with error codes while not exposing
-      // them as an option for the standard handler return type
-      body: {
-        data: {
-          description: HttpErrorExplanations[error.code].message,
-          title: HttpErrorExplanations[error.code].name,
-        },
-        status,
-      },
-      statusCode: error.code,
-    };
+  if (error instanceof HttpError && error.code < 500) {
+    return default4xxErrorResponder(error);
   }
 
   // Standard handling of valibot errors
-  if (error instanceof ValiError) {
-    console.log('valierror', error.issues);
-    status = 'fail';
-    return {
-      body: {
-        errors: error.message,
-        status,
-      },
-      statusCode: 400,
-    };
+  if (error instanceof HttpValidationError) {
+    return defaultValidationErrorResponder(error);
   }
 
   // Handling of bad errors (not an instance of Error)
@@ -211,4 +191,73 @@ function defaultErrorHandler(error: unknown): ApiHandlerReturn {
     'An error occurred attempting to execute the lambda handler:' +
       error?.toString()
   );
+}
+
+/**
+ * Provides a standard response for HTTP 4xx errors
+ * @param error A HttpError instance
+ * @returns The handler return object
+ */
+function default4xxErrorResponder(error: HttpError): ApiHandlerReturn {
+  return {
+    body: {
+      data: {
+        description: HttpErrorExplanations[error.code].message,
+        title: HttpErrorExplanations[error.code].name,
+      },
+      status: 'fail',
+    },
+    statusCode: error.code,
+  };
+}
+
+/**
+ * Handles a valibot validation error
+ * @param error A HttpValidationError instance
+ * @returns The handler return object
+ */
+function defaultValidationErrorResponder(
+  error: HttpValidationError
+): ApiHandlerReturn {
+  let description = '';
+
+  Object.entries(error.validationErrors).forEach(
+    ([category, [err, schema, hasInput]], index) => {
+      description += `The ${category} failed validation.\n`;
+      const hasErrorDescriptions = err.issues.some(
+        ({ message }) => message !== 'Invalid type'
+      );
+
+      if (hasErrorDescriptions || !hasInput) {
+        description += 'Parser error messages: \n';
+      }
+
+      if (!hasInput) {
+        description += `  - No ${category} data was provided for this request\n`;
+      }
+
+      if (hasErrorDescriptions) {
+        for (const issue of err.issues) {
+          if (issue.message === 'Invalid type') continue;
+          description += `  - ${issue.message}\n`;
+        }
+      }
+
+      description +=
+        'Expected schema: \n' + getFlattenedSchemaInfo(schema, category);
+      if (index !== Object.keys(error.validationErrors).length - 1) {
+        description += '\n\n';
+      }
+    }
+  );
+  return {
+    body: {
+      data: {
+        description,
+        title: error.message,
+      },
+      status: 'fail',
+    } as ApiFailResponse,
+    statusCode: 400,
+  } as ApiHandlerReturn;
 }

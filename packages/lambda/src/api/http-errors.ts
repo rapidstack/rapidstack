@@ -1,3 +1,6 @@
+import type { ValiError } from 'valibot';
+
+import type { ValibotSchema } from '../utils/index.js';
 import type {
   Http400s,
   Http500s,
@@ -116,4 +119,14 @@ export class HttpError extends Error {
   }
 }
 
-export class HttpValidationError extends Error {}
+export type HttpValidationErrorProps = {
+  body?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
+  cookies?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
+  headers?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
+  qsp?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
+};
+export class HttpValidationError extends Error {
+  constructor(public validationErrors: HttpValidationErrorProps) {
+    super('HTTP request failed validation');
+  }
+}

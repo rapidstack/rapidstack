@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type * as v from 'valibot';
 
-// TODO: type dup
-type ValibotSchema = v.BaseSchema | v.BaseSchemaAsync;
+export type ValibotSchema = v.BaseSchema | v.BaseSchemaAsync;
 
 // Cast type so that type narrowing in switch will work
 // TODO: some of these still need to be implemented but cover the most common
@@ -236,7 +235,6 @@ export function getFlattenedSchemaInfo(
  * @returns whether the schema is a valibot object schema
  */
 export function isObjectSchema(schema?: ValibotSchema): boolean {
-  console.log('schema', schema);
   if (!schema) return false;
   if ((schema as AnyValibotSchema).type === 'object') return true;
 

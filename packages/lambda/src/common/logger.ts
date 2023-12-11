@@ -174,7 +174,7 @@ export class Logger implements ILogger {
   }
 
   public debug(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.debug(str);
     this.emitter?.emit('log', 'debug', str, this.pinoOptions.base);
   }
 
@@ -183,12 +183,12 @@ export class Logger implements ILogger {
   }
 
   public error(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.error(str);
     this.emitter?.emit('log', 'error', str, this.pinoOptions.base);
   }
 
   public fatal(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.fatal(str);
     this.emitter?.emit('log', 'fatal', str, this.pinoOptions.base);
   }
 
@@ -209,7 +209,7 @@ export class Logger implements ILogger {
   }
 
   public warn(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.warn(str);
     this.emitter?.emit('log', 'warn', str, this.pinoOptions.base);
   }
 }

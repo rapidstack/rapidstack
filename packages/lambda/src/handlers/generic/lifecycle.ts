@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type Context } from 'aws-lambda';
+import type { Context } from 'aws-lambda';
 
-import {
-  COLD_START,
-  HandlerExecuteError,
-  type ICache,
-  type ILogger,
-} from '../../common/index.js';
-import {
-  type GenericHandlerWrapperOptions,
-  type HandlerParams,
-} from './types.js';
+import type { ICache, ILogger } from '../../common/index.js';
+import type { GenericHandlerWrapperOptions, HandlerParams } from './types.js';
+
+import { EnvKeys, HandlerExecuteError } from '../../common/index.js';
 
 export const handleShutdownHook = (
   hook: GenericHandlerWrapperOptions<Event, any, any>['onLambdaShutdown'],
@@ -49,15 +43,13 @@ export const handleHotFunctionHook = async <Event, Return>(
   const { cache, context, logger, onHotFunctionTrigger } = props;
   if (!onHotFunctionTrigger) {
     const message =
-      'A hot function trigger was received, but no onHotFunctionTrigger \
-      handler was provided.';
+      'A hot function trigger was received, but no onHotFunctionTrigger handler was provided.';
     logger.fatal(message);
     throw new HandlerExecuteError(message);
   }
 
   // Prevent the cold start handler from running on subsequent invocations
-  // eslint-disable-next-line security/detect-object-injection
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.COLD_START];
 
   const hotFunctionTriggerLogger = logger.child({
     hierarchicalName: 'handler-hook:onHotFunctionTrigger',
@@ -86,12 +78,10 @@ type ColdStartHook<Event> = {
 export const handleColdStartHook = async <Event>(
   props: ColdStartHook<Event>
 ): Promise<void> => {
-  // eslint-disable-next-line security/detect-object-injection
-  if (!process.env[COLD_START]) return;
+  if (!process.env[EnvKeys.COLD_START]) return;
 
   // Prevent the cold start handler from running on subsequent invocations
-  // eslint-disable-next-line security/detect-object-injection
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.COLD_START];
 
   const { cache, context, event, logger, onColdStart } = props;
 
@@ -204,9 +194,7 @@ export const handleRequestHooks = async <Event, Return, Extra>(
       if (!(err instanceof Error)) {
         logger.warn({
           err,
-          msg: 'The error caught to be processed by the handler onError hook \
-          is not an instance of an Error. This is preferred for \
-          troubleshooting.',
+          msg: 'The error caught to be processed by the handler onError hook is not an instance of an Error. This is preferred for troubleshooting.',
         });
       }
 
@@ -224,8 +212,7 @@ export const handleRequestHooks = async <Event, Return, Extra>(
 
     // else: Standard handling of an error without an onError handler
     throw new HandlerExecuteError(
-      `An error occurred attempting to execute the lambda handler: \
-      ${err.toString()}`
+      `An error occurred attempting to execute the lambda handler: ${err.toString()}`
     );
   } finally {
     logger.trace({ msg: 'Finished request execution.', result });

@@ -13,6 +13,7 @@ import type {
 } from './types.js';
 
 import { HttpError } from '../../api/http-errors.js';
+import { returnStandardJsonResponse } from '../../api/index.js';
 import {
   EnvKeys,
   HOT_FUNCTION_TRIGGER,
@@ -23,7 +24,6 @@ import {
   makeMockApiEvent,
 } from '../../index.js';
 import { TypeSafeApiHandler } from './handler.js';
-import { returnStandardJsonResponse } from '../../api/index.js';
 
 let loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 let logger = new Logger({ level: 'silent' }, loggerEvents);
@@ -41,13 +41,13 @@ const routes = {
       throw new Error('test');
     },
   },
+  'object': {
+    get: async () => returnStandardJsonResponse({ body: { test: 'test' } }),
+  },
   'test': {
     nested: {
       get: async () => 'test',
     },
-  },
-  'object': {
-    get: async () => returnStandardJsonResponse({ body: { test: 'test' } }),
   },
 } as TypedApiRouteConfig;
 

@@ -23,6 +23,7 @@ import {
   makeMockApiEvent,
 } from '../../index.js';
 import { TypeSafeApiHandler } from './handler.js';
+import { returnStandardJsonResponse } from '../../api/index.js';
 
 let loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 let logger = new Logger({ level: 'silent' }, loggerEvents);
@@ -44,6 +45,9 @@ const routes = {
     nested: {
       get: async () => 'test',
     },
+  },
+  'object': {
+    get: async () => returnStandardJsonResponse({ body: { test: 'test' } }),
   },
 } as TypedApiRouteConfig;
 
@@ -359,6 +363,26 @@ describe('`TypeSafeApiHandler` tests:', () => {
           },
         });
         expect(res.statusCode).toBe(404);
+      });
+      test('should handle using json objects to match JSend spec', async () => {
+        const makeApi = toolkit.create(TypeSafeApiHandler);
+        const handler = makeApi(routes);
+
+        const res = (await MockLambdaRuntime(
+          handler,
+          makeMockApiEvent({
+            method: 'GET',
+            path: '/object',
+          })
+        )) as APIGatewayProxyStructuredResultV2;
+
+        expect(JSON.parse(res.body as string)).toMatchObject({
+          data: {
+            test: 'test',
+          },
+          status: 'success',
+        });
+        expect(res.statusCode).toBe(200);
       });
     });
   });

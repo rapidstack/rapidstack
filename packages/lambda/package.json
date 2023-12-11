@@ -31,6 +31,7 @@
     "!**/tests/*.ts.map"
   ],
   "dependencies": {
-    "pino": "8.16.2"
+    "pino": "8.16.2",
+    "valibot": "0.20.1"
   }
 }

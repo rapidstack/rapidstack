@@ -24,7 +24,7 @@ type OnRequestEndHookProps = {
   result: ApiHandlerReturn;
 } & CommonHookProps;
 
-export type TypeSafeApiHandlerOptions = {
+export type TypeSafeApiHandlerHooks = {
   /**
    * If an error is thrown in the runnerFunction, pre-request, or post-request
    * hooks, this function, if supplied, will be called to handle the error.

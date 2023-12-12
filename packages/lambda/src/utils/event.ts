@@ -1,14 +1,23 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
-import { EnvKeys } from '../index.js';
+import { EnvKeys, HOT_FUNCTION_TRIGGER } from '../index.js';
 import { getInternalEnvironmentVariable, isSafeKey } from './index.js';
 
-export const resolvePossibleRequestIds = (
+/**
+ * Creates a request context object for use in logging
+ * @param event - the Lambda event
+ * @param context - the Lambda context
+ * @param extra - additional key-value pairs to add to the request context
+ * @returns a key-value object of request context
+ */
+export function createRequestContext(
   event: unknown,
-  context: Context
-): Record<string, string> => {
+  context: Context,
+  extra: Record<string, string> = {}
+): Record<string, string> {
   const ids = {
     lambdaRequestId: context.awsRequestId,
+    ...extra,
   } as Record<string, string>;
   if (typeof event !== 'object') return ids;
 
@@ -30,6 +39,14 @@ export const resolvePossibleRequestIds = (
   // Generic HTTP request ID scraping
   if (typeof (event as Record<string, unknown>).headers === 'object') {
     const headers = (event as APIGatewayProxyEventV2).headers;
+    let method = (event as APIGatewayProxyEventV2).requestContext.http.method;
+    const methodHeader = headers['x-http-method-override'];
+
+    if (methodHeader) {
+      method += ` (with override header provided: ${methodHeader})`;
+    }
+
+    ids['method'] = method;
 
     if (headers['x-request-id']) {
       ids['x-request-id'] = headers['x-request-id'];
@@ -45,9 +62,14 @@ export const resolvePossibleRequestIds = (
   }
 
   return ids;
-};
+}
 
-export const makeCloudwatchUrl = (context: Context): string => {
+/**
+ * Creates the current Cloudwatch log stream URL for the Lambda run
+ * @param context the Lambda context
+ * @returns the Cloudwatch log stream URL
+ */
+export function makeCloudwatchUrl(context: Context): string {
   const { logGroupName, logStreamName } = context;
   const region = getInternalEnvironmentVariable(EnvKeys.AWS_REGION);
 
@@ -71,7 +93,7 @@ export const makeCloudwatchUrl = (context: Context): string => {
     `?region=${region}#logsV2:log-groups/log-group/${formattedLogGroupName}` +
     `/log-events/${formattedLogStreamName}`
   );
-};
+}
 
 /**
  * Parses the cookies from an API Gateway event
@@ -105,4 +127,17 @@ export function parseGatewayEventBody(
   return event.isBase64Encoded && event.body
     ? Buffer.from(event.body, 'base64').toString()
     : event.body;
+}
+
+/**
+ * Parses an event to determine if the shape is a hot function trigger
+ * @param event an event from Lambda
+ * @returns whether or not the event is a hot function trigger (boolean)
+ */
+export function isHotFunctionTrigger(event: unknown): boolean {
+  return (
+    typeof event === 'object' &&
+    // eslint-disable-next-line security/detect-object-injection
+    !!(event as unknown as { [k: string]: unknown })[HOT_FUNCTION_TRIGGER]
+  );
 }

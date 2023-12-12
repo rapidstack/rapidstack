@@ -66,6 +66,7 @@ export class HttpError extends Error {
         super(`${code} Range Not Satisfiable - ${m}`);
         this.message = m;
 
+        // TODO: not everything is in bytes - this is just a placeholder.
         this.headers = { 'Content-Range': `bytes */${message}` };
         break;
       }
@@ -120,10 +121,10 @@ export class HttpError extends Error {
 }
 
 export type HttpValidationErrorProps = {
-  body?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
-  cookies?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
-  headers?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
-  qsp?: [error: ValiError, schema: ValibotSchema, inputExists?: boolean];
+  body?: [error: ValiError, schema: ValibotSchema, inputExists: boolean];
+  cookies?: [error: ValiError, schema: ValibotSchema, inputExist: boolean];
+  headers?: [error: ValiError, schema: ValibotSchema, inputExists: boolean];
+  qsp?: [error: ValiError, schema: ValibotSchema, inputExists: boolean];
 };
 export class HttpValidationError extends Error {
   constructor(public validationErrors: HttpValidationErrorProps) {

@@ -1,6 +1,5 @@
 /* eslint-disable security/detect-object-injection */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
@@ -30,15 +29,40 @@ export const MockLambdaDefaultEvent = {
   key3: 'value3',
 } as any;
 
-export const MockLambdaRuntime = async (
+/**
+ * Mocks a Lambda runtime environment and runs the handler with the provided
+ * event and context.
+ * @param handler the handler to test.
+ * @param testEvent the event to use for the mock Lambda. Defaults to the
+ * generic event that the Lambda console provides:
+ * {@link MockLambdaDefaultEvent}
+ * @param testContext the context to use for the mock Lambda. Defaults to a
+ *  generic context: {@link MockLambdaContext}
+ * @returns the result of the handler.
+ */
+export async function MockLambdaRuntime<T>(
   handler: (event: any, context: any) => Promise<unknown>,
   testEvent = MockLambdaDefaultEvent,
   testContext = MockLambdaContext
-) => {
-  return await handler(testEvent, testContext);
-};
+): Promise<T> {
+  return (await handler(testEvent, testContext)) as T;
+}
 
-export const makeMockApiEvent = (params: {
+/**
+ * Creates a mock API event for testing.
+ * @param params  the parameters to use for the mock event.
+ * @param params.addCloudFrontHeaders whether or not to add CloudFront headers
+ * @param params.body the body of the request
+ * @param params.cookies the cookies to use for the request
+ * @param params.headers the headers to use for the request
+ * @param params.method the HTTP method to use for the request
+ * @param params.path the path to use for the request
+ * @param params.queryString the query string to use for the request
+ * @param params.source the source of the request. Defaults to `api-gateway`.
+ * @returns a mock API event.
+ * @throws if the source is not recognized.
+ */
+export function makeMockApiEvent(params: {
   addCloudFrontHeaders?: true;
   body?: any;
   cookies?: `${string}=${string}`[];
@@ -47,7 +71,7 @@ export const makeMockApiEvent = (params: {
   path: `/${string}`;
   queryString?: `?${string}`;
   source?: 'api-gateway' | 'lambda-url';
-}): APIGatewayProxyEventV2 => {
+}): APIGatewayProxyEventV2 {
   const now = Date.now();
   const headers = {} as Record<string, string>;
   const requestContext = {
@@ -206,12 +230,12 @@ export const makeMockApiEvent = (params: {
     routeKey: '$default',
     version: '2.0',
   };
-};
+}
 
 /**
  * Parses a query string into an object like API Gateway does.
- * @param url The URL to parse.
- * @returns An object with the query string parameters.
+ * @param url the URL to parse.
+ * @returns an object with the query string parameters.
  */
 function parseQueryStringParameters(url: string): { [key: string]: string } {
   const queryString = url.split('?')[1];

@@ -17,7 +17,7 @@ type StandardJsonResponse = {
  * @param props the expected response body, headers, status code, and cookies
  * @returns a JSend formatted response
  */
-export function returnStandardJsonResponse(
+export function makeStandardJsonResponse(
   props: StandardJsonResponse
 ): ApiHandlerReturn {
   const { body: rawBodyObj = null, ...rest } = props;

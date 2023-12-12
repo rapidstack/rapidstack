@@ -13,7 +13,7 @@ import type {
 } from './types.js';
 
 import { HttpError } from '../../api/http-errors.js';
-import { returnStandardJsonResponse } from '../../api/index.js';
+import { makeStandardJsonResponse } from '../../api/index.js';
 import {
   EnvKeys,
   HOT_FUNCTION_TRIGGER,
@@ -42,7 +42,7 @@ const routes = {
     },
   },
   'object': {
-    get: async () => returnStandardJsonResponse({ body: { test: 'test' } }),
+    get: async () => makeStandardJsonResponse({ body: { test: 'test' } }),
   },
   'test': {
     nested: {

@@ -4,65 +4,26 @@ import type { ICache, ILogger, RouteResolver } from '../../index.js';
 import type {
   ApiFailResponse,
   ApiHandlerReturn,
-  TypeSafeApiHandlerOptions,
+  TypeSafeApiHandlerHooks,
   TypedApiRouteConfig,
 } from './types.js';
 
 import { HttpErrorExplanations } from '../../api/constants.js';
 import { HttpError, HttpValidationError } from '../../api/http-errors.js';
 import {
-  EnvKeys,
   HandlerExecuteError,
   PerformanceKeys,
   getFlattenedSchemaInfo,
 } from '../../index.js';
-
-type HotFunctionHook = {
-  cache: ICache;
-  context: Context;
-  event: unknown;
-  logger: ILogger;
-  onHotFunctionTrigger: TypeSafeApiHandlerOptions['onHotFunctionTrigger'];
-};
-export const handleHotFunctionHook = async (
-  props: HotFunctionHook
-): Promise<void> => {
-  const { cache, context, logger, onHotFunctionTrigger } = props;
-  if (!onHotFunctionTrigger) {
-    const message =
-      'A hot function trigger was received, but no onHotFunctionTrigger handler was provided.';
-    logger.fatal(message);
-    throw new HandlerExecuteError(message);
-  }
-
-  // Prevent the cold start handler from running on subsequent invocations
-  delete process.env[EnvKeys.COLD_START];
-
-  const hotFunctionTriggerLogger = logger.child({
-    hierarchicalName: 'handler-hook:onHotFunctionTrigger',
-  });
-  try {
-    return await onHotFunctionTrigger({
-      cache,
-      context,
-      logger: hotFunctionTriggerLogger,
-    });
-  } catch (err) {
-    hotFunctionTriggerLogger.fatal({ err, msg: 'An error occurred' });
-    throw new HandlerExecuteError(
-      'An error occurred in the onHotFunctionTrigger handler.'
-    );
-  }
-};
 
 type RequestHooks = {
   cache: ICache;
   context: Context;
   event: APIGatewayProxyEventV2;
   logger: ILogger;
-  onError: TypeSafeApiHandlerOptions['onError'];
-  onRequestEnd: TypeSafeApiHandlerOptions['onRequestEnd'];
-  onRequestStart: TypeSafeApiHandlerOptions['onRequestStart'];
+  onError: TypeSafeApiHandlerHooks['onError'];
+  onRequestEnd: TypeSafeApiHandlerHooks['onRequestEnd'];
+  onRequestStart: TypeSafeApiHandlerHooks['onRequestStart'];
   routeResolver: RouteResolver;
   routes: TypedApiRouteConfig;
 };
@@ -81,6 +42,7 @@ export const handleRequestHooks = async (
     routes,
   } = props;
 
+  // TODO: Need to add some redact config to the logger so auth isn't exposed
   logger.trace({ context, event, msg: 'Starting request execution.' });
 
   // The following are handled by the onError handler (critical path)
@@ -175,7 +137,7 @@ export const handleRequestHooks = async (
  * @returns The handler return object
  * @throws {HandlerExecuteError} If the error is not an instance of Error
  */
-function defaultErrorHandler(error: unknown): ApiHandlerReturn {
+export function defaultErrorHandler(error: unknown): ApiHandlerReturn {
   // Standard handling of an HTTP errors
   if (error instanceof HttpError && error.code < 500) {
     return default4xxErrorResponder(error);
@@ -198,7 +160,7 @@ function defaultErrorHandler(error: unknown): ApiHandlerReturn {
  * @param error A HttpError instance
  * @returns The handler return object
  */
-function default4xxErrorResponder(error: HttpError): ApiHandlerReturn {
+export function default4xxErrorResponder(error: HttpError): ApiHandlerReturn {
   return {
     body: {
       data: {
@@ -216,44 +178,43 @@ function default4xxErrorResponder(error: HttpError): ApiHandlerReturn {
  * @param error A HttpValidationError instance
  * @returns The handler return object
  */
-function defaultValidationErrorResponder(
+export function defaultValidationErrorResponder(
   error: HttpValidationError
 ): ApiHandlerReturn {
-  let description = '';
+  let text = '';
 
   Object.entries(error.validationErrors).forEach(
     ([category, [err, schema, hasInput]], index) => {
-      description += `The ${category} failed validation.\n`;
+      text += `The ${category} failed validation.\n`;
       const hasErrorDescriptions = err.issues.some(
         ({ message }) => message !== 'Invalid type'
       );
 
       if (hasErrorDescriptions || !hasInput) {
-        description += 'Parser error messages: \n';
+        text += 'Parser error messages: \n';
       }
 
       if (!hasInput) {
-        description += `  - No ${category} data was provided for this request\n`;
+        text += `  - No ${category} data was provided for this request\n`;
       }
 
       if (hasErrorDescriptions) {
         for (const issue of err.issues) {
           if (issue.message === 'Invalid type') continue;
-          description += `  - ${issue.message}\n`;
+          text += `  - ${issue.message}\n`;
         }
       }
 
-      description +=
-        'Expected schema: \n' + getFlattenedSchemaInfo(schema, category);
+      text += 'Expected schema: \n' + getFlattenedSchemaInfo(schema, category);
       if (index !== Object.keys(error.validationErrors).length - 1) {
-        description += '\n\n';
+        text += '\n\n';
       }
     }
   );
   return {
     body: {
       data: {
-        description,
+        description: text,
         title: error.message,
       },
       status: 'fail',

@@ -2,6 +2,7 @@ import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 
 import type {
   ApiHandlerReturn,
+  HttpRouteFunction,
   TypedApiRouteConfig,
 } from '../../handlers/type-safe-api/types.js';
 import type { BaseApiRouteProps } from '../../handlers/type-safe-api/validator.js';
@@ -17,7 +18,7 @@ import { isSafeKey } from '../../index.js';
 export function resolveRoute(
   event: APIGatewayProxyEventV2,
   routes: TypedApiRouteConfig
-): ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined {
+): HttpRouteFunction | undefined {
   const { rawPath, requestContext } = event;
   const slugs = rawPath.split('/').filter((s) => s.length > 0);
 
@@ -27,6 +28,11 @@ export function resolveRoute(
   slugs.push(requestContext.http.method.toLowerCase());
 
   const route = getRoute(routes, slugs);
+
+  // // If the route is typed, resolve with path parameters
+  // if (route && route.typed) {
+  //   route.pathParams.
+  // }
   return route;
 }
 
@@ -41,7 +47,7 @@ export function resolveRoute(
 function getRoute(
   route: TypedApiRouteConfig | undefined,
   path: string | string[]
-): ((params: BaseApiRouteProps) => Promise<ApiHandlerReturn>) | undefined {
+): HttpRouteFunction | undefined {
   const _path: string[] = Array.isArray(path) ? path : path.split('.');
 
   if (route && _path.length) {

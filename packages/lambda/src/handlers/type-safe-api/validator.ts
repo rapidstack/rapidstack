@@ -5,6 +5,7 @@ import type { Output } from 'valibot';
 import { ValiError, parse, parseAsync } from 'valibot';
 
 import type { ICache, ILogger, ValibotSchema } from '../../index.js';
+import type { TypeSafeApiRouteFunction } from './types.js';
 
 import { HttpValidationError } from '../../api/index.js';
 import {
@@ -31,8 +32,8 @@ export type HttpRunnerFunction<
 > = (props: {
   cache: ICache;
   context: Context;
+  event: APIGatewayProxyEventV2;
   logger: ILogger;
-  rawEvent: APIGatewayProxyEventV2;
   validated: ValidatedSchemaOutput<Validated>;
 }) => Promise<Return>;
 
@@ -70,7 +71,7 @@ export type BaseApiRouteProps = {
 
 export type TypeSafeApiRouteProps<
   Schema extends HttpCallValidationSchema<any, any, any, any>,
-> = BaseApiRouteProps & { _schema: Schema };
+> = BaseApiRouteProps & { _schema?: Schema };
 
 export type HttpRouteValidator = <
   ValidationSchema extends HttpCallValidationSchema<
@@ -93,7 +94,13 @@ export type HttpRouteValidator = <
   statusCode: number;
 }>;
 
-export const validate = <
+/**
+ * Validate a HTTP request route against a set of schema validations
+ * @param schemas the collection of schemas to validate against
+ * @param runnerFunction the handler function to run if the schemas are valid
+ * @returns a function that can be used as a lambda handler
+ */
+export function validate<
   ValidationSchema extends HttpCallValidationSchema<
     Body,
     QSPs,
@@ -106,26 +113,31 @@ export const validate = <
   Headers extends ValibotSchema | never,
   Cookies extends ValibotSchema | never,
 >(
-  schema: ValidationSchema,
+  schemas: ValidationSchema,
   runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
-) => {
-  return async ({
+): TypeSafeApiRouteFunction {
+  const v = async ({
     cache,
     context,
     event,
     logger,
   }: TypeSafeApiRouteProps<ValidationSchema>): Promise<Return> => {
-    const validated = await validateSchema(schema as object, event);
+    const validated = await validateSchema(schemas as object, event);
 
     return await runnerFunction({
       cache,
       context,
+      event,
       logger,
-      rawEvent: event,
       validated,
     });
   };
-};
+
+  // Pass some information back upstream with static properties on the function
+  v.typed = true as const;
+
+  return v;
+}
 
 const validateSchema = async <
   ValidationSchema extends HttpCallValidationSchema<
@@ -174,28 +186,32 @@ const validateSchema = async <
   const errors = {} as ConstructorParameters<typeof HttpValidationError>[0];
 
   try {
-    validated.body = await parseWithSchema(schema.body, body);
+    const parsed = await parseWithSchema(schema.body, body);
+    if (parsed !== undefined) validated.body = parsed;
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
     errors.body = [e, schema.body!, !!bodyString];
   }
 
   try {
-    validated.headers = await parseWithSchema(schema.headers, headers);
+    const parsed = await parseWithSchema(schema.headers, headers);
+    if (parsed !== undefined) validated.headers = parsed;
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
     errors.headers = [e, schema.headers!, !!Object.keys(headers).length];
   }
 
   try {
-    validated.cookies = await parseWithSchema(schema.cookies, cookies);
+    const parsed = await parseWithSchema(schema.cookies, cookies);
+    if (parsed !== undefined) validated.cookies = parsed;
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
     errors.cookies = [e, schema.cookies!, !!Object.keys(cookies).length];
   }
 
   try {
-    validated.qsp = await parseWithSchema(schema.qsp, qsp);
+    const parsed = await parseWithSchema(schema.qsp, qsp);
+    if (parsed !== undefined) validated.qsp = parsed;
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
     errors.qsp = [e, schema.qsp!, qsp !== undefined];

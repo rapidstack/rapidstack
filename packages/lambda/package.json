@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest",
     "build": "tsc --noEmit && tsup",
-    "build:watch": "tsup --watch"
+    "watch": "tsc --noEmit --watch"
   },
   "exports": {
     ".": {

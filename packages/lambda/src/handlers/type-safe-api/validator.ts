@@ -14,10 +14,10 @@ import {
 } from '../../index.js';
 
 type HttpCallValidationSchema<
-  Body extends ValibotSchema | undefined = undefined,
-  QSPs extends ValibotSchema | undefined = undefined,
-  Headers extends ValibotSchema | undefined = undefined,
-  Cookies extends ValibotSchema | undefined = undefined,
+  Body extends ValibotSchema | never = never,
+  QSPs extends ValibotSchema | never = never,
+  Headers extends ValibotSchema | never = never,
+  Cookies extends ValibotSchema | never = never,
 > = {
   body?: Body;
   cookies?: Cookies;
@@ -36,19 +36,29 @@ export type HttpRunnerFunction<
   validated: ValidatedSchemaOutput<Validated>;
 }) => Promise<Return>;
 
-export type ValidatedSchemaOutput<
+type PossibleValidatedSchemaOutput<
   Schema extends HttpCallValidationSchema<any, any, any, any>,
 > = {
-  body: Schema['body'] extends ValibotSchema
-    ? Output<Schema['body']>
-    : undefined;
+  body: Schema['body'] extends ValibotSchema ? Output<Schema['body']> : never;
   cookies: Schema['cookies'] extends ValibotSchema
     ? Output<Schema['cookies']>
-    : undefined;
+    : never;
   headers: Schema['headers'] extends ValibotSchema
     ? Output<Schema['headers']>
-    : undefined;
-  qsp: Schema['qsp'] extends ValibotSchema ? Output<Schema['qsp']> : undefined;
+    : never;
+  qsp: Schema['qsp'] extends ValibotSchema ? Output<Schema['qsp']> : never;
+};
+
+export type ValidatedSchemaOutput<
+  Schema extends HttpCallValidationSchema<any, any, any, any>,
+> = FilterOutNeverValues<PossibleValidatedSchemaOutput<Schema>>;
+
+type GetNonNeverKeys<T extends Record<string, unknown>> = {
+  [K in keyof T]: T[K] extends never ? never : K;
+}[keyof T];
+
+type FilterOutNeverValues<T extends Record<string, unknown>> = {
+  [K in GetNonNeverKeys<T>]: T[K];
 };
 
 export type BaseApiRouteProps = {
@@ -70,10 +80,10 @@ export type HttpRouteValidator = <
     Cookies
   >,
   Return,
-  Body extends ValibotSchema | undefined,
-  QSPs extends ValibotSchema | undefined = undefined,
-  Headers extends ValibotSchema | undefined = undefined,
-  Cookies extends ValibotSchema | undefined = undefined,
+  Body extends ValibotSchema | never,
+  QSPs extends ValibotSchema | never,
+  Headers extends ValibotSchema | never,
+  Cookies extends ValibotSchema | never,
 >(
   schema: ValidationSchema,
   runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
@@ -91,10 +101,10 @@ export const validate = <
     Cookies
   >,
   Return,
-  Body extends ValibotSchema | undefined,
-  QSPs extends ValibotSchema | undefined,
-  Headers extends ValibotSchema | undefined,
-  Cookies extends ValibotSchema | undefined,
+  Body extends ValibotSchema | never,
+  QSPs extends ValibotSchema | never,
+  Headers extends ValibotSchema | never,
+  Cookies extends ValibotSchema | never,
 >(
   schema: ValidationSchema,
   runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
@@ -124,10 +134,10 @@ const validateSchema = async <
     Headers,
     Cookies
   >,
-  Body extends ValibotSchema | undefined = undefined,
-  QSPs extends ValibotSchema | undefined = undefined,
-  Headers extends ValibotSchema | undefined = undefined,
-  Cookies extends ValibotSchema | undefined = undefined,
+  Body extends ValibotSchema | never = never,
+  QSPs extends ValibotSchema | never = never,
+  Headers extends ValibotSchema | never = never,
+  Cookies extends ValibotSchema | never = never,
 >(
   schema: ValidationSchema,
   event: APIGatewayProxyEventV2
@@ -160,7 +170,7 @@ const validateSchema = async <
   }
 
   // Validate each part of the schema against incoming data
-  const validated = {} as ValidatedSchemaOutput<ValidationSchema>;
+  const validated = {} as PossibleValidatedSchemaOutput<ValidationSchema>;
   const errors = {} as ConstructorParameters<typeof HttpValidationError>[0];
 
   try {

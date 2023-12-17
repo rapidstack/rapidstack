@@ -4,7 +4,7 @@ import type {
   ApiHandlerReturn,
   HttpRouteFunction,
   TypedApiRouteConfig,
-} from '../../handlers/type-safe-api/types.js';
+} from '../../handlers/index.js';
 import type { BaseApiRouteProps } from '../../index.js';
 
 import { isSafeKey } from '../../index.js';

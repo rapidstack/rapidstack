@@ -9,7 +9,7 @@ import type {
 } from './types.js';
 
 import { HttpErrorExplanations } from '../../api/constants.js';
-import { HttpError, HttpValidationError } from '../../api/http-errors.js';
+import { HttpError, HttpValidationError } from '../../api/index.js';
 import {
   HandlerExecuteError,
   PerformanceKeys,

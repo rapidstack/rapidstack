@@ -20,8 +20,7 @@ import type {
 import type { BaseApiRouteProps } from './types.js';
 
 import { HttpErrorExplanations } from '../../api/constants.js';
-import { HttpError } from '../../api/http-errors.js';
-import { resolveRoute } from '../../api/index.js';
+import { HttpError, resolveRoute } from '../../api/index.js';
 import { EnvKeys, HandlerExecuteError } from '../../common/index.js';
 import {
   createRequestContext,

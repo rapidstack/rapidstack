@@ -8,22 +8,22 @@ import type {
   CreatableUtils,
   ICreatableConfig,
   ICreatableReturn,
-} from '../../toolkit/index.js';
+} from '../../index.js';
 import type { LambdaEntryPoint } from '../index.js';
 import type {
   ApiErrorResponseDev,
   ApiErrorResponseNoDev,
   ApiHandlerReturn,
+  BaseApiRouteProps,
   TypeSafeApiHandlerHooks,
   TypedApiRouteConfig,
 } from './types.js';
-import type { BaseApiRouteProps } from './validator.js';
 
-import { HttpErrorExplanations } from '../../api/constants.js';
-import { HttpError } from '../../api/http-errors.js';
-import { resolveRoute } from '../../api/index.js';
-import { EnvKeys, HandlerExecuteError } from '../../common/index.js';
 import {
+  EnvKeys,
+  HandlerExecuteError,
+  HttpError,
+  HttpErrorExplanations,
   createRequestContext,
   getApiHandlerPerformance,
   getInternalEnvironmentVariable,
@@ -31,8 +31,9 @@ import {
   makeCloudwatchUrl,
   markHandlerEnd,
   markHandlerStart,
-} from '../../utils/index.js';
-import { handleHotFunctionHook, handleShutdownHook } from '../shared/index.js';
+  resolveRoute,
+} from '../../index.js';
+import { handleHotFunctionHook, handleShutdownHook } from '../index.js';
 import { handleRequestHooks } from './lifecycle.js';
 
 export type RouteResolver = (

@@ -2,7 +2,7 @@ import type {
   ApiHandlerReturn,
   ApiSuccessResponse,
   BaseApiHandlerReturn,
-} from '../handlers/type-safe-api/types.js';
+} from '../index.js';
 
 type StandardJsonResponse = {
   body: object;

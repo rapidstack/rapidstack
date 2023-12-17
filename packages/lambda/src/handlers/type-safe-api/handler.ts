@@ -17,7 +17,7 @@ import type {
   TypeSafeApiHandlerHooks,
   TypedApiRouteConfig,
 } from './types.js';
-import type { BaseApiRouteProps } from './validator.js';
+import type { BaseApiRouteProps } from './types.js';
 
 import { HttpErrorExplanations } from '../../api/constants.js';
 import { HttpError } from '../../api/http-errors.js';

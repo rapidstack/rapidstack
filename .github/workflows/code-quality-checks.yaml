@@ -97,7 +97,6 @@ jobs:
       (
         github.actor != 'dependabot[bot]'
       ))
-    if: false
     permissions:
       actions: read
       contents: read

@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           config-file: ./.github/codeql/codeql-config.yaml
@@ -83,7 +83,7 @@ jobs:
         run: pnpm build
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
 
   qodana-quality-checks:
     name: Qodana
@@ -138,13 +138,13 @@ jobs:
         run: npm run build
 
       - name: Qodana Scan
-        uses: JetBrains/qodana-action@v2023.2.9
+        uses: JetBrains/qodana-action@v2023.3.0
         with:
           pr-mode: false
           post-pr-comment: false
 
       - name: Upload Results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
           wait-for-processing: true
@@ -222,7 +222,7 @@ jobs:
         run: node ./.github/codeql/sarif-cleanup.js
 
       - name: Upload Linting Results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: eslint.sarif
           wait-for-processing: true

@@ -36,7 +36,7 @@ const config = {
     'plugin:vitest/recommended',
     'plugin:jsdoc/recommended-typescript',
     'plugin:regexp/recommended',
-    'plugin:security/recommended',
+    'plugin:security/recommended-legacy',
   ],
   rules: {
     // Base ESlint Rules

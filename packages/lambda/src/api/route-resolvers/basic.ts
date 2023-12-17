@@ -4,8 +4,8 @@ import type {
   ApiHandlerReturn,
   HttpRouteFunction,
   TypedApiRouteConfig,
-} from '../../index.js';
-import type { BaseApiRouteProps } from '../../index.js';
+} from '../../handlers/type-safe-api/types.js';
+import type { BaseApiRouteProps } from '../../handlers/type-safe-api/validator.js';
 
 import { isSafeKey } from '../../index.js';
 

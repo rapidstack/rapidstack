@@ -5,10 +5,10 @@ import type { Output } from 'valibot';
 import { ValiError, parse, parseAsync } from 'valibot';
 
 import type { ICache, ILogger, ValibotSchema } from '../../index.js';
-import type { BaseApiRouteProps, TypeSafeApiRouteFunction } from './types.js';
+import type { TypeSafeApiRouteFunction } from './types.js';
 
+import { HttpValidationError } from '../../api/index.js';
 import {
-  HttpValidationError,
   isObjectSchema,
   parseGatewayEventBody,
   parseGatewayEventCookies,
@@ -60,6 +60,13 @@ type GetNonNeverKeys<T extends Record<string, unknown>> = {
 
 type FilterOutNeverValues<T extends Record<string, unknown>> = {
   [K in GetNonNeverKeys<T>]: T[K];
+};
+
+export type BaseApiRouteProps = {
+  cache: ICache;
+  context: Context;
+  event: APIGatewayProxyEventV2;
+  logger: ILogger;
 };
 
 export type TypeSafeApiRouteProps<

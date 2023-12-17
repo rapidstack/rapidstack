@@ -8,11 +8,10 @@ import type {
   TypedApiRouteConfig,
 } from './types.js';
 
+import { HttpErrorExplanations } from '../../api/constants.js';
+import { HttpError, HttpValidationError } from '../../api/http-errors.js';
 import {
   HandlerExecuteError,
-  HttpError,
-  HttpErrorExplanations,
-  HttpValidationError,
   PerformanceKeys,
   getFlattenedSchemaInfo,
 } from '../../index.js';

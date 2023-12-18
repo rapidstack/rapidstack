@@ -135,6 +135,9 @@ importers:
       pino:
         specifier: 8.17.1
         version: 8.17.1
+      valibot:
+        specifier: 0.24.1
+        version: 0.24.1
     devDependencies:
       '@types/aws-lambda':
         specifier: 8.10.130
@@ -4511,6 +4514,10 @@ packages:
       '@types/istanbul-lib-coverage': 2.0.4
       convert-source-map: 2.0.0
     dev: true
+
+  /valibot@0.24.1:
+    resolution: {integrity: sha512-Toclbuy20XsECZiueh2dkQ63he2AGaBIj/FJRDAFti2kueFldm9bjJzSYvPaL5CE1HXDMRhq7olak8at7xCz5A==}
+    dev: false
 
   /vite-node@1.0.4(@types/node@20.10.4):
     resolution: {integrity: sha512-9xQQtHdsz5Qn8hqbV7UKqkm8YkJhzT/zr41Dmt5N7AlD8hJXw/Z7y0QiD5I8lnTthV9Rvcvi0QW7PI0Fq83ZPg==}

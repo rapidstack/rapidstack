@@ -19,22 +19,71 @@ export function resolveRoute(
   event: APIGatewayProxyEventV2,
   routes: TypedApiRouteConfig
 ): HttpRouteFunction | undefined {
-  const { rawPath, requestContext } = event;
+  const rawPath = event.rawPath;
+  const method = event.requestContext.http.method.toLowerCase();
   const slugs = rawPath.split('/').filter((s) => s.length > 0);
 
-  // Disallow any route that could be used to break the server
+  if (slugs.some((item) => !isSafeKey(item))) return;
+  if (!slugs.length) {
+    // eslint-disable-next-line security/detect-object-injection
+    return routes[method] as HttpRouteFunction | undefined;
+  }
+
+  const params = [] as string[];
+  slugs.push(method);
+
+  while (slugs.length) {
+    const possibleRoute = getRoute(routes, [...slugs]);
+
+    // If a route with typed path params is found, validate the number of params
+    if (possibleRoute?.typed && possibleRoute.pathParams) {
+      const { maxParams, minParams } = possibleRoute.pathParams;
+
+      if (params.length > maxParams || params.length < minParams) {
+        const removed = slugs.splice(slugs.length - 2, 1)[0];
+        params.unshift(removed);
+        continue;
+      }
+
+      // Hack to make valibot happy about a tuple not having all the params
+      // i.e.: tuple([string(), optional(string()), optional(string())]) would
+      // fail if only one param was passed. Will push undefined to the end of
+      // the array to make it happy.
+      for (let i = params.length; i < maxParams; i++) {
+        params.push(undefined!);
+      }
+
+      // Hack to pass this info back to the validator function
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (event as Record<string, any>)['_interpretedPathParams'] = params;
+      return possibleRoute;
+    }
+    // Handle standard route
+    else if (possibleRoute && params.length === 0) {
+      return possibleRoute;
+    }
+
+    const removed = slugs.splice(slugs.length - 2, 1)[0];
+    params.unshift(removed);
+  }
+}
+
+/* 
+
+// Disallow any route that could be used to break the server
   if (slugs.some((item) => !isSafeKey(item))) return;
 
   slugs.push(requestContext.http.method.toLowerCase());
 
   const route = getRoute(routes, slugs);
 
-  // // If the route is typed, resolve with path parameters
-  // if (route && route.typed) {
-  //   route.pathParams.
-  // }
+  // If the route is typed, resolve with path parameters
+  if (route && route.typed) {
+    console.log('we here!', route.pathParams);
+  }
+
   return route;
-}
+*/
 
 /**
  * Recursively resolve a route from a path
@@ -48,7 +97,7 @@ function getRoute(
   route: TypedApiRouteConfig | undefined,
   path: string | string[]
 ): HttpRouteFunction | undefined {
-  const _path: string[] = Array.isArray(path) ? path : path.split('.');
+  const _path: string[] = Array.isArray(path) ? path : path.split('/');
 
   if (route && _path.length) {
     return getRoute(

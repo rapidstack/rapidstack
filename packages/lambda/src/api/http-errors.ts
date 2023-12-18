@@ -124,6 +124,7 @@ export type HttpValidationErrorProps = {
   body?: [error: ValiError, schema: ValibotSchema, inputExists: boolean];
   cookies?: [error: ValiError, schema: ValibotSchema, inputExist: boolean];
   headers?: [error: ValiError, schema: ValibotSchema, inputExists: boolean];
+  pathParams?: [error: ValiError, schema: ValibotSchema, inputExists: boolean];
   qsp?: [error: ValiError, schema: ValibotSchema, inputExists: boolean];
 };
 export class HttpValidationError extends Error {

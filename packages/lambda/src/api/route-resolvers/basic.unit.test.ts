@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 
-import { object, string } from 'valibot';
+import { object, optional, string, tuple } from 'valibot';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type {
@@ -48,11 +48,33 @@ beforeEach(() => {
           return 'dummy-result';
         },
       },
-      'with-validator': {
-        get: validate(SimpleValidator, async (params) => {
-          inspected(params);
-          return 'dummy-result';
-        }),
+      'with-validator-all-required': {
+        get: validate(
+          {
+            ...SimpleValidator,
+            pathParams: tuple([string(), string(), string()]),
+          },
+          async (params) => {
+            inspected(params);
+            return 'dummy-result';
+          }
+        ),
+      },
+      'with-validator-one-required': {
+        get: validate(
+          {
+            ...SimpleValidator,
+            pathParams: tuple([
+              string(),
+              optional(string()),
+              optional(string()),
+            ]),
+          },
+          async (params) => {
+            inspected(params);
+            return 'dummy-result';
+          }
+        ),
       },
     },
     'with-validator': {
@@ -113,9 +135,56 @@ describe('type safe HTTP route resolver function tests:', () => {
       expect(inspected).toHaveBeenCalledWith({
         ...expectedProps,
         validated: {
-          qsp: {
-            foo: 'bar',
-          },
+          qsp: { foo: 'bar' },
+        },
+      });
+    });
+  });
+  describe('routing function behavior with path parameters:', () => {
+    test('should not find a valid route', async () => {
+      const event = makeMockApiEvent({
+        ...baseCallParams,
+        path: '/with-path-params/no-validator/123/comments/456',
+      });
+
+      const route = resolveRoute(event, routes)!;
+      expect(route).toBeUndefined();
+    });
+    test('should pass expected parameters to validator', async () => {
+      const event = makeMockApiEvent({
+        ...baseCallParams,
+        path: '/with-path-params/with-validator-all-required/123/comments/456',
+      });
+      const expectedProps = fakeCallerProps(event);
+
+      const route = resolveRoute(event, routes)!;
+      expect(route).toBeDefined();
+
+      await route(expectedProps);
+      expect(inspected).toHaveBeenCalledWith({
+        ...expectedProps,
+        validated: {
+          pathParams: ['123', 'comments', '456'],
+          qsp: { foo: 'bar' },
+        },
+      });
+    });
+    test('should pass partial parameters to validator', async () => {
+      const event = makeMockApiEvent({
+        ...baseCallParams,
+        path: '/with-path-params/with-validator-one-required/123',
+      });
+      const expectedProps = fakeCallerProps(event);
+
+      const route = resolveRoute(event, routes)!;
+      expect(route).toBeDefined();
+
+      await route(expectedProps);
+      expect(inspected).toHaveBeenCalledWith({
+        ...expectedProps,
+        validated: {
+          pathParams: ['123'],
+          qsp: { foo: 'bar' },
         },
       });
     });

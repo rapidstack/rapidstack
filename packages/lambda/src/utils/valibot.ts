@@ -239,13 +239,50 @@ export function isObjectSchema(schema?: ValibotSchema): boolean {
   if ((schema as AnyValibotSchema).type === 'object') return true;
 
   // if we have wrappers, recurse to unwrap
-  // @ts-expect-error - ts can't pick this out of the union
-  if ((schema as AnyValibotSchema).wrapped) {
-    // @ts-expect-error - ts can't pick this out of the union
-    return isObjectSchema((schema as AnyValibotSchema).wrapped);
+  if ((schema as v.OptionalSchema<any>).wrapped) {
+    return isObjectSchema((schema as v.OptionalSchema<any>).wrapped);
   }
 
   return false;
+}
+
+/**
+ * Gets the minimum (required) and maximum (total) number of parameters for a
+ * tuple schema
+ * @param schema the tuple schema to get the info for
+ * @returns the minimum and maximum number of parameters for the tuple schema
+ * or undefined if the schema is not a tuple
+ */
+export function getTupleInfo(schema?: ValibotSchema):
+  | {
+      maxParams: number;
+      minParams: number;
+    }
+  | undefined {
+  if (!schema) return undefined;
+
+  // only support tuples or wrapper types
+  if (
+    (schema as AnyValibotSchema).type !== 'tuple' &&
+    !(schema as v.OptionalSchema<any>).wrapped
+  ) {
+    return undefined;
+  }
+
+  // recurse to unwrap any wrappers
+  if ((schema as v.OptionalSchema<any>).wrapped) {
+    return getTupleInfo((schema as v.OptionalSchema<any>).wrapped);
+  }
+
+  // parse tuple
+  const optionalCount = (
+    schema as v.TupleSchema<[AnyValibotSchema]>
+  ).items.filter((item) => item.type === 'optional').length;
+
+  return {
+    maxParams: (schema as v.TupleSchema<any>).items.length,
+    minParams: (schema as v.TupleSchema<any>).items.length - optionalCount,
+  };
 }
 
 /**

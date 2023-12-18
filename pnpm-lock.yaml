@@ -136,8 +136,8 @@ importers:
         specifier: 8.17.1
         version: 8.17.1
       valibot:
-        specifier: 0.20.1
-        version: 0.20.1
+        specifier: 0.24.1
+        version: 0.24.1
     devDependencies:
       '@types/aws-lambda':
         specifier: 8.10.130
@@ -4515,8 +4515,8 @@ packages:
       convert-source-map: 2.0.0
     dev: true
 
-  /valibot@0.20.1:
-    resolution: {integrity: sha512-7lToTLG5wtK76u32gq8dUK0bAw7bknTGbeNSKRJunAC2soGVnNrKngg+38Jjt6FOwH+MshUONHoFz+LgmjeYKQ==}
+  /valibot@0.24.1:
+    resolution: {integrity: sha512-Toclbuy20XsECZiueh2dkQ63he2AGaBIj/FJRDAFti2kueFldm9bjJzSYvPaL5CE1HXDMRhq7olak8at7xCz5A==}
     dev: false
 
   /vite-node@1.0.4(@types/node@20.10.4):

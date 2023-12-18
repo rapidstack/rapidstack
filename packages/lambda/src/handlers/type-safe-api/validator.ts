@@ -9,6 +9,7 @@ import type { BaseApiRouteProps, TypeSafeApiRouteFunction } from './types.js';
 
 import { HttpValidationError } from '../../api/index.js';
 import {
+  getTupleInfo,
   isObjectSchema,
   parseGatewayEventBody,
   parseGatewayEventCookies,
@@ -19,15 +20,17 @@ type HttpCallValidationSchema<
   QSPs extends ValibotSchema | never = never,
   Headers extends ValibotSchema | never = never,
   Cookies extends ValibotSchema | never = never,
+  PathParams extends ValibotSchema | never = never,
 > = {
   body?: Body;
   cookies?: Cookies;
   headers?: Headers;
+  pathParams?: PathParams;
   qsp?: QSPs;
 };
 
 export type HttpRunnerFunction<
-  Validated extends HttpCallValidationSchema<any, any, any, any>,
+  Validated extends HttpCallValidationSchema<any, any, any, any, any>,
   Return,
 > = (props: {
   cache: ICache;
@@ -38,7 +41,7 @@ export type HttpRunnerFunction<
 }) => Promise<Return>;
 
 type PossibleValidatedSchemaOutput<
-  Schema extends HttpCallValidationSchema<any, any, any, any>,
+  Schema extends HttpCallValidationSchema<any, any, any, any, any>,
 > = {
   body: Schema['body'] extends ValibotSchema ? Output<Schema['body']> : never;
   cookies: Schema['cookies'] extends ValibotSchema
@@ -47,11 +50,14 @@ type PossibleValidatedSchemaOutput<
   headers: Schema['headers'] extends ValibotSchema
     ? Output<Schema['headers']>
     : never;
+  pathParams: Schema['pathParams'] extends ValibotSchema
+    ? Output<Schema['pathParams']>
+    : never;
   qsp: Schema['qsp'] extends ValibotSchema ? Output<Schema['qsp']> : never;
 };
 
 export type ValidatedSchemaOutput<
-  Schema extends HttpCallValidationSchema<any, any, any, any>,
+  Schema extends HttpCallValidationSchema<any, any, any, any, any>,
 > = FilterOutNeverValues<PossibleValidatedSchemaOutput<Schema>>;
 
 type GetNonNeverKeys<T extends Record<string, unknown>> = {
@@ -63,7 +69,7 @@ type FilterOutNeverValues<T extends Record<string, unknown>> = {
 };
 
 export type TypeSafeApiRouteProps<
-  Schema extends HttpCallValidationSchema<any, any, any, any>,
+  Schema extends HttpCallValidationSchema<any, any, any, any, any>,
 > = BaseApiRouteProps & { _schema?: Schema };
 
 export type HttpRouteValidator = <
@@ -71,13 +77,15 @@ export type HttpRouteValidator = <
     Body,
     QSPs,
     Headers,
-    Cookies
+    Cookies,
+    PathParams
   >,
   Return,
   Body extends ValibotSchema | never,
   QSPs extends ValibotSchema | never,
   Headers extends ValibotSchema | never,
   Cookies extends ValibotSchema | never,
+  PathParams extends ValibotSchema | never,
 >(
   schema: ValidationSchema,
   runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
@@ -98,13 +106,15 @@ export function validate<
     Body,
     QSPs,
     Headers,
-    Cookies
+    Cookies,
+    PathParams
   >,
   Return,
   Body extends ValibotSchema | never,
   QSPs extends ValibotSchema | never,
   Headers extends ValibotSchema | never,
   Cookies extends ValibotSchema | never,
+  PathParams extends ValibotSchema | never,
 >(
   schemas: ValidationSchema,
   runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
@@ -127,8 +137,8 @@ export function validate<
   };
 
   // Pass some information back upstream with static properties on the function
-  v.typed = true as const;
-
+  v.typed = !!schemas.pathParams as true;
+  v.pathParams = getTupleInfo(schemas.pathParams);
   return v;
 }
 
@@ -137,12 +147,14 @@ const validateSchema = async <
     Body,
     QSPs,
     Headers,
-    Cookies
+    Cookies,
+    PathParams
   >,
   Body extends ValibotSchema | never = never,
   QSPs extends ValibotSchema | never = never,
   Headers extends ValibotSchema | never = never,
   Cookies extends ValibotSchema | never = never,
+  PathParams extends ValibotSchema | never = never,
 >(
   schema: ValidationSchema,
   event: APIGatewayProxyEventV2
@@ -166,6 +178,9 @@ const validateSchema = async <
   const headers = event.headers;
   const cookies = parseGatewayEventCookies(event);
   const qsp = event.queryStringParameters;
+
+  // This info appended from the route resolver, if path params matched
+  const pathParams = (event as Record<string, any>)['_interpretedPathParams'];
 
   let body: object | string | undefined;
   try {
@@ -208,6 +223,25 @@ const validateSchema = async <
   } catch (e) {
     if (!(e instanceof ValiError)) throw e;
     errors.qsp = [e, schema.qsp!, qsp !== undefined];
+  }
+
+  try {
+    const parsed = await parseWithSchema(schema.pathParams, pathParams);
+
+    // Remove any trailing undefined values from the path params
+    // Corresponds to the hack in the route resolver to satisfy valibot's parse
+    while (parsed?.length && parsed[parsed.length - 1] === undefined) {
+      parsed.pop();
+    }
+
+    if (parsed !== undefined) validated.pathParams = parsed;
+  } catch (e) {
+    if (!(e instanceof ValiError)) throw e;
+    errors.pathParams = [
+      e,
+      schema.pathParams!,
+      !!Object.keys(pathParams).length,
+    ];
   }
 
   if (Object.keys(errors).length) {

@@ -32,6 +32,6 @@
   ],
   "dependencies": {
     "pino": "8.17.1",
-    "valibot": "0.20.1"
+    "valibot": "0.24.1"
   }
 }

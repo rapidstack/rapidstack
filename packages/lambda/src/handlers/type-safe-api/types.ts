@@ -2,7 +2,7 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
 import type { HttpCodes, HttpVerbs } from '../../api/index.js';
-import type { ICache, ILogger, ValibotSchema } from '../../index.js';
+import type { ICache, ILogger } from '../../index.js';
 import type { TypeSafeApiRouteProps } from './validator.js';
 
 type CommonHookUtils = {
@@ -198,7 +198,10 @@ export interface BareHttpRouteFunction {
 
 export interface TypeSafeApiRouteFunction {
   (p: TypeSafeApiRouteProps<any>): Promise<any>;
-  pathParams?: ValibotSchema;
+  pathParams?: {
+    maxParams: number;
+    minParams: number;
+  };
   typed: true;
 }
 

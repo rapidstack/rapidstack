@@ -74,7 +74,9 @@ export type Toolkit = {
  * Options for the lambda toolkit. Allows for the developer to provide options
  * for the default logger and cache, or to provide their own instances of each.
  */
-export type ToolkitOptions = (
+export type ToolkitOptions = {
+  app?: string;
+} & (
   | {
       cache?: ICache;
       cacheConfig?: never;

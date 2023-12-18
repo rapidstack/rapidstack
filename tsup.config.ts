@@ -1,5 +1,6 @@
+import type { Options } from 'tsup';
+
 import { spawn } from 'node:child_process';
-import { type Options } from 'tsup';
 
 export const sharedTsupConfig = {
   bundle: false,

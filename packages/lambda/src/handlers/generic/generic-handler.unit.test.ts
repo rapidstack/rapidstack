@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import type { LoggerEvents } from '../../index.js';
+
 import {
-  COLD_START,
+  EnvKeys,
   HOT_FUNCTION_TRIGGER,
   HandlerExecuteError,
   Logger,
-  type LoggerEvents,
   MockLambdaRuntime,
   createToolkit,
 } from '../../index.js';
@@ -13,13 +14,13 @@ import { GenericHandler } from './handler.js';
 
 let loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
 let logger = new Logger({ level: 'silent' }, loggerEvents);
-let toolkit = createToolkit('unit-tests', { logger });
+let toolkit = createToolkit({ logger });
 
 beforeEach(() => {
-  delete process.env[COLD_START];
+  delete process.env[EnvKeys.COLD_START];
   loggerEvents = { emit: vi.fn(), on: vi.fn() } as unknown as LoggerEvents;
   logger = new Logger({ level: 'silent' }, loggerEvents);
-  toolkit = createToolkit('unit-tests', { logger });
+  toolkit = createToolkit({ logger });
 });
 describe('`GenericHandler` tests:', () => {
   describe('base functionality/success cases:', () => {
@@ -119,7 +120,7 @@ describe('`GenericHandler` tests:', () => {
       });
       test('coldStart: should fire only if in a cold start', async () => {
         const wrapper = toolkit.create(GenericHandler);
-        expect(process.env[COLD_START]).toBeTruthy();
+        expect(process.env[EnvKeys.COLD_START]).toBeTruthy();
         const fn = vi.fn();
         const text = 'hello, world';
 
@@ -189,6 +190,19 @@ describe('`GenericHandler` tests:', () => {
           expect.objectContaining(exampleProp)
         );
       });
+      test('start: should be able to return void (transparent)', async () => {
+        const wrapper = toolkit.create(GenericHandler);
+        const text = 'hello, world';
+
+        const exeFn = vi.fn().mockResolvedValue(text);
+        const onRequestStart = vi.fn().mockResolvedValue(undefined);
+
+        const handler = wrapper(exeFn, { onRequestStart });
+
+        const res = await MockLambdaRuntime(handler);
+        expect(res).toBe(text);
+        expect(exeFn).toHaveBeenCalled();
+      });
       test('end: should be able to return with result early', async () => {
         const wrapper = toolkit.create(GenericHandler);
         const text = 'early return';
@@ -201,22 +215,6 @@ describe('`GenericHandler` tests:', () => {
         const res = await MockLambdaRuntime(handler);
         expect(res).toBe(text);
         expect(exeFn).toHaveBeenCalled();
-      });
-      test('start: should be able to return void (transparent)', async () => {
-        const wrapper = toolkit.create(GenericHandler);
-        const text = 'hello, world';
-
-        const exeFn = vi.fn().mockResolvedValue(text);
-        const onRequestEnd = vi.fn().mockResolvedValue(undefined);
-
-        const handler = wrapper(exeFn, { onRequestEnd });
-
-        const res = await MockLambdaRuntime(handler);
-        expect(res).toBe(text);
-        expect(exeFn).toHaveBeenCalled();
-        expect(onRequestEnd).toHaveBeenCalledWith(
-          expect.objectContaining({ result: text })
-        );
       });
     });
   });

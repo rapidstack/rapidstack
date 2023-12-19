@@ -10,7 +10,8 @@ import type { BaseApiRouteProps, TypeSafeApiRouteFunction } from './types.js';
 import { HttpValidationError } from '../../api/index.js';
 import {
   getTupleInfo,
-  isObjectSchema,
+  isOptionalWrappedTuple,
+  isSchema,
   parseGatewayEventBody,
   parseGatewayEventCookies,
 } from '../../index.js';
@@ -164,13 +165,15 @@ const validateSchema = async <
   // - cookies, headers, and qsp must be an object schema
   // TODO: this can possibly be built into the type later on?
   if (
-    (schema.cookies && !isObjectSchema(schema.cookies)) ||
-    (schema.headers && !isObjectSchema(schema.headers)) ||
-    (schema.qsp && !isObjectSchema(schema.qsp))
+    (schema.cookies && !isSchema(schema.cookies, 'object')) ||
+    (schema.headers && !isSchema(schema.headers, 'object')) ||
+    (schema.qsp && !isSchema(schema.qsp, 'object')) ||
+    (schema.pathParams && !isSchema(schema.pathParams, 'tuple'))
   ) {
     throw new Error(
       `For handler [${event.requestContext.http.method} ${event.rawPath}], ` +
-        'all schemas except `body` must be object schemas'
+        'cookies, headers, and qsp must be an object schema' +
+        'and pathParams must be a tuple schema'
     );
   }
 
@@ -262,6 +265,13 @@ async function parseWithSchema<T extends ValibotSchema>(
   data?: unknown
 ): Promise<Output<ValibotSchema> | undefined> {
   if (!schema) return;
+
+  // a special exception for handling an optional tuple (valibot limitation):
+  // if the data is undefined and the schema is an optional wrapped tuple
+  // return an empty array
+  if (isOptionalWrappedTuple(schema) && (data as unknown[])[0] === undefined) {
+    return undefined;
+  }
 
   if (schema.async) return await parseAsync(schema, data);
   return parse(schema, data);

@@ -76,6 +76,18 @@ beforeEach(() => {
           }
         ),
       },
+      'with-validator-optional-wrapped': {
+        get: validate(
+          {
+            ...SimpleValidator,
+            pathParams: optional(tuple([string()])),
+          },
+          async (params) => {
+            inspected(params);
+            return 'dummy-result';
+          }
+        ),
+      },
     },
     'with-validator': {
       get: validate(SimpleValidator, async (params) => {
@@ -184,6 +196,42 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...expectedProps,
         validated: {
           pathParams: ['123'],
+          qsp: { foo: 'bar' },
+        },
+      });
+    });
+    test('should pass optional parameters to validator', async () => {
+      const event1 = makeMockApiEvent({
+        ...baseCallParams,
+        path: '/with-path-params/with-validator-optional-wrapped/123',
+      });
+      const expectedProps1 = fakeCallerProps(event1);
+
+      const route1 = resolveRoute(event1, routes)!;
+      expect(route1).toBeDefined();
+
+      await route1(expectedProps1);
+      expect(inspected).toHaveBeenCalledWith({
+        ...expectedProps1,
+        validated: {
+          pathParams: ['123'],
+          qsp: { foo: 'bar' },
+        },
+      });
+
+      const event2 = makeMockApiEvent({
+        ...baseCallParams,
+        path: '/with-path-params/with-validator-optional-wrapped',
+      });
+      const expectedProps2 = fakeCallerProps(event2);
+
+      const route2 = resolveRoute(event2, routes)!;
+      expect(route2).toBeDefined();
+
+      await route2(expectedProps2);
+      expect(inspected).toHaveBeenCalledWith({
+        ...expectedProps2,
+        validated: {
           qsp: { foo: 'bar' },
         },
       });

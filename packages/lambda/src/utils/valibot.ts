@@ -230,17 +230,21 @@ export function getFlattenedSchemaInfo(
 }
 
 /**
- * Returns whether a schema is a valibot object schema
+ * Returns whether a schema is a particular valibot schema type
  * @param schema the valibot schema (sync or async) to check
- * @returns whether the schema is a valibot object schema
+ * @param type the type to check against
+ * @returns whether the schema is a valibot schema of the given type
  */
-export function isObjectSchema(schema?: ValibotSchema): boolean {
+export function isSchema(
+  schema: ValibotSchema | undefined,
+  type: string
+): boolean {
   if (!schema) return false;
-  if ((schema as AnyValibotSchema).type === 'object') return true;
+  if ((schema as AnyValibotSchema).type === type) return true;
 
   // if we have wrappers, recurse to unwrap
   if ((schema as v.OptionalSchema<any>).wrapped) {
-    return isObjectSchema((schema as v.OptionalSchema<any>).wrapped);
+    return isSchema((schema as v.OptionalSchema<any>).wrapped, type);
   }
 
   return false;
@@ -271,7 +275,21 @@ export function getTupleInfo(schema?: ValibotSchema):
 
   // recurse to unwrap any wrappers
   if ((schema as v.OptionalSchema<any>).wrapped) {
-    return getTupleInfo((schema as v.OptionalSchema<any>).wrapped);
+    const res = getTupleInfo((schema as v.OptionalSchema<any>).wrapped);
+    if (!res) return undefined;
+
+    // if the wrapper is optional, the tuple is optional
+    if (
+      (schema as v.NonOptionalSchema<any> | v.OptionalSchema<any>).type ===
+      'optional'
+    ) {
+      return {
+        maxParams: res.maxParams,
+        minParams: 0,
+      };
+    }
+
+    return res;
   }
 
   // parse tuple
@@ -283,6 +301,22 @@ export function getTupleInfo(schema?: ValibotSchema):
     maxParams: (schema as v.TupleSchema<any>).items.length,
     minParams: (schema as v.TupleSchema<any>).items.length - optionalCount,
   };
+}
+
+/**
+ * Returns whether a schema is an optional wrapped tuple
+ * @param schema the schema to check
+ * @returns whether the schema is an optional wrapped tuple
+ */
+export function isOptionalWrappedTuple(schema: ValibotSchema): boolean {
+  const interpretedSchema = schema as AnyValibotSchema;
+  if (
+    interpretedSchema.type === 'optional' &&
+    (interpretedSchema.wrapped as v.OptionalSchema<any> | v.TupleSchema<any>)
+      .type === 'tuple'
+  )
+    return true;
+  return false;
 }
 
 /**

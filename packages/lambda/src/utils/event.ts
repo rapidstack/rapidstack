@@ -88,10 +88,18 @@ export function makeCloudwatchUrl(context: Context): string {
     .replace(/\]/g, '$$255D')
     .replace(/\//g, '$$252F');
 
+  const formattedLogTime = `[start]${new Date().toISOString()}`
+    .replace(/\[/g, '$$255B')
+    .replace(/\]/g, '$$255D')
+    .replace(/:/g, '$$253A');
+
+  // Removes the unnecessary logs for start and end (keeping REPORT)
+  const filters = 'filterPattern$3D-START+-END';
+
   return (
     `https://${region}.console.aws.amazon.com/cloudwatch/home` +
     `?region=${region}#logsV2:log-groups/log-group/${formattedLogGroupName}` +
-    `/log-events/${formattedLogStreamName}`
+    `/log-events/${formattedLogStreamName}${formattedLogTime}${filters}`
   );
 }
 

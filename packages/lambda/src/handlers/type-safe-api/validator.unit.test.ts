@@ -713,7 +713,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
     });
   });
   describe('fail cases:', () => {
-    test('headers should throw for non-body, non-object schema', async () => {
+    test('headers should throw for non-object schema', async () => {
       const makeApi = toolkit.create(TypeSafeApiHandler, {
         devMode: true,
       });
@@ -741,11 +741,11 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
 
       expect(res.statusCode).toBe(500);
       expect(JSON.parse(res.body!).data.error.message).toContain(
-        'all schemas except `body` must be object schemas'
+        'must be an object schema'
       );
       expect(spy).toHaveBeenCalledTimes(0);
     });
-    test('cookies should throw for non-body, non-object schema', async () => {
+    test('cookies should throw for non-object schema', async () => {
       const makeApi = toolkit.create(TypeSafeApiHandler, {
         devMode: true,
       });
@@ -773,11 +773,11 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
 
       expect(res.statusCode).toBe(500);
       expect(JSON.parse(res.body!).data.error.message).toContain(
-        'all schemas except `body` must be object schemas'
+        'must be an object schema'
       );
       expect(spy).toHaveBeenCalledTimes(0);
     });
-    test('qsp should throw for non-body, non-object schema', async () => {
+    test('qsp should throw for non-object schema', async () => {
       const makeApi = toolkit.create(TypeSafeApiHandler, {
         devMode: true,
       });
@@ -805,7 +805,39 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
 
       expect(res.statusCode).toBe(500);
       expect(JSON.parse(res.body!).data.error.message).toContain(
-        'all schemas except `body` must be object schemas'
+        'must be an object schema'
+      );
+      expect(spy).toHaveBeenCalledTimes(0);
+    });
+    test('pathParams should throw for non-tuple schema', async () => {
+      const makeApi = toolkit.create(TypeSafeApiHandler, {
+        devMode: true,
+      });
+      const spy = vi.fn();
+
+      const validationSchema = {
+        pathParams: array(string()),
+      };
+
+      const routes = {
+        post: validate(validationSchema, async ({ validated }) => {
+          spy(validated);
+          return true;
+        }) as HttpRoute,
+      } satisfies TypedApiRouteConfig;
+      const handler = makeApi(routes);
+
+      const res = (await MockLambdaRuntime(
+        handler,
+        makeMockApiEvent({
+          method: 'POST',
+          path: '/',
+        })
+      )) as APIGatewayProxyStructuredResultV2;
+
+      expect(res.statusCode).toBe(500);
+      expect(JSON.parse(res.body!).data.error.message).toContain(
+        'must be a tuple schema'
       );
       expect(spy).toHaveBeenCalledTimes(0);
     });

@@ -172,8 +172,8 @@ const validateSchema = async <
   ) {
     throw new Error(
       `For handler [${event.requestContext.http.method} ${event.rawPath}], ` +
-        'cookies, headers, and qsp must be an object schema' +
-        'and pathParams must be a tuple schema'
+        'cookies, headers, and qsp must be an object schema ' +
+        'and pathParams must be a tuple schema.'
     );
   }
 

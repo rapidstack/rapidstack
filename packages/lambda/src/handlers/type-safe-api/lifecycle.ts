@@ -143,6 +143,10 @@ export function defaultErrorHandler(error: unknown): ApiHandlerReturn {
     return default4xxErrorResponder(error);
   }
 
+  if (error instanceof HttpError && error.code >= 500) {
+    throw error;
+  }
+
   // Standard handling of valibot errors
   if (error instanceof HttpValidationError) {
     return defaultValidationErrorResponder(error);
@@ -150,7 +154,7 @@ export function defaultErrorHandler(error: unknown): ApiHandlerReturn {
 
   // Handling of bad errors (not an instance of Error)
   throw new HandlerExecuteError(
-    'An error occurred attempting to execute the lambda handler:' +
+    'An error occurred attempting to execute the lambda handler: ' +
       error?.toString()
   );
 }

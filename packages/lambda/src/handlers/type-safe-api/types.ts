@@ -5,6 +5,27 @@ import type { HttpCodes, HttpVerbs } from '../../api/index.js';
 import type { ICache, ILogger } from '../../index.js';
 import type { TypeSafeApiRouteProps } from './validator.js';
 
+// TODO: move
+type CookiesObject = {
+  [key: string]: {
+    options?: {
+      domain?: string;
+      expiresUnix?: number;
+      httpOnly?: boolean;
+      maxAge?: number;
+      path?: string;
+      sameSite?: 'lax' | 'none' | 'strict';
+      secure?: boolean;
+    };
+    value: string;
+  };
+};
+
+export type ResponseContext = {
+  cookies: CookiesObject;
+  headers: Record<Lowercase<string>, string>;
+};
+
 type CommonHookUtils = {
   cache: ICache;
   context: Context;
@@ -13,6 +34,7 @@ type CommonHookUtils = {
 
 type CommonHookProps = {
   event: APIGatewayProxyEventV2;
+  responseContext: ResponseContext;
 } & CommonHookUtils;
 
 type OnErrorHookProps = {
@@ -34,6 +56,9 @@ export type TypeSafeApiHandlerHooks = {
    * @param params.context The context object passed to the lambda.
    * @param params.logger A logger instance with request context.
    * @param params.cache The cache supplied from the toolkit.
+   * @param params.responseContext The response context object - a mutable
+   * object reference that can be used to set cookies and headers throughout the
+   * request lifecycle.
    * @returns A valid API handler response that gracefully handles the error.
    */
   onError?: (params: OnErrorHookProps) => Promise<ApiHandlerReturn>;
@@ -71,6 +96,9 @@ export type TypeSafeApiHandlerHooks = {
    * @param params.cache The cache supplied from the toolkit.
    * @param params.result The result of the main lambda handler function.
    * @param params.event The event object passed to the lambda.
+   * @param params.responseContext The response context object - a mutable
+   * object reference that can be used to set cookies and headers throughout the
+   * request lifecycle.
    * @returns The expected return type shape for the lambda.
    */
   onRequestEnd?: (
@@ -89,6 +117,9 @@ export type TypeSafeApiHandlerHooks = {
    * @param params.logger A logger instance with request context.
    * @param params.cache The cache supplied from the toolkit.
    * @param params.event The api event object passed to the lambda.
+   * @param params.responseContext The response context object - a mutable
+   * object reference that can be used to set cookies and headers throughout the
+   * request lifecycle.
    * @returns The expected return type shape for the lambda.
    */
   onRequestStart?: (
@@ -112,7 +143,7 @@ export type BaseApiHandlerReturn = {
       value: string;
     };
   };
-  headers?: Record<string, string>;
+  headers?: Record<Lowercase<string>, string>;
   statusCode?: HttpCodes;
 };
 

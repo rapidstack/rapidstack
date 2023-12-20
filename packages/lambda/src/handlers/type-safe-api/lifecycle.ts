@@ -4,6 +4,7 @@ import type { ICache, ILogger, RouteResolver } from '../../index.js';
 import type {
   ApiFailResponse,
   ApiHandlerReturn,
+  ResponseContext,
   TypeSafeApiHandlerHooks,
   TypedApiRouteConfig,
 } from './types.js';
@@ -24,6 +25,7 @@ type RequestHooks = {
   onError: TypeSafeApiHandlerHooks['onError'];
   onRequestEnd: TypeSafeApiHandlerHooks['onRequestEnd'];
   onRequestStart: TypeSafeApiHandlerHooks['onRequestStart'];
+  responseContext: ResponseContext;
   routeResolver: RouteResolver;
   routes: TypedApiRouteConfig;
 };
@@ -38,6 +40,7 @@ export const handleRequestHooks = async (
     onError,
     onRequestEnd,
     onRequestStart,
+    responseContext,
     routeResolver,
     routes,
   } = props;
@@ -59,6 +62,7 @@ export const handleRequestHooks = async (
         context,
         event,
         logger: preRequestTriggerLogger,
+        responseContext,
       });
 
       if (typeof maybeReturnEarly === 'function') {
@@ -95,6 +99,7 @@ export const handleRequestHooks = async (
         logger: logger.child({
           hierarchicalName: 'handler-hook:onRequestEnd',
         }),
+        responseContext,
         result,
       });
       if (typeof maybeReturnEarly === 'function') {
@@ -120,6 +125,7 @@ export const handleRequestHooks = async (
         logger: logger.child({
           hierarchicalName: 'handler-hook:onError',
         }),
+        responseContext,
       });
       return result;
     }

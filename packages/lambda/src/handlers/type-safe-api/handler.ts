@@ -14,6 +14,7 @@ import type {
   ApiErrorResponseDev,
   ApiErrorResponseNoDev,
   ApiHandlerReturn,
+  ResponseContext,
   TypeSafeApiHandlerHooks,
   TypedApiRouteConfig,
 } from './types.js';
@@ -66,6 +67,7 @@ export const TypeSafeApiHandler = (
   return (routes, hooks) => async (event, context) => {
     markHandlerStart();
     let conclusion = 'success' as 'failure' | 'success';
+    const responseContext = {} as ResponseContext;
 
     const {
       onError,
@@ -110,11 +112,15 @@ export const TypeSafeApiHandler = (
         onError,
         onRequestEnd,
         onRequestStart,
+        responseContext,
         routeResolver: config?.routeResolver ?? resolveRoute,
         routes,
       });
 
-      const cookies = buildCookiesFromObject(result.cookies);
+      const cookies = buildCookiesFromObject({
+        ...responseContext.cookies,
+        ...result.cookies,
+      });
 
       const response: APIGatewayProxyResultV2 = {
         body:
@@ -122,6 +128,7 @@ export const TypeSafeApiHandler = (
             ? result.body
             : JSON.stringify(result.body),
         headers: {
+          ...responseContext.headers,
           ...result.headers,
         },
         statusCode: result.statusCode ?? 200,
@@ -282,6 +289,7 @@ function buildCookiesFromObject(
   cookieObject: ApiHandlerReturn['cookies']
 ): string[] | undefined {
   if (!cookieObject) return undefined;
+  if (Object.keys(cookieObject).length === 0) return undefined;
 
   let cookieString = '';
   const cookiesArray = [];

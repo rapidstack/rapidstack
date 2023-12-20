@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Context } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
+import type { HttpCodes, HttpVerbs } from '../../api/index.js';
 import type { ICache, ILogger } from '../../index.js';
+import type { TypeSafeApiRouteProps } from './validator.js';
 
 type CommonHookUtils = {
   cache: ICache;
@@ -9,55 +11,32 @@ type CommonHookUtils = {
   logger: ILogger;
 };
 
-type CommonHookProps<Event> = {
-  event: Event;
+type CommonHookProps = {
+  event: APIGatewayProxyEventV2;
 } & CommonHookUtils;
 
-type AmbiguousEventHookProps<Event> = {
-  event: Partial<Event> | null | undefined;
-} & CommonHookUtils;
-
-type OnErrorHookProps<Event> = {
+type OnErrorHookProps = {
   error: unknown;
-} & CommonHookProps<Event>;
+  event: APIGatewayProxyEventV2;
+} & CommonHookProps;
 
-type OnRequestEndHookProps<Event, Return> = {
-  result: Return;
-} & CommonHookProps<Event>;
+type OnRequestEndHookProps = {
+  result: ApiHandlerReturn;
+} & CommonHookProps;
 
-export type GenericHandlerWrapperOptions<
-  Event,
-  Return,
-  ExtraParams extends Record<string, any> | undefined,
-> = {
-  /**
-   * In the case this is the first invocation since the lambda container was
-   * spun up, this function, if supplied, will be called to handle the cold
-   * start. It does not interrupt the critical path of the lambda and can't be
-   * used to alter the execution.
-   *
-   * _Note: If the `onHotFunctionTrigger` function is supplied,
-   * this function will not be called._
-   * @param params The parameters passed to the function.
-   * @param params.event The ambiguous event object passed to the lambda.
-   * @param params.context The context object passed to the lambda.
-   * @param params.logger A logger instance with request context.
-   * @param params.cache The cache supplied from the toolkit.
-   * @returns void
-   */
-  onColdStart?: (params: AmbiguousEventHookProps<Event>) => Promise<void>;
+export type TypeSafeApiHandlerHooks = {
   /**
    * If an error is thrown in the runnerFunction, pre-request, or post-request
    * hooks, this function, if supplied, will be called to handle the error.
    * @param params The parameters passed to the function.
-   * @param params.event The event object passed to the lambda.
+   * @param params.event The api event object passed to the lambda.
    * @param params.error The resulting error caught during lambda execution.
    * @param params.context The context object passed to the lambda.
    * @param params.logger A logger instance with request context.
    * @param params.cache The cache supplied from the toolkit.
-   * @returns The expected return type shape for the lambda.
+   * @returns A valid API handler response that gracefully handles the error.
    */
-  onError?: (params: OnErrorHookProps<Event>) => Promise<Return>;
+  onError?: (params: OnErrorHookProps) => Promise<ApiHandlerReturn>;
   /**
    * If the lambda is configured to be a "hot function", this routine is called
    * to handle resources that need to be kept warm.
@@ -95,8 +74,8 @@ export type GenericHandlerWrapperOptions<
    * @returns The expected return type shape for the lambda.
    */
   onRequestEnd?: (
-    params: OnRequestEndHookProps<Event, Return>
-  ) => Promise<(() => Return) | void>;
+    params: OnRequestEndHookProps
+  ) => Promise<(() => ApiHandlerReturn) | undefined>;
   /**
    * A function to run before the main lambda handler function is called. Can be
    * used to transform and/or enrich the main function's parameters by returning
@@ -109,20 +88,123 @@ export type GenericHandlerWrapperOptions<
    * @param params.context The context object passed to the lambda.
    * @param params.logger A logger instance with request context.
    * @param params.cache The cache supplied from the toolkit.
-   * @param params.event The ambiguous event object passed to the lambda.
+   * @param params.event The api event object passed to the lambda.
    * @returns The expected return type shape for the lambda.
    */
   onRequestStart?: (
-    params: AmbiguousEventHookProps<Event>
-  ) => Promise<(() => Return) | ExtraParams>;
+    params: CommonHookProps
+  ) => Promise<(() => ApiHandlerReturn) | undefined>;
 };
 
-export type HandlerParams<
-  Event,
-  Extra extends Record<string, any> | undefined,
-> = {
+export type BaseApiHandlerReturn = {
+  body?: any;
+  cookies?: {
+    [key: string]: {
+      options?: {
+        domain?: string;
+        expiresUnix?: number;
+        httpOnly?: boolean;
+        maxAge?: number;
+        path?: string;
+        sameSite?: 'lax' | 'none' | 'strict';
+        secure?: boolean;
+      };
+      value: string;
+    };
+  };
+  headers?: Record<string, string>;
+  statusCode?: HttpCodes;
+};
+
+// TODO: add more?
+export type ApiHandler302Return = {
+  body?: any;
+  cookies?: undefined;
+  headers: {
+    location: string;
+  } & Record<string, string>;
+  statusCode: 302;
+};
+
+export type ApiHandlerReturn = ApiHandler302Return | BaseApiHandlerReturn;
+
+// My take on JSend:
+export type ApiSuccessResponse = {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  data: {} | null;
+  status: 'success';
+};
+
+export type ApiFailResponse = {
+  data: {
+    description: string;
+    title: string;
+  };
+  status: 'fail';
+};
+
+export type ApiErrorResponseNoDev = {
+  data: {
+    description: string;
+    requestId: string;
+    title: string;
+  };
+  status: 'error';
+};
+export type ApiErrorResponseDev = {
+  data: {
+    description: string;
+    requestId: string;
+    title: string;
+  } & DevEnabledErrorData;
+  status: 'error';
+};
+
+type DevEnabledErrorData = {
+  devMode: true;
+  error: {
+    cause?: string;
+    message?: string;
+    stackTrace?: string;
+  };
+  logs?: string;
+};
+
+export type ApiResponse =
+  | ApiErrorResponseDev
+  | ApiErrorResponseNoDev
+  | ApiFailResponse
+  | ApiSuccessResponse;
+
+export type TypedApiRouteConfig = {
+  [key: string]: HttpRoute | TypedApiRouteConfig;
+};
+
+export type HttpRoute = {
+  [key in Lowercase<HttpVerbs>]?: HttpRouteFunction;
+};
+
+export type BaseApiRouteProps = {
   cache: ICache;
   context: Context;
-  event: Event;
+  event: APIGatewayProxyEventV2;
   logger: ILogger;
-} & Extra;
+};
+
+export interface BareHttpRouteFunction {
+  (p: BaseApiRouteProps): Promise<any>;
+  typed?: undefined;
+}
+
+export interface TypeSafeApiRouteFunction {
+  (p: TypeSafeApiRouteProps<any>): Promise<any>;
+  pathParams?: {
+    maxParams: number;
+    minParams: number;
+  };
+  typed: true;
+}
+
+export type HttpRouteFunction =
+  | BareHttpRouteFunction
+  | TypeSafeApiRouteFunction;

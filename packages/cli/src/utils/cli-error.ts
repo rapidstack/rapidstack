@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { type CommanderError } from 'commander';
+import type { CommanderError } from 'commander';
 
 import { log } from './logger.js';
 

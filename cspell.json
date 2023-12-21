@@ -27,6 +27,7 @@
     "sarif",
     "SHTTP",
     "tsup",
+    "typecheck",
     "Vali",
     "valibot",
     "vitest",

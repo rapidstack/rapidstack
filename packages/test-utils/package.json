@@ -19,7 +19,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "devDependencies": {
-    "@types/node": "20.10.5",
+    "@types/node": "20.10.4",
     "@types/yauzl-promise": "2.1.4",
     "vitest": "1.0.4",
     "yauzl-promise": "4.0.0"

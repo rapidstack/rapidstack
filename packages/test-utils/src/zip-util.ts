@@ -28,11 +28,13 @@ export async function initializeZipAssets(
       const destination = join(destinationPath, strippedPath);
 
       if (entry.filename.endsWith('/')) {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
         await mkdir(destination);
         continue;
       }
 
       const readStream = await entry.openReadStream();
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       const writeStream = createWriteStream(destination);
       await pipeline(readStream, writeStream);
     }

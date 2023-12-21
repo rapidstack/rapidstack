@@ -28,6 +28,7 @@
     "rapidstack": "./bin/rapidstack-cli.mjs"
   },
   "devDependencies": {
+    "@rapidstack/test-utils": "workspace:*",
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.7",
     "@types/node": "20.10.4",

@@ -9,14 +9,14 @@ export async function action(): Promise<void> {
 
   // Build the first group of rapidstack packages that don't depend on each
   // other first.
-  // const firstGroup = [
-  //   // 'test-utils',
-  //   // 'types',
-  // ];
-  // const firstGroupJobs = firstGroup.map(async (pkg) => {
-  //   await buildPackage(repoRoot, pkg);
-  // });
-  // await Promise.all(firstGroupJobs);
+  const firstGroup = [
+    'test-utils',
+    // 'types',
+  ];
+  const firstGroupJobs = firstGroup.map(async (pkg) => {
+    await buildPackage(repoRoot, pkg);
+  });
+  await Promise.all(firstGroupJobs);
 
   // Build the second group of rapidstack packages that depend on the first
   // group.

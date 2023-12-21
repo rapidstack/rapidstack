@@ -4,10 +4,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit -p tsconfig.build.json && tsup",
-    "build:watch": "tsup --watch",
-    "clean": "rimraf dist",
-    "test": "vitest"
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup && tsc",
+    "test": "vitest",
+    "watch": "tsc --watch"
   },
   "exports": {
     ".": {

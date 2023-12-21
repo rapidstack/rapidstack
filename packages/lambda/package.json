@@ -4,9 +4,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup && tsc",
     "test": "vitest",
-    "build": "tsc --noEmit -p tsconfig.build.json && tsup",
-    "watch": "tsc --noEmit --watch"
+    "watch": "tsc --watch"
   },
   "exports": {
     ".": {

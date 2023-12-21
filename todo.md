@@ -16,6 +16,6 @@
 - [ ] Add the routes to the handler args?
 - [ ] Remove some unused stuff that won't make it as a part of the MVP. Doc for later
 - [ ] Add meta info on the route chosen to the handler exe fn
-  - "neighborhood"
-  - route path matched
-  - route path params
+  - [ ] give the "neighborhood" of routes matched
+  - [ ] route path matched
+  - [ ] route path params

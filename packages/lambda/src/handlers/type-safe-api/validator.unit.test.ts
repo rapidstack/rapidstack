@@ -13,6 +13,7 @@ import { describe, expect, test, vi } from 'vitest';
 
 import type { HttpRoute, TypedApiRouteConfig } from './types.js';
 
+import { HttpErrorExplanations } from '../../api/constants.js';
 import {
   Logger,
   MockLambdaRuntime,
@@ -40,7 +41,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -70,7 +71,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -104,7 +105,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -136,7 +137,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -170,7 +171,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -204,7 +205,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -240,7 +241,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -272,7 +273,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -308,7 +309,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -346,7 +347,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -384,7 +385,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -418,7 +419,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           get: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -460,7 +461,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -474,23 +475,22 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
           })
         )) as APIGatewayProxyStructuredResultV2;
 
+        const data = JSON.parse(res.body || '{}').data;
+
         expect(res.statusCode).toBe(400);
-        expect(JSON.parse(res.body!).data.title).toBe(
-          'HTTP request failed validation'
-        );
-        expect(JSON.parse(res.body!).data.description).toMatchInlineSnapshot(`
-          "The body failed validation.
-          Parser error messages: 
-            - bodyKey1 is required
-          Expected schema: 
-          body.bodyKey1: string
-          body.bodyKey2?.nestedKey1?: string
-          body.bodyKey2?.requiredKey2: string
-          body.bodyKey3[0]: string
-          body.bodyKey3[1]: number
-          body.bodyKey4[].foo: string
-          "
-        `);
+        expect(data.description).toBe(HttpErrorExplanations[400].message);
+        expect(data.title).toBe(HttpErrorExplanations[400].name);
+        expect(data.messages).toEqual(['bodyKey1 is required']);
+        expect(data.schema).toEqual({
+          body: [
+            'body.bodyKey1: string',
+            'body.bodyKey2?.nestedKey1?: string',
+            'body.bodyKey2?.requiredKey2: string',
+            'body.bodyKey3[0]: string',
+            'body.bodyKey3[1]: number',
+            'body.bodyKey4[].foo: string',
+          ],
+        });
         expect(spy).toHaveBeenCalledTimes(0);
       });
       test('should list missing expected values for the headers', async () => {
@@ -507,7 +507,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -520,19 +520,18 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
           })
         )) as APIGatewayProxyStructuredResultV2;
 
+        const data = JSON.parse(res.body || '{}').data;
+
         expect(res.statusCode).toBe(400);
-        expect(JSON.parse(res.body!).data.title).toBe(
-          'HTTP request failed validation'
-        );
-        expect(JSON.parse(res.body!).data.description).toMatchInlineSnapshot(`
-          "The headers failed validation.
-          Parser error messages: 
-            - headerKey1 is required
-          Expected schema: 
-          headers.headerKey1: string
-          headers.headerKey2?: string
-          "
-        `);
+        expect(data.description).toBe(HttpErrorExplanations[400].message);
+        expect(data.title).toBe(HttpErrorExplanations[400].name);
+        expect(data.messages).toEqual(['headerKey1 is required']);
+        expect(data.schema).toEqual({
+          headers: [
+            'headers.headerKey1: string',
+            'headers.headerKey2?: string',
+          ],
+        });
         expect(spy).toHaveBeenCalledTimes(0);
       });
       test('should list missing expected values for the qsp', async () => {
@@ -549,7 +548,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -559,22 +558,19 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
           makeMockApiEvent({
             method: 'POST',
             path: '/',
+            queryString: '?queryKey2=value2',
           })
         )) as APIGatewayProxyStructuredResultV2;
 
+        const data = JSON.parse(res.body || '{}').data;
+
         expect(res.statusCode).toBe(400);
-        expect(JSON.parse(res.body!).data.title).toBe(
-          'HTTP request failed validation'
-        );
-        expect(JSON.parse(res.body!).data.description).toMatchInlineSnapshot(`
-          "The qsp failed validation.
-          Parser error messages: 
-            - No qsp data was provided for this request
-          Expected schema: 
-          qsp.queryKey1: string
-          qsp.queryKey2?: string
-          "
-        `);
+        expect(data.description).toBe(HttpErrorExplanations[400].message);
+        expect(data.title).toBe(HttpErrorExplanations[400].name);
+        expect(data.messages).toEqual(['queryKey1 is required']);
+        expect(data.schema).toEqual({
+          qsp: ['qsp.queryKey1: string', 'qsp.queryKey2?: string'],
+        });
         expect(spy).toHaveBeenCalledTimes(0);
       });
       test('should list missing expected values for the cookies', async () => {
@@ -591,7 +587,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -599,25 +595,21 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const res = (await MockLambdaRuntime(
           handler,
           makeMockApiEvent({
+            cookies: ['foo=bar'],
             method: 'POST',
             path: '/',
           })
         )) as APIGatewayProxyStructuredResultV2;
 
+        const data = JSON.parse(res.body || '{}').data;
+
         expect(res.statusCode).toBe(400);
-        expect(JSON.parse(res.body!).data.title).toBe(
-          'HTTP request failed validation'
-        );
-        expect(JSON.parse(res.body!).data.description).toMatchInlineSnapshot(`
-          "The cookies failed validation.
-          Parser error messages: 
-            - No cookies data was provided for this request
-            - cookie1 is required
-          Expected schema: 
-          cookies.cookie1: string
-          cookies.cookie2?: string
-          "
-        `);
+        expect(data.description).toBe(HttpErrorExplanations[400].message);
+        expect(data.title).toBe(HttpErrorExplanations[400].name);
+        expect(data.messages).toEqual(['cookie1 is required']);
+        expect(data.schema).toEqual({
+          cookies: ['cookies.cookie1: string', 'cookies.cookie2?: string'],
+        });
         expect(spy).toHaveBeenCalledTimes(0);
       });
       test('should list all missing expected values', async () => {
@@ -653,7 +645,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
         const routes = {
           post: validate(validationSchema, async ({ validated }) => {
             spy(validated);
-            return true;
+            return { body: true };
           }) as HttpRoute,
         } satisfies TypedApiRouteConfig;
         const handler = makeApi(routes);
@@ -666,48 +658,34 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
           })
         )) as APIGatewayProxyStructuredResultV2;
 
+        const data = JSON.parse(res.body || '{}').data;
+
         expect(res.statusCode).toBe(400);
-        expect(JSON.parse(res.body!).data.title).toBe(
-          'HTTP request failed validation'
-        );
-        expect(JSON.parse(res.body!).data.description).toMatchInlineSnapshot(`
-          "The body failed validation.
-          Parser error messages: 
-            - No body data was provided for this request
-          Expected schema: 
-          body.bodyKey1: string
-          body.bodyKey2?.nestedKey1?: string
-          body.bodyKey2?.requiredKey2: string
-          body.bodyKey3[0]: string
-          body.bodyKey3[1]: number
-          body.bodyKey4[].foo: string
-
-
-          The headers failed validation.
-          Parser error messages: 
-            - headerKey1 is required
-          Expected schema: 
-          headers.headerKey1: string
-          headers.headerKey2?: string
-
-
-          The cookies failed validation.
-          Parser error messages: 
-            - No cookies data was provided for this request
-            - cookie1 is required
-          Expected schema: 
-          cookies.cookie1: string
-          cookies.cookie2?: string
-
-
-          The qsp failed validation.
-          Parser error messages: 
-            - No qsp data was provided for this request
-          Expected schema: 
-          qsp.queryKey1: string
-          qsp.queryKey2?: string
-          "
-        `);
+        expect(data.description).toBe(HttpErrorExplanations[400].message);
+        expect(data.title).toBe(HttpErrorExplanations[400].name);
+        expect(data.messages).toEqual([
+          'No input was provided for body.',
+          'headerKey1 is required',
+          'No input was provided for cookies.',
+          'cookie1 is required',
+          'No input was provided for qsp.',
+        ]);
+        expect(data.schema).toEqual({
+          body: [
+            'body.bodyKey1: string',
+            'body.bodyKey2?.nestedKey1?: string',
+            'body.bodyKey2?.requiredKey2: string',
+            'body.bodyKey3[0]: string',
+            'body.bodyKey3[1]: number',
+            'body.bodyKey4[].foo: string',
+          ],
+          cookies: ['cookies.cookie1: string', 'cookies.cookie2?: string'],
+          headers: [
+            'headers.headerKey1: string',
+            'headers.headerKey2?: string',
+          ],
+          qsp: ['qsp.queryKey1: string', 'qsp.queryKey2?: string'],
+        });
         expect(spy).toHaveBeenCalledTimes(0);
       });
     });
@@ -726,7 +704,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
       const routes = {
         post: validate(validationSchema, async ({ validated }) => {
           spy(validated);
-          return true;
+          return { body: true };
         }) as HttpRoute,
       } satisfies TypedApiRouteConfig;
       const handler = makeApi(routes);
@@ -758,7 +736,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
       const routes = {
         post: validate(validationSchema, async ({ validated }) => {
           spy(validated);
-          return true;
+          return { body: true };
         }) as HttpRoute,
       } satisfies TypedApiRouteConfig;
       const handler = makeApi(routes);
@@ -790,7 +768,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
       const routes = {
         post: validate(validationSchema, async ({ validated }) => {
           spy(validated);
-          return true;
+          return { body: true };
         }) as HttpRoute,
       } satisfies TypedApiRouteConfig;
       const handler = makeApi(routes);
@@ -822,7 +800,7 @@ describe('`TypeSafeApiHandler`s validator function tests:', () => {
       const routes = {
         post: validate(validationSchema, async ({ validated }) => {
           spy(validated);
-          return true;
+          return { body: true };
         }) as HttpRoute,
       } satisfies TypedApiRouteConfig;
       const handler = makeApi(routes);

@@ -4,8 +4,18 @@ import type { Output } from 'valibot';
 
 import { ValiError, parse, parseAsync } from 'valibot';
 
-import type { ICache, ILogger, ValibotSchema } from '../../index.js';
-import type { BaseApiRouteProps, TypeSafeApiRouteFunction } from './types.js';
+import type {
+  ICache,
+  ILogger,
+  TypeSafeApiRouteInfo,
+  ValibotSchema,
+} from '../../index.js';
+import type {
+  ApiHandlerReturn,
+  BaseApiRouteProps,
+  ResponseContext,
+  TypeSafeApiRouteFunction,
+} from './types.js';
 
 import { HttpValidationError } from '../../api/index.js';
 import {
@@ -38,8 +48,10 @@ export type HttpRunnerFunction<
   context: Context;
   event: APIGatewayProxyEventV2;
   logger: ILogger;
+  responseContext: ResponseContext;
+  routeLookup: TypeSafeApiRouteInfo;
   validated: ValidatedSchemaOutput<Validated>;
-}) => Promise<Return>;
+}) => Promise<ApiHandlerReturn<Return>>;
 
 type PossibleValidatedSchemaOutput<
   Schema extends HttpCallValidationSchema<any, any, any, any, any>,
@@ -119,22 +131,13 @@ export function validate<
 >(
   schemas: ValidationSchema,
   runnerFunction: HttpRunnerFunction<ValidationSchema, Return>
-): TypeSafeApiRouteFunction {
-  const v = async ({
-    cache,
-    context,
-    event,
-    logger,
-  }: TypeSafeApiRouteProps<ValidationSchema>): Promise<Return> => {
-    const validated = await validateSchema(schemas as object, event);
+): TypeSafeApiRouteFunction<Return> {
+  const v: TypeSafeApiRouteFunction<Return> = async (
+    props: TypeSafeApiRouteProps<ValidationSchema>
+  ): Promise<ApiHandlerReturn<Return>> => {
+    const validated = await validateSchema(schemas as object, props.event);
 
-    return await runnerFunction({
-      cache,
-      context,
-      event,
-      logger,
-      validated,
-    });
+    return await runnerFunction({ ...props, validated });
   };
 
   // Pass some information back upstream with static properties on the function

@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+import type {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyResultV2,
+  Context,
+} from 'aws-lambda';
 
-import type { HttpCodes, HttpVerbs } from '../../api/index.js';
+import type {
+  HttpCodes,
+  HttpVerbs,
+  TypeSafeApiRouteInfo,
+} from '../../api/index.js';
 import type { ICache, ILogger } from '../../index.js';
 import type { TypeSafeApiRouteProps } from './validator.js';
 
@@ -103,7 +111,7 @@ export type TypeSafeApiHandlerHooks = {
    */
   onRequestEnd?: (
     params: OnRequestEndHookProps
-  ) => Promise<(() => ApiHandlerReturn) | undefined>;
+  ) => Promise<(() => APIGatewayProxyResultV2) | undefined>;
   /**
    * A function to run before the main lambda handler function is called. Can be
    * used to transform and/or enrich the main function's parameters by returning
@@ -120,15 +128,16 @@ export type TypeSafeApiHandlerHooks = {
    * @param params.responseContext The response context object - a mutable
    * object reference that can be used to set cookies and headers throughout the
    * request lifecycle.
-   * @returns The expected return type shape for the lambda.
+   * @returns A function that returns a valid API Gateway response object or
+   * undefined.
    */
   onRequestStart?: (
-    params: CommonHookProps
-  ) => Promise<(() => ApiHandlerReturn) | undefined>;
+    params: CommonHookProps & { routeLookup: TypeSafeApiRouteInfo }
+  ) => Promise<(() => APIGatewayProxyResultV2) | void>;
 };
 
-export type BaseApiHandlerReturn = {
-  body?: any;
+export type BaseApiHandlerReturn<Data> = {
+  body?: Data;
   cookies?: {
     [key: string]: {
       options?: {
@@ -148,8 +157,8 @@ export type BaseApiHandlerReturn = {
 };
 
 // TODO: add more?
-export type ApiHandler302Return = {
-  body?: any;
+export type ApiHandler302Return<Data> = {
+  body?: Data;
   cookies?: undefined;
   headers: {
     location: string;
@@ -157,55 +166,9 @@ export type ApiHandler302Return = {
   statusCode: 302;
 };
 
-export type ApiHandlerReturn = ApiHandler302Return | BaseApiHandlerReturn;
-
-// My take on JSend:
-export type ApiSuccessResponse = {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  data: {} | null;
-  status: 'success';
-};
-
-export type ApiFailResponse = {
-  data: {
-    description: string;
-    title: string;
-  };
-  status: 'fail';
-};
-
-export type ApiErrorResponseNoDev = {
-  data: {
-    description: string;
-    requestId: string;
-    title: string;
-  };
-  status: 'error';
-};
-export type ApiErrorResponseDev = {
-  data: {
-    description: string;
-    requestId: string;
-    title: string;
-  } & DevEnabledErrorData;
-  status: 'error';
-};
-
-type DevEnabledErrorData = {
-  devMode: true;
-  error: {
-    cause?: string;
-    message?: string;
-    stackTrace?: string;
-  };
-  logs?: string;
-};
-
-export type ApiResponse =
-  | ApiErrorResponseDev
-  | ApiErrorResponseNoDev
-  | ApiFailResponse
-  | ApiSuccessResponse;
+export type ApiHandlerReturn<Data = any> =
+  | ApiHandler302Return<Data>
+  | BaseApiHandlerReturn<Data>;
 
 export type TypedApiRouteConfig = {
   [key: string]: HttpRoute | TypedApiRouteConfig;
@@ -218,17 +181,20 @@ export type HttpRoute = {
 export type BaseApiRouteProps = {
   cache: ICache;
   context: Context;
+  devMode: boolean;
   event: APIGatewayProxyEventV2;
   logger: ILogger;
+  responseContext: ResponseContext;
+  routeLookup: TypeSafeApiRouteInfo;
 };
 
-export interface BareHttpRouteFunction {
-  (p: BaseApiRouteProps): Promise<any>;
+export interface BareHttpRouteFunction<Return> {
+  (p: BaseApiRouteProps): Promise<ApiHandlerReturn<Return>>;
   typed?: undefined;
 }
 
-export interface TypeSafeApiRouteFunction {
-  (p: TypeSafeApiRouteProps<any>): Promise<any>;
+export interface TypeSafeApiRouteFunction<Return> {
+  (p: TypeSafeApiRouteProps<any>): Promise<ApiHandlerReturn<Return>>;
   pathParams?: {
     maxParams: number;
     minParams: number;
@@ -236,6 +202,6 @@ export interface TypeSafeApiRouteFunction {
   typed: true;
 }
 
-export type HttpRouteFunction =
-  | BareHttpRouteFunction
-  | TypeSafeApiRouteFunction;
+export type HttpRouteFunction<Return = any> =
+  | BareHttpRouteFunction<Return>
+  | TypeSafeApiRouteFunction<Return>;

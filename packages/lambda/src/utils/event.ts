@@ -149,3 +149,17 @@ export function isHotFunctionTrigger(event: unknown): boolean {
     !!(event as unknown as { [k: string]: unknown })[HOT_FUNCTION_TRIGGER]
   );
 }
+
+/**
+ * Parses an event to determine if the shape is an invalid API event (not from
+ * API Gateway or Lambda URL)
+ * @param event an event from Lambda
+ * @returns boolean
+ */
+export function isInvalidApiEvent(event: unknown): boolean {
+  return (
+    !event ||
+    typeof event !== 'object' ||
+    !(event as Record<string, unknown>).requestContext
+  );
+}

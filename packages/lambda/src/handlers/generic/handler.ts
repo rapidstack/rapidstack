@@ -66,6 +66,12 @@ export const GenericHandler = (
     });
 
     const isHotTrigger = isHotFunctionTrigger(event);
+    const commonUtils = {
+      cache,
+      context,
+      event,
+      logger,
+    };
 
     // outer try/catch to determine conclusion for the summary log
     try {
@@ -73,11 +79,8 @@ export const GenericHandler = (
 
       if (isHotTrigger) {
         return (await handleHotFunctionHook({
-          cache,
-          context,
-          event,
-          logger,
           onHotFunctionTrigger,
+          utils: commonUtils,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         })) as any;
       }

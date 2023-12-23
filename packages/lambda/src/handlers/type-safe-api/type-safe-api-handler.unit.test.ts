@@ -7,13 +7,12 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { LoggerEvents } from '../../index.js';
 import type {
-  ApiHandlerReturn,
   HttpRoute,
+  HttpRouteFunction,
   TypedApiRouteConfig,
 } from './types.js';
 
 import { HttpError } from '../../api/http-errors.js';
-import { makeStandardJsonResponse } from '../../api/index.js';
 import {
   EnvKeys,
   HOT_FUNCTION_TRIGGER,
@@ -35,21 +34,27 @@ const routes = {
       throw new HttpError(400);
     },
   },
-  'get': async () => ({ body: 'test' }),
+  'get': (async () => {
+    return { body: 'test' };
+  }) as HttpRoute,
   'non-http-error': {
     get: async () => {
       throw new Error('test');
     },
   },
   'object': {
-    get: async () => makeStandardJsonResponse({ body: { test: 'test' } }),
+    get: async () => {
+      return { body: { test: 'test' } };
+    },
   },
   'test': {
     nested: {
-      get: async () => 'test',
+      get: (async () => {
+        return { body: 'test' };
+      }) satisfies HttpRouteFunction,
     },
   },
-} as TypedApiRouteConfig;
+} satisfies TypedApiRouteConfig;
 
 beforeEach(() => {
   delete process.env[EnvKeys.COLD_START];
@@ -186,6 +191,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
         expect(loggerEvents.emit).toHaveBeenCalledWith('end');
         expect(res).toEqual({
           body: expect.stringContaining('invalid'),
+          cookies: undefined,
           headers: expect.any(Object),
           statusCode: 400,
         });
@@ -203,7 +209,13 @@ describe('`TypeSafeApiHandler` tests:', () => {
             path: '/',
           })
         )) as APIGatewayProxyStructuredResultV2;
-        expect(res.body).toBe('test');
+
+        const body = JSON.parse(res.body || '{}');
+
+        expect(body).toEqual({
+          data: 'test',
+          status: 'success',
+        });
       });
       test('hotFn: should be called when key is present in event', async () => {
         const makeApi = toolkit.create(TypeSafeApiHandler);
@@ -240,17 +252,19 @@ describe('`TypeSafeApiHandler` tests:', () => {
         const exeFn = vi.fn();
         const text = 'early return';
         const onRequestStart = async () => () =>
-          ({ body: text, statusCode: 201 }) satisfies ApiHandlerReturn;
+          ({
+            body: text,
+            statusCode: 201,
+          }) as APIGatewayProxyResultV2;
 
-        const theseRoutes = routes;
-        (routes as HttpRoute)['get'] = async () => {
+        routes['get'] = (async () => {
           exeFn();
           return {
             body: 'not seen',
           };
-        };
+        }) as HttpRoute;
 
-        const handler = makeApi(theseRoutes, { onRequestStart });
+        const handler = makeApi(routes, { onRequestStart });
 
         const res = (await MockLambdaRuntime(
           handler,
@@ -270,17 +284,16 @@ describe('`TypeSafeApiHandler` tests:', () => {
 
         const exeFn = vi.fn().mockResolvedValue('not seen');
         const onRequestEnd = async () => () =>
-          ({ body: text, statusCode: 202 }) satisfies ApiHandlerReturn;
+          ({ body: text, statusCode: 202 }) satisfies APIGatewayProxyResultV2;
 
-        const theseRoutes = routes;
-        (routes as HttpRoute)['get'] = async () => {
+        routes['get'] = (async () => {
           exeFn();
           return {
             body: 'not seen',
           };
-        };
+        }) as HttpRoute;
 
-        const handler = makeApi(theseRoutes, { onRequestEnd });
+        const handler = makeApi(routes, { onRequestEnd });
 
         const res = (await MockLambdaRuntime(
           handler,
@@ -300,15 +313,14 @@ describe('`TypeSafeApiHandler` tests:', () => {
         const exeFn = vi.fn();
         const onRequestStart = vi.fn().mockResolvedValue(undefined);
 
-        const theseRoutes = routes;
-        (routes as HttpRoute)['get'] = async () => {
+        routes['get'] = (async () => {
           exeFn();
           return {
             body: text,
           };
-        };
+        }) as HttpRoute;
 
-        const handler = makeApi(theseRoutes, { onRequestStart });
+        const handler = makeApi(routes, { onRequestStart });
 
         const res = (await MockLambdaRuntime(
           handler,
@@ -318,7 +330,12 @@ describe('`TypeSafeApiHandler` tests:', () => {
           })
         )) as APIGatewayProxyStructuredResultV2;
 
-        expect(res.body).toBe(text);
+        const body = JSON.parse(res.body || '{}');
+
+        expect(body).toEqual({
+          data: text,
+          status: 'success',
+        });
         expect(exeFn).toHaveBeenCalled();
         expect(onRequestStart).toHaveBeenCalled();
       });
@@ -377,9 +394,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
         )) as APIGatewayProxyStructuredResultV2;
 
         expect(JSON.parse(res.body as string)).toMatchObject({
-          data: {
-            test: 'test',
-          },
+          data: { test: 'test' },
           status: 'success',
         });
         expect(res.statusCode).toBe(200);
@@ -399,12 +414,16 @@ describe('`TypeSafeApiHandler` tests:', () => {
         })
       )) as APIGatewayProxyStructuredResultV2;
 
+      const body = JSON.parse(res.body || '{}');
+
       expect(res.statusCode).toBe(500);
-      expect(JSON.parse(res.body as string)).toMatchObject({
+      expect(body).toEqual({
         data: {
           description: expect.stringContaining('server has encountered'),
+          requestId: '7e577e57-7e57-7e57-7e57-7e577e577e57',
           title: 'Internal Server Error',
         },
+        status: 'error',
       });
     });
     test('should 500 if `onRequestStart` throws (no `onError`)', async () => {

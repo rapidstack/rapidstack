@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   APIGatewayProxyEventV2,
   APIGatewayProxyResultV2,
-  Context,
 } from 'aws-lambda';
 
+import type { HttpCodes } from '../../api/index.js';
 import type {
   CreatableUtils,
   ICreatableConfig,
@@ -11,8 +12,6 @@ import type {
 } from '../../toolkit/index.js';
 import type { LambdaEntryPoint } from '../index.js';
 import type {
-  ApiErrorResponseDev,
-  ApiErrorResponseNoDev,
   ApiHandlerReturn,
   ResponseContext,
   TypeSafeApiHandlerHooks,
@@ -20,15 +19,13 @@ import type {
 } from './types.js';
 import type { BaseApiRouteProps } from './types.js';
 
-import { HttpErrorExplanations } from '../../api/constants.js';
-import { HttpError, resolveRoute } from '../../api/index.js';
-import { EnvKeys, HandlerExecuteError } from '../../common/index.js';
+import { default5xxErrorHandler } from '../../api/index.js';
+import { HandlerExecuteError } from '../../common/index.js';
 import {
   createRequestContext,
   getApiHandlerPerformance,
-  getInternalEnvironmentVariable,
   isHotFunctionTrigger,
-  makeCloudwatchUrl,
+  isInvalidApiEvent,
   markHandlerEnd,
   markHandlerStart,
 } from '../../utils/index.js';
@@ -47,14 +44,20 @@ interface TypeSafeApiHandlerReturn extends ICreatableReturn {
   ): LambdaEntryPoint<APIGatewayProxyEventV2, APIGatewayProxyResultV2 | void>;
 }
 
+type PrivateResponseContext = ResponseContext & {
+  _conclusion: 'failure' | 'success';
+  _statusCode: HttpCodes;
+};
+
 export interface TypeSafeApiHandlerConfig extends ICreatableConfig {
-  basePath?: string;
   devMode?: true;
-  msTimeoutBudget?: number;
   name?: `${string}Handler`;
+
+  // Other ideas
+  // basePath?: string;
+  // msTimeoutBudget?: number;
   // openApiRoute?: true;
-  respectMethodOverrideHeader?: true;
-  routeResolver?: RouteResolver;
+  // respectMethodOverrideHeader?: true;
 }
 
 export const TypeSafeApiHandler = (
@@ -66,123 +69,92 @@ export const TypeSafeApiHandler = (
 
   return (routes, hooks) => async (event, context) => {
     markHandlerStart();
-    let conclusion = 'success' as 'failure' | 'success';
-    const responseContext = {} as ResponseContext;
-
-    const {
-      onError,
-      onHotFunctionTrigger,
-      onLambdaShutdown,
-      onRequestEnd,
-      onRequestStart,
-    } = hooks || {};
+    const responseContext: PrivateResponseContext = {
+      _conclusion: 'success',
+      _statusCode: 200,
+      cookies: {},
+      headers: { 'content-type': 'application/json' },
+    };
 
     const logger = _log.child({
       '@r': createRequestContext(event, context),
       'hierarchicalName': name ?? 'TypeSafeApiHandler (unnamed)',
     });
 
-    const isHotTrigger = isHotFunctionTrigger(event);
+    const commonUtils = {
+      cache,
+      context,
+      devMode: !!config?.devMode,
+      event,
+      logger,
+      responseContext,
+      routes,
+    };
 
-    const isInvalidApiEvent =
-      typeof event !== 'object' || !Boolean(event.requestContext);
+    const isHotTrigger = isHotFunctionTrigger(event);
+    const isInvalidEvent = isInvalidApiEvent(event);
+    handleShutdownHook(hooks?.onLambdaShutdown, logger);
 
     // outer try/catch to determine conclusion for the summary log
     try {
-      handleShutdownHook(onLambdaShutdown, logger);
       if (isHotTrigger) {
         return await handleHotFunctionHook({
-          cache,
-          context,
-          event,
-          logger,
-          onHotFunctionTrigger,
+          onHotFunctionTrigger: hooks?.onHotFunctionTrigger,
+          utils: commonUtils,
         });
       }
 
-      if (isInvalidApiEvent) {
+      if (isInvalidEvent) {
         throw new HandlerExecuteError('event must be a valid API event object');
       }
 
       const result = await handleRequestHooks({
-        cache,
-        context,
-        event,
-        logger,
-        onError,
-        onRequestEnd,
-        onRequestStart,
-        responseContext,
-        routeResolver: config?.routeResolver ?? resolveRoute,
-        routes,
+        onError: hooks?.onError,
+        onRequestEnd: hooks?.onRequestEnd,
+        onRequestStart: hooks?.onRequestStart,
+        utils: commonUtils,
       });
 
-      const cookies = buildCookiesFromObject({
-        ...responseContext.cookies,
-        ...result.cookies,
-      });
-
-      const response: APIGatewayProxyResultV2 = {
-        body:
-          typeof result.body === 'string'
-            ? result.body
-            : JSON.stringify(result.body),
-        headers: {
-          ...responseContext.headers,
-          ...result.headers,
-        },
-        statusCode: result.statusCode ?? 200,
-      };
-
-      // TODO: Move this
-      if (result.body) {
-        switch (typeof result.body) {
-          case 'object':
-            response.headers!['content-type'] = 'application/json';
-            break;
-          case 'string':
-            if (result.body.startsWith('<!DOCTYPE html>')) {
-              response.headers!['content-type'] = 'text/html';
-              break;
-            }
-
-            response.headers!['content-type'] = 'text/plain';
-            break;
-        }
-      }
-
-      if (cookies) response.cookies = cookies;
+      if (typeof result === 'function') return result();
 
       // Format the result for Lambda's expected API response shape
-      return response;
+      responseContext._statusCode = result.statusCode ?? 200;
+      return makeApiGatewayResponse(result, responseContext);
     } catch (err) {
-      conclusion = 'failure';
-      if (isHotTrigger || isInvalidApiEvent) throw err;
+      responseContext._conclusion = 'failure';
+      responseContext._statusCode = err?.code ?? 500;
 
-      // Format HTTP 5xx errors re-thrown from the route handler
-      if (err instanceof HttpError && err.code.toString().startsWith('5')) {
-        return makeHttpErrorResponse(err, !!config?.devMode, context);
-      }
-
-      // If some other error is thrown, log it and return a generic 500
       logger.fatal({
         err,
         msg: 'An error occurred attempting to execute the lambda handler',
       });
-      return makeOtherErrorResponse(err, !!config?.devMode, context);
+
+      // This is a non-http related event and the error needs to be made a
+      // explicit "failure" in the console.
+      if (isHotTrigger || isInvalidEvent) throw err;
+
+      // If some other error is thrown, log it and return a generic 500
+      const body = default5xxErrorHandler(
+        err,
+        config?.devMode ?? false,
+        context
+      );
+
+      return makeApiGatewayResponse({ body }, responseContext);
     } finally {
       markHandlerEnd();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const clientUnix = (event as any)?.headers?.['x-perf-unix'];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const gatewayUnix = (event as any)?.requestContext?.timeEpoch;
       const durations = getApiHandlerPerformance(clientUnix, gatewayUnix);
 
       const summary = {
-        conclusion,
+        conclusion: responseContext._conclusion,
+        statusCode: responseContext._statusCode,
         ...durations,
       } as Parameters<typeof logger.summary>[0];
-      if (!isHotTrigger && Boolean(event.requestContext)) {
+
+      if (!isHotTrigger && !isInvalidEvent) {
         summary.route =
           event.requestContext.domainName + event.requestContext.http.path;
       }
@@ -194,89 +166,32 @@ export const TypeSafeApiHandler = (
 };
 
 /**
- * Formats an error response for HTTP 5xx errors.
- * @param err the thrown error
- * @param devMode if the handler is configured to run in dev mode
- * @param context lambda context
+ * Builds an APIGatewayProxyResultV2 from the result object and response context
+ * object.
+ * @param result the result object from the route handler function
+ * @param responseContext the response context object that originates from the
+ * handler
  * @returns an APIGatewayProxyResultV2
  */
-function makeHttpErrorResponse(
-  err: HttpError,
-  devMode: boolean,
-  context: Context
+function makeApiGatewayResponse(
+  result: ApiHandlerReturn,
+  responseContext: PrivateResponseContext
 ): APIGatewayProxyResultV2 {
-  const errOutput: ApiErrorResponseNoDev = {
-    data: {
-      description: HttpErrorExplanations[err.code]['message'],
-      requestId: context.awsRequestId,
-      title: HttpErrorExplanations[err.code]['name'],
-    },
-    status: 'error',
-  };
-  if (devMode) {
-    const errOutputPtr = errOutput as unknown as ApiErrorResponseDev;
-    errOutputPtr.data.devMode = true;
-    errOutputPtr.data.error.stackTrace = err.stack?.toString();
-    errOutputPtr.data.error.message = err.message;
-    errOutputPtr.data.error.cause = err.cause?.toString();
-
-    // If sst is running locally, logs will be available in the terminal
-    if (!getInternalEnvironmentVariable(EnvKeys.SST_LOCAL)) {
-      errOutputPtr.data.logs = makeCloudwatchUrl(context);
-    }
-  }
-
-  return {
-    body: JSON.stringify(errOutput),
+  const response: APIGatewayProxyResultV2 = {
+    body: JSON.stringify(result.body),
     headers: {
-      'content-type': 'application/json',
+      ...responseContext.headers,
+      ...result.headers,
     },
-    statusCode: err.code,
+    statusCode: responseContext._statusCode,
   };
-}
 
-/**
- * Formats an error response for non-HTTP errors.
- * @param err the thrown error
- * @param devMode if the handler is configured to run in dev mode
- * @param context lambda context
- * @returns an APIGatewayProxyResultV2
- */
-function makeOtherErrorResponse(
-  err: unknown,
-  devMode: boolean,
-  context: Context
-): APIGatewayProxyResultV2 {
-  const errOutput: ApiErrorResponseNoDev = {
-    data: {
-      description: HttpErrorExplanations[500]['message'],
-      requestId: context.awsRequestId,
-      title: HttpErrorExplanations[500]['name'],
-    },
-    status: 'error',
-  };
-  if (devMode) {
-    const errOutputPtr = errOutput as unknown as ApiErrorResponseDev;
-    errOutputPtr.data.devMode = true;
+  response.cookies = buildCookiesFromObject({
+    ...responseContext.cookies,
+    ...result.cookies,
+  });
 
-    if (!getInternalEnvironmentVariable(EnvKeys.SST_LOCAL)) {
-      errOutputPtr.data.logs = makeCloudwatchUrl(context);
-    }
-
-    if (err instanceof Error) {
-      errOutputPtr.data.error = {};
-      errOutputPtr.data.error.stackTrace = err.stack?.toString();
-      errOutputPtr.data.error.message = err.message;
-      errOutputPtr.data.error.cause = err.cause?.toString();
-    } else {
-      errOutputPtr.data.error.message = err?.toString();
-    }
-  }
-
-  return {
-    body: JSON.stringify(errOutput),
-    statusCode: 500,
-  };
+  return response;
 }
 
 // TODO: enhancement: expose handler option for encoding cookies

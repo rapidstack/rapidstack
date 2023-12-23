@@ -3,6 +3,7 @@ import type { Context } from 'aws-lambda';
 import type { ICache, ILogger } from '../../common/index.js';
 
 import { EnvKeys, HandlerExecuteError } from '../../common/index.js';
+import { getInternalEnvironmentVariable } from '../../index.js';
 
 type CommonHookUtils = {
   cache: ICache;
@@ -15,37 +16,37 @@ type AmbiguousEventHookProps<Event> = {
 } & CommonHookUtils;
 
 type HotFunctionHook = {
-  cache: ICache;
-  context: Context;
-  event: unknown;
-  logger: ILogger;
   onHotFunctionTrigger?: (params: CommonHookUtils) => Promise<void>;
+  utils: {
+    cache: ICache;
+    context: Context;
+    event: unknown;
+    logger: ILogger;
+  };
 };
 export const handleHotFunctionHook = async (
   props: HotFunctionHook
 ): Promise<void> => {
-  const { cache, context, logger, onHotFunctionTrigger } = props;
+  const { onHotFunctionTrigger, utils } = props;
+  const { cache, context } = utils;
+
   if (!onHotFunctionTrigger) {
     const message =
       'A hot function trigger was received, but no onHotFunctionTrigger handler was provided.';
-    logger.fatal(message);
+    utils.logger.fatal(message);
     throw new HandlerExecuteError(message);
   }
 
   // Prevent the cold start handler from running on subsequent invocations
   delete process.env[EnvKeys.COLD_START];
 
-  const hotFunctionTriggerLogger = logger.child({
+  const logger = utils.logger.child({
     hierarchicalName: 'handler-hook:onHotFunctionTrigger',
   });
   try {
-    return await onHotFunctionTrigger({
-      cache,
-      context,
-      logger: hotFunctionTriggerLogger,
-    });
+    return await onHotFunctionTrigger({ cache, context, logger });
   } catch (err) {
-    hotFunctionTriggerLogger.fatal({ err, msg: 'An error occurred' });
+    logger.fatal({ err, msg: 'An error occurred' });
     throw new HandlerExecuteError(
       'An error occurred in the onHotFunctionTrigger handler.'
     );
@@ -57,6 +58,8 @@ export const handleShutdownHook = (
   logger: ILogger
 ): void => {
   if (!hook) return;
+
+  if (getInternalEnvironmentVariable(EnvKeys.SHUTDOWN_REGISTERED)) return;
 
   const child = logger.child({
     hierarchicalName: 'handler-hook:onLambdaShutdown',
@@ -70,6 +73,7 @@ export const handleShutdownHook = (
       child.fatal({ err, msg: 'An error occurred.' });
     }
   });
+  process.env[EnvKeys.SHUTDOWN_REGISTERED] = 'true';
 };
 
 type ColdStartHook<Event> = {

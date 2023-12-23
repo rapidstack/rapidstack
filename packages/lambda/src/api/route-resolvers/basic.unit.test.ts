@@ -5,12 +5,13 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type {
   HttpRouteFunction,
+  ResponseContext,
   TypedApiRouteConfig,
 } from '../../handlers/type-safe-api/types.js';
-import type { ICache, ILogger } from '../../index.js';
+import type { ICache, ILogger, TypeSafeApiRouteInfo } from '../../index.js';
 
 import { MockLambdaContext, makeMockApiEvent, validate } from '../../index.js';
-import { resolveRoute } from './basic.js';
+import { resolveTypeSafeApiRoute } from './basic.js';
 
 type Params = Parameters<HttpRouteFunction>[0];
 const SimpleValidator = {
@@ -21,11 +22,17 @@ const SimpleValidator = {
 
 let routes: TypedApiRouteConfig;
 let inspected: ReturnType<typeof vi.fn>;
-const fakeCallerProps = (event: APIGatewayProxyEventV2) => ({
+const fakeCallerProps = (
+  event: APIGatewayProxyEventV2,
+  routeLookup: TypeSafeApiRouteInfo
+) => ({
   cache: 'cache' as unknown as ICache,
   context: MockLambdaContext,
+  devMode: false,
   event,
   logger: 'logger' as unknown as ILogger,
+  responseContext: 'responseContext' as unknown as ResponseContext,
+  routeLookup,
 });
 const baseCallParams = {
   method: 'GET',
@@ -38,14 +45,14 @@ beforeEach(() => {
     'no-validator': {
       get: async (params: Params) => {
         inspected(params);
-        return 'dummy-result';
+        return { data: 'dummy-result' };
       },
     },
     'with-path-params': {
       'no-validator': {
         get: async (params: Params) => {
           inspected(params);
-          return 'dummy-result';
+          return { data: 'dummy-result' };
         },
       },
       'with-validator-all-required': {
@@ -56,7 +63,7 @@ beforeEach(() => {
           },
           async (params) => {
             inspected(params);
-            return 'dummy-result';
+            return { body: 'dummy-result' };
           }
         ),
       },
@@ -72,7 +79,7 @@ beforeEach(() => {
           },
           async (params) => {
             inspected(params);
-            return 'dummy-result';
+            return { body: 'dummy-result' };
           }
         ),
       },
@@ -84,7 +91,7 @@ beforeEach(() => {
           },
           async (params) => {
             inspected(params);
-            return 'dummy-result';
+            return { body: 'dummy-result' };
           }
         ),
       },
@@ -92,7 +99,7 @@ beforeEach(() => {
     'with-validator': {
       get: validate(SimpleValidator, async (params) => {
         inspected(params);
-        return 'dummy-result';
+        return { body: 'dummy-result' };
       }),
     },
   } as TypedApiRouteConfig;
@@ -106,7 +113,8 @@ describe('type safe HTTP route resolver function tests:', () => {
         path: '/',
       });
 
-      const route = resolveRoute(event, routes);
+      const routeLookup = resolveTypeSafeApiRoute(event, routes);
+      const route = routeLookup.candidate;
       expect(route).toBeUndefined();
     });
     test('should resolve with route function for known route', async () => {
@@ -115,7 +123,8 @@ describe('type safe HTTP route resolver function tests:', () => {
         path: '/no-validator',
       });
 
-      const route = resolveRoute(event, routes);
+      const routeLookup = resolveTypeSafeApiRoute(event, routes);
+      const route = routeLookup.candidate;
       expect(route).toBeDefined();
     });
   });
@@ -125,9 +134,11 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...baseCallParams,
         path: '/no-validator',
       });
-      const expectedProps = fakeCallerProps(event);
 
-      const route = resolveRoute(event, routes)!;
+      const routeLookup = resolveTypeSafeApiRoute(event, routes);
+      const expectedProps = fakeCallerProps(event, routeLookup);
+      const route = routeLookup.candidate!;
+
       expect(route).toBeDefined();
 
       await route(expectedProps);
@@ -138,9 +149,11 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...baseCallParams,
         path: '/with-validator',
       });
-      const expectedProps = fakeCallerProps(event);
 
-      const route = resolveRoute(event, routes)!;
+      const routeLookup = resolveTypeSafeApiRoute(event, routes);
+      const expectedProps = fakeCallerProps(event, routeLookup);
+      const route = routeLookup.candidate!;
+
       expect(route).toBeDefined();
 
       await route(expectedProps);
@@ -159,7 +172,9 @@ describe('type safe HTTP route resolver function tests:', () => {
         path: '/with-path-params/no-validator/123/comments/456',
       });
 
-      const route = resolveRoute(event, routes)!;
+      const routeLookup = resolveTypeSafeApiRoute(event, routes);
+      const route = routeLookup.candidate;
+
       expect(route).toBeUndefined();
     });
     test('should pass expected parameters to validator', async () => {
@@ -167,12 +182,13 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...baseCallParams,
         path: '/with-path-params/with-validator-all-required/123/comments/456',
       });
-      const expectedProps = fakeCallerProps(event);
+      const routeLookup = resolveTypeSafeApiRoute(event, routes);
+      const expectedProps = fakeCallerProps(event, routeLookup);
+      const route = routeLookup.candidate!;
 
-      const route = resolveRoute(event, routes)!;
       expect(route).toBeDefined();
 
-      await route(expectedProps);
+      await route({ ...expectedProps, routeLookup });
       expect(inspected).toHaveBeenCalledWith({
         ...expectedProps,
         validated: {
@@ -186,12 +202,14 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...baseCallParams,
         path: '/with-path-params/with-validator-one-required/123',
       });
-      const expectedProps = fakeCallerProps(event);
 
-      const route = resolveRoute(event, routes)!;
+      const routeLookup = resolveTypeSafeApiRoute(event, routes);
+      const expectedProps = fakeCallerProps(event, routeLookup);
+      const route = routeLookup.candidate!;
+
       expect(route).toBeDefined();
 
-      await route(expectedProps);
+      await route({ ...expectedProps, routeLookup });
       expect(inspected).toHaveBeenCalledWith({
         ...expectedProps,
         validated: {
@@ -205,9 +223,11 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...baseCallParams,
         path: '/with-path-params/with-validator-optional-wrapped/123',
       });
-      const expectedProps1 = fakeCallerProps(event1);
 
-      const route1 = resolveRoute(event1, routes)!;
+      const routeLookup1 = resolveTypeSafeApiRoute(event1, routes);
+      const expectedProps1 = fakeCallerProps(event1, routeLookup1);
+      const route1 = routeLookup1.candidate!;
+
       expect(route1).toBeDefined();
 
       await route1(expectedProps1);
@@ -223,18 +243,22 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...baseCallParams,
         path: '/with-path-params/with-validator-optional-wrapped',
       });
-      const expectedProps2 = fakeCallerProps(event2);
 
-      const route2 = resolveRoute(event2, routes)!;
+      const routeLookup2 = resolveTypeSafeApiRoute(event2, routes);
+      const expectedProps2 = fakeCallerProps(event2, routeLookup2);
+      const route2 = routeLookup2.candidate!;
+
       expect(route2).toBeDefined();
 
       await route2(expectedProps2);
-      expect(inspected).toHaveBeenCalledWith({
-        ...expectedProps2,
-        validated: {
-          qsp: { foo: 'bar' },
-        },
-      });
+      expect(inspected).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...expectedProps2,
+          validated: {
+            qsp: { foo: 'bar' },
+          },
+        })
+      );
     });
   });
 });

@@ -2,12 +2,25 @@ import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 
 import type {
   ApiHandlerReturn,
+  HttpRoute,
   HttpRouteFunction,
   TypedApiRouteConfig,
 } from '../../handlers/index.js';
-import type { BaseApiRouteProps } from '../../index.js';
+import type { BaseApiRouteProps, HttpVerbs } from '../../index.js';
 
 import { isSafeKey } from '../../index.js';
+
+export type TypeSafeApiRouteInfo =
+  | {
+      adjacent: HttpRoute;
+      candidate: HttpRouteFunction;
+      formattedParams: (string | undefined)[];
+      params: string[];
+      path: string[];
+    }
+  | {
+      candidate: undefined;
+    };
 
 /**
  * Resolve a route from an API Gateway event
@@ -15,18 +28,27 @@ import { isSafeKey } from '../../index.js';
  * @param routes The routes object to resolve from
  * @returns The route handler function, or undefined if no route was found
  */
-export function resolveRoute(
+export function resolveTypeSafeApiRoute(
   event: APIGatewayProxyEventV2,
   routes: TypedApiRouteConfig
-): HttpRouteFunction | undefined {
+): TypeSafeApiRouteInfo {
   const rawPath = event.rawPath;
   const method = event.requestContext.http.method.toLowerCase();
   const slugs = rawPath.split('/').filter((s) => s.length > 0);
 
-  if (slugs.some((item) => !isSafeKey(item))) return;
+  if (slugs.some((item) => !isSafeKey(item))) return { candidate: undefined };
   if (!slugs.length) {
     // eslint-disable-next-line security/detect-object-injection
-    return routes[method] as HttpRouteFunction | undefined;
+    const route = routes[method] as HttpRouteFunction | undefined;
+
+    if (!route) return { candidate: undefined };
+    return {
+      adjacent: getAdjacentRoutes(routes),
+      candidate: route as HttpRouteFunction,
+      formattedParams: [],
+      params: [],
+      path: slugs,
+    };
   }
 
   const params = [] as string[];
@@ -49,41 +71,61 @@ export function resolveRoute(
       // i.e.: tuple([string(), optional(string()), optional(string())]) would
       // fail if only one param was passed. Will push undefined to the end of
       // the array to make it happy.
-      for (let i = params.length; i < maxParams; i++) {
-        params.push(undefined!);
-      }
+      for (let i = params.length; i < maxParams; i++) params.push(undefined!);
 
       // Hack to pass this info back to the validator function
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (event as Record<string, any>)['_interpretedPathParams'] = params;
-      return possibleRoute;
+
+      if (typeof possibleRoute === 'function') {
+        // remove the last element of the slugs array in a copy of the array
+        const otherRoutes = slugs.slice(0, slugs.length - 1);
+        const adjacentRoutes = getRoute(
+          routes,
+          otherRoutes
+        ) as unknown as TypedApiRouteConfig;
+
+        return {
+          adjacent: getAdjacentRoutes(adjacentRoutes),
+          candidate: possibleRoute,
+          formattedParams: params,
+          params: params.filter((p) => !!p),
+          path: slugs,
+        };
+      }
+
+      return { candidate: undefined };
     }
     // Handle standard route
     else if (possibleRoute && params.length === 0) {
-      return possibleRoute;
+      return {
+        adjacent: getAdjacentRoutes(routes),
+        candidate: possibleRoute,
+        formattedParams: [],
+        params: [],
+        path: slugs,
+      };
     }
 
     const removed = slugs.splice(slugs.length - 2, 1)[0];
     params.unshift(removed);
   }
+
+  return { candidate: undefined };
 }
 
-/* 
-
-// Disallow any route that could be used to break the server
-  if (slugs.some((item) => !isSafeKey(item))) return;
-
-  slugs.push(requestContext.http.method.toLowerCase());
-
-  const route = getRoute(routes, slugs);
-
-  // If the route is typed, resolve with path parameters
-  if (route && route.typed) {
-    console.log('we here!', route.pathParams);
-  }
-
-  return route;
-*/
+/**
+ * Get the adjacent routes from a routes object
+ * @param routes The routes object to get adjacent routes from
+ * @returns The surrounding verbs for the specified route
+ */
+function getAdjacentRoutes(routes: TypedApiRouteConfig) {
+  return Object.entries(routes).reduce((acc, [key, value]) => {
+    if (typeof value !== 'function') return acc;
+    acc[key as Lowercase<HttpVerbs>] = value;
+    return acc;
+  }, {} as HttpRoute);
+}
 
 /**
  * Recursively resolve a route from a path

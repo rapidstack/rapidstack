@@ -4,9 +4,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup && tsc",
     "test": "vitest",
-    "build": "tsc --noEmit && tsup",
-    "build:watch": "tsup --watch"
+    "watch": "tsc --watch"
   },
   "exports": {
     ".": {
@@ -31,6 +31,7 @@
     "!**/tests/*.ts.map"
   ],
   "dependencies": {
-    "pino": "8.17.1"
+    "pino": "~8.17.1",
+    "valibot": "~0.24.1"
   }
 }

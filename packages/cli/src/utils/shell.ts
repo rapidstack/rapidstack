@@ -40,11 +40,8 @@ export async function shell(params: {
     ) {
       child.on('error', reject);
       child.on('exit', (code) => {
-        if (code === 0) {
-          resolve({ stderr, stdout });
-        } else {
-          reject(new Error(`Process exited with code ${code}`));
-        }
+        if (code === 0) resolve({ stderr, stdout });
+        reject(new Error(`Process exited with code ${code}`));
       });
     } else {
       child.stdout.on('data', (data) => {
@@ -55,8 +52,11 @@ export async function shell(params: {
         stderr += data;
       });
 
-      child.on('error', () => resolve({ stderr, stdout }));
-      child.on('exit', () => resolve({ stderr, stdout }));
+      child.on('error', () => reject(stderr));
+      child.on('exit', (code) => {
+        if (code === 0) resolve({ stderr, stdout });
+        reject(new Error(JSON.stringify({ stderr, stdout })));
+      });
     }
   });
 }

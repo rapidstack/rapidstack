@@ -7,5 +7,11 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
     },
     name: '@rapidstack/lambda',
+    typecheck: {
+      checker: 'tsc',
+      enabled: true,
+      include: ['**/*.type.test.ts'],
+      tsconfig: 'tsconfig.json',
+    },
   },
 });

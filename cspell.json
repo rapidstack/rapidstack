@@ -1,25 +1,33 @@
 {
-  "dictionaries": [
-    "typescript"
-  ],
+  "dictionaries": ["typescript"],
   "ignorePaths": [
-    "./coverage*",
+    "coverage",
     ".github",
     "dist",
     "node_modules",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    "testing.ts"
   ],
   "words": [
     "codespace",
+    "gistcomment",
     "jetbrains",
+    "KHTML",
     "Millis",
     "npmignore",
+    "OWASP",
+    "Picklist",
     "pino",
+    "PROPFIND",
     "qodana",
     "quickstart",
     "rapidstack",
     "sarif",
+    "SHTTP",
     "tsup",
+    "typecheck",
+    "Vali",
+    "valibot",
     "vitest",
     "wontfix"
   ]

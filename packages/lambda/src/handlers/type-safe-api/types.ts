@@ -69,7 +69,7 @@ export type TypeSafeApiHandlerHooks = {
    * request lifecycle.
    * @returns A valid API handler response that gracefully handles the error.
    */
-  onError?: (params: OnErrorHookProps) => Promise<ApiHandlerReturn>;
+  onError: (params: OnErrorHookProps) => Promise<ApiHandlerReturn>;
   /**
    * If the lambda is configured to be a "hot function", this routine is called
    * to handle resources that need to be kept warm.
@@ -82,14 +82,14 @@ export type TypeSafeApiHandlerHooks = {
    * @param params.cache The cache supplied from the toolkit.
    * @returns void.
    */
-  onHotFunctionTrigger?: (params: CommonHookUtils) => Promise<void>;
+  onHotFunctionTrigger: (params: CommonHookUtils) => Promise<void>;
   /**
    * A function to run right before the Lambda container calls SIGTERM on the
    * node process. Can be used to safely wind down any resources that need to be
    * shut down before the process is terminated.
    * @returns void.
    */
-  onLambdaShutdown?: () => Promise<void>;
+  onLambdaShutdown: () => Promise<void>;
   /**
    * A function to run after the main lambda handler function is called.
    * Receives the result of the main function and can be used to transform the
@@ -109,7 +109,7 @@ export type TypeSafeApiHandlerHooks = {
    * request lifecycle.
    * @returns The expected return type shape for the lambda.
    */
-  onRequestEnd?: (
+  onRequestEnd: (
     params: OnRequestEndHookProps
   ) => Promise<(() => APIGatewayProxyResultV2) | undefined>;
   /**
@@ -131,7 +131,7 @@ export type TypeSafeApiHandlerHooks = {
    * @returns A function that returns a valid API Gateway response object or
    * undefined.
    */
-  onRequestStart?: (
+  onRequestStart: (
     params: CommonHookProps & { routeLookup: TypeSafeApiRouteInfo }
   ) => Promise<(() => APIGatewayProxyResultV2) | void>;
 };

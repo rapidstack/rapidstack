@@ -11,13 +11,13 @@ type RequestHooks<Event, Return> = {
   context: Context;
   event: Event;
   logger: ILogger;
-  onError: GenericHandlerWrapperOptions<Event, Return, any>['onError'];
-  onRequestEnd: GenericHandlerWrapperOptions<
+  onError?: GenericHandlerWrapperOptions<Event, Return, any>['onError'];
+  onRequestEnd?: GenericHandlerWrapperOptions<
     Event,
     Return,
     any
   >['onRequestEnd'];
-  onRequestStart: GenericHandlerWrapperOptions<
+  onRequestStart?: GenericHandlerWrapperOptions<
     Event,
     Return,
     any

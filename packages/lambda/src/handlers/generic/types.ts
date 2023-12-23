@@ -45,7 +45,7 @@ export type GenericHandlerWrapperOptions<
    * @param params.cache The cache supplied from the toolkit.
    * @returns void
    */
-  onColdStart?: (params: AmbiguousEventHookProps<Event>) => Promise<void>;
+  onColdStart: (params: AmbiguousEventHookProps<Event>) => Promise<void>;
   /**
    * If an error is thrown in the runnerFunction, pre-request, or post-request
    * hooks, this function, if supplied, will be called to handle the error.
@@ -57,7 +57,7 @@ export type GenericHandlerWrapperOptions<
    * @param params.cache The cache supplied from the toolkit.
    * @returns The expected return type shape for the lambda.
    */
-  onError?: (params: OnErrorHookProps<Event>) => Promise<Return>;
+  onError: (params: OnErrorHookProps<Event>) => Promise<Return>;
   /**
    * If the lambda is configured to be a "hot function", this routine is called
    * to handle resources that need to be kept warm.
@@ -70,14 +70,14 @@ export type GenericHandlerWrapperOptions<
    * @param params.cache The cache supplied from the toolkit.
    * @returns void.
    */
-  onHotFunctionTrigger?: (params: CommonHookUtils) => Promise<void>;
+  onHotFunctionTrigger: (params: CommonHookUtils) => Promise<void>;
   /**
    * A function to run right before the Lambda container calls SIGTERM on the
    * node process. Can be used to safely wind down any resources that need to be
    * shut down before the process is terminated.
    * @returns void.
    */
-  onLambdaShutdown?: () => Promise<void>;
+  onLambdaShutdown: () => Promise<void>;
   /**
    * A function to run after the main lambda handler function is called.
    * Receives the result of the main function and can be used to transform the
@@ -94,7 +94,7 @@ export type GenericHandlerWrapperOptions<
    * @param params.event The event object passed to the lambda.
    * @returns The expected return type shape for the lambda.
    */
-  onRequestEnd?: (
+  onRequestEnd: (
     params: OnRequestEndHookProps<Event, Return>
   ) => Promise<(() => Return) | void>;
   /**
@@ -112,7 +112,7 @@ export type GenericHandlerWrapperOptions<
    * @param params.event The ambiguous event object passed to the lambda.
    * @returns The expected return type shape for the lambda.
    */
-  onRequestStart?: (
+  onRequestStart: (
     params: AmbiguousEventHookProps<Event>
   ) => Promise<(() => Return) | ExtraParams>;
 };

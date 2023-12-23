@@ -12,7 +12,7 @@ import type {
   TypedApiRouteConfig,
 } from './types.js';
 
-import { HttpError } from '../../api/http-errors.js';
+import { HttpError } from '../../api/index.js';
 import {
   EnvKeys,
   HOT_FUNCTION_TRIGGER,

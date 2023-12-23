@@ -20,9 +20,9 @@ import {
 import { PerformanceKeys, markRouteEnd, markRouteStart } from '../../index.js';
 
 type RequestHooks = {
-  onError: TypeSafeApiHandlerHooks['onError'];
-  onRequestEnd: TypeSafeApiHandlerHooks['onRequestEnd'];
-  onRequestStart: TypeSafeApiHandlerHooks['onRequestStart'];
+  onError?: TypeSafeApiHandlerHooks['onError'];
+  onRequestEnd?: TypeSafeApiHandlerHooks['onRequestEnd'];
+  onRequestStart?: TypeSafeApiHandlerHooks['onRequestStart'];
   utils: {
     cache: ICache;
     context: Context;

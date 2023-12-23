@@ -9,13 +9,13 @@
 
   - [ ] Clean up handler types
 
-- [ ] Clean up handler execution flow
+- [*] Clean up handler execution flow
 - [ ] Write tests for `responseContext`
 - [ ] Better typing on the `validate` function with its statics
 - [ ] Add `_runWithEscapeHatch` as a static method to the `validate()` return?
 - [ ] Add the routes to the handler args?
-- [ ] Remove some unused stuff that won't make it as a part of the MVP. Doc for later
-- [ ] Add meta info on the route chosen to the handler exe fn
-  - [ ] give the "neighborhood" of routes matched
-  - [ ] route path matched
-  - [ ] route path params
+- [*] Remove some unused stuff that won't make it as a part of the MVP. Doc for later
+- [*] Add meta info on the route chosen to the handler exe fn
+  - [*] give the "neighborhood" of routes matched
+  - [*] route path matched
+  - [*] route path params

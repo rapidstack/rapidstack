@@ -32,7 +32,7 @@ interface GenericHandlerReturn extends ICreatableReturn {
         logger: ILogger;
       } & Extra
     ) => Promise<Return>,
-    options?: GenericHandlerWrapperOptions<Event, Return, Extra>
+    options?: Partial<GenericHandlerWrapperOptions<Event, Return, Extra>>
   ): LambdaEntryPoint<Event, Return>;
 }
 

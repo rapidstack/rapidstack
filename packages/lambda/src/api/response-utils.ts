@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Context } from 'aws-lambda';
+import type { APIGatewayProxyResultV2, Context } from 'aws-lambda';
 
+import type { HttpCodes, ResponseContext } from '../index.js';
 import type {
   ApiErrorResponseDev,
   ApiErrorResponseNoDev,
@@ -17,6 +18,84 @@ import {
 } from '../index.js';
 import { HttpErrorExplanations } from './constants.js';
 import { HttpError, HttpValidationError } from './http-errors.js';
+
+/**
+ * Builds an APIGatewayProxyResultV2 from the result object and response context
+ * object.
+ * @param result the result object from the route handler function
+ * @param responseContext the response context object that originates from the
+ * handler
+ * @returns an APIGatewayProxyResultV2
+ */
+export function makeApiGatewayResponse(
+  result: ApiHandlerReturn,
+  responseContext: ResponseContext & {
+    _conclusion: 'failure' | 'success';
+    _statusCode: HttpCodes;
+  }
+): APIGatewayProxyResultV2 {
+  const response: APIGatewayProxyResultV2 = {
+    body: JSON.stringify(result.body),
+    headers: {
+      ...responseContext.headers,
+      ...result.headers,
+    },
+    statusCode: responseContext._statusCode,
+  };
+
+  response.cookies = buildCookiesFromObject({
+    ...responseContext.cookies,
+    ...result.cookies,
+  });
+
+  return response;
+}
+
+/**
+ * Builds an array of cookie strings from an object of cookies options.
+ * @param cookieObject an object of cookie options
+ * @returns an array of cookie strings
+ */
+export function buildCookiesFromObject(
+  cookieObject: ApiHandlerReturn['cookies']
+): string[] | undefined {
+  if (!cookieObject) return undefined;
+  if (Object.keys(cookieObject).length === 0) return undefined;
+
+  let cookieString = '';
+  const cookiesArray = [];
+  for (const cookie in cookieObject) {
+    // eslint-disable-next-line security/detect-object-injection
+    cookieString = `${cookie}=${cookieObject[cookie].value}`;
+
+    // eslint-disable-next-line security/detect-object-injection
+    if (cookieObject[cookie].options) {
+      const {
+        domain,
+        expiresUnix,
+        httpOnly,
+        maxAge,
+        path,
+        sameSite,
+        secure,
+        // eslint-disable-next-line security/detect-object-injection
+      } = cookieObject[cookie].options || {};
+
+      if (domain) cookieString += `; Domain=${domain}`;
+      if (expiresUnix)
+        cookieString += `; Expires=${new Date(expiresUnix).toUTCString()}`;
+      if (httpOnly) cookieString += `; HttpOnly`;
+      if (maxAge) cookieString += `; Max-Age=${maxAge}`;
+      if (path) cookieString += `; Path=${path}`;
+      if (sameSite) cookieString += `; SameSite=${sameSite}`;
+      if (secure) cookieString += `; Secure`;
+    }
+
+    cookiesArray.push(cookieString);
+  }
+
+  return cookiesArray;
+}
 
 /**
  * Formats a validation or other 4xx error response to the standard shape.

@@ -20,7 +20,7 @@
   "types": "./dist/index.d.ts",
   "devDependencies": {
     "@types/aws-lambda": "8.10.130",
-    "@types/node": "20.10.5",
+    "@types/node": "20.10.6",
     "vitest": "1.1.0"
   },
   "files": [
@@ -31,6 +31,6 @@
     "!**/tests/*.ts.map"
   ],
   "dependencies": {
-    "pino": "8.17.1"
+    "pino": "8.17.2"
   }
 }

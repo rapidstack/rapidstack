@@ -113,7 +113,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.3
+        uses: rapidstack/pr-label-semver-action@v1.3.4
         id: semver
         with:
           label-prefix: 'sv:'
@@ -215,7 +215,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.3
+        uses: rapidstack/pr-label-semver-action@v1.3.4
         id: semver
         with:
           label-prefix: 'sv:'
@@ -314,7 +314,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.3
+        uses: rapidstack/pr-label-semver-action@v1.3.4
         id: semver
         with:
           label-prefix: 'sv:'

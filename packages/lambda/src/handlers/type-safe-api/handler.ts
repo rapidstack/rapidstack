@@ -4,7 +4,10 @@ import type {
   APIGatewayProxyResultV2,
 } from 'aws-lambda';
 
-import type { HttpCodes } from '../../api/index.js';
+import type {
+  HttpCodes,
+  TypeSafeRouteResolverEventInfo,
+} from '../../api/index.js';
 import type {
   CreatableUtils,
   ICreatableConfig,
@@ -54,6 +57,7 @@ type PrivateResponseContext = ResponseContext & {
 
 export interface TypeSafeApiHandlerConfig extends ICreatableConfig {
   devMode?: true;
+  ignoredPathPrefixes?: `/${string}`[];
   name?: `${string}Handler`;
 }
 
@@ -83,6 +87,7 @@ export const TypeSafeApiHandler = (
       context,
       devMode: !!config?.devMode,
       event,
+      ignoredPathPrefixes: config?.ignoredPathPrefixes,
       logger,
       responseContext,
       routes,
@@ -152,8 +157,12 @@ export const TypeSafeApiHandler = (
       } as Parameters<typeof logger.summary>[0];
 
       if (!isHotTrigger && !isInvalidEvent) {
-        summary.route =
-          event.requestContext.domainName + event.requestContext.http.path;
+        summary.route = (event as TypeSafeRouteResolverEventInfo)
+          ._interpretedPath
+          ? `${event.requestContext.domainName}${
+              (event as TypeSafeRouteResolverEventInfo)._interpretedPath
+            } (interpreted from: ${event.rawPath})`
+          : `${event.requestContext.domainName}${event.rawPath}`;
       }
 
       logger.summary(summary);

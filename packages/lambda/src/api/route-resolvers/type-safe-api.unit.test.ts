@@ -11,7 +11,7 @@ import type {
 import type { ICache, ILogger, TypeSafeApiRouteInfo } from '../../index.js';
 
 import { MockLambdaContext, makeMockApiEvent, validate } from '../../index.js';
-import { resolveTypeSafeApiRoute } from './basic.js';
+import { resolveTypeSafeApiRoute } from './type-safe-api.js';
 
 type Params = Parameters<HttpRouteFunction>[0];
 const SimpleValidator = {
@@ -44,6 +44,28 @@ beforeEach(() => {
   routes = {
     'no-validator': {
       get: async (params: Params) => {
+        inspected(params);
+        return { data: 'dummy-result' };
+      },
+    },
+    'with-nearby-verbs': {
+      delete: async (params: Params) => {
+        inspected(params);
+        return { data: 'dummy-result' };
+      },
+      get: async (params: Params) => {
+        inspected(params);
+        return { data: 'dummy-result' };
+      },
+      patch: async (params: Params) => {
+        inspected(params);
+        return { data: 'dummy-result' };
+      },
+      post: async (params: Params) => {
+        inspected(params);
+        return { data: 'dummy-result' };
+      },
+      put: async (params: Params) => {
         inspected(params);
         return { data: 'dummy-result' };
       },
@@ -114,7 +136,7 @@ describe('type safe HTTP route resolver function tests:', () => {
       });
 
       const routeLookup = resolveTypeSafeApiRoute(event, routes);
-      const route = routeLookup.candidate;
+      const route = routeLookup.matched;
       expect(route).toBeUndefined();
     });
     test('should resolve with route function for known route', async () => {
@@ -124,7 +146,7 @@ describe('type safe HTTP route resolver function tests:', () => {
       });
 
       const routeLookup = resolveTypeSafeApiRoute(event, routes);
-      const route = routeLookup.candidate;
+      const route = routeLookup.matched;
       expect(route).toBeDefined();
     });
   });
@@ -137,7 +159,7 @@ describe('type safe HTTP route resolver function tests:', () => {
 
       const routeLookup = resolveTypeSafeApiRoute(event, routes);
       const expectedProps = fakeCallerProps(event, routeLookup);
-      const route = routeLookup.candidate!;
+      const route = routeLookup.matched!;
 
       expect(route).toBeDefined();
 
@@ -152,7 +174,7 @@ describe('type safe HTTP route resolver function tests:', () => {
 
       const routeLookup = resolveTypeSafeApiRoute(event, routes);
       const expectedProps = fakeCallerProps(event, routeLookup);
-      const route = routeLookup.candidate!;
+      const route = routeLookup.matched!;
 
       expect(route).toBeDefined();
 
@@ -173,7 +195,7 @@ describe('type safe HTTP route resolver function tests:', () => {
       });
 
       const routeLookup = resolveTypeSafeApiRoute(event, routes);
-      const route = routeLookup.candidate;
+      const route = routeLookup.matched;
 
       expect(route).toBeUndefined();
     });
@@ -184,7 +206,7 @@ describe('type safe HTTP route resolver function tests:', () => {
       });
       const routeLookup = resolveTypeSafeApiRoute(event, routes);
       const expectedProps = fakeCallerProps(event, routeLookup);
-      const route = routeLookup.candidate!;
+      const route = routeLookup.matched!;
 
       expect(route).toBeDefined();
 
@@ -205,7 +227,7 @@ describe('type safe HTTP route resolver function tests:', () => {
 
       const routeLookup = resolveTypeSafeApiRoute(event, routes);
       const expectedProps = fakeCallerProps(event, routeLookup);
-      const route = routeLookup.candidate!;
+      const route = routeLookup.matched!;
 
       expect(route).toBeDefined();
 
@@ -226,7 +248,7 @@ describe('type safe HTTP route resolver function tests:', () => {
 
       const routeLookup1 = resolveTypeSafeApiRoute(event1, routes);
       const expectedProps1 = fakeCallerProps(event1, routeLookup1);
-      const route1 = routeLookup1.candidate!;
+      const route1 = routeLookup1.matched!;
 
       expect(route1).toBeDefined();
 
@@ -246,7 +268,7 @@ describe('type safe HTTP route resolver function tests:', () => {
 
       const routeLookup2 = resolveTypeSafeApiRoute(event2, routes);
       const expectedProps2 = fakeCallerProps(event2, routeLookup2);
-      const route2 = routeLookup2.candidate!;
+      const route2 = routeLookup2.matched!;
 
       expect(route2).toBeDefined();
 
@@ -259,6 +281,31 @@ describe('type safe HTTP route resolver function tests:', () => {
           },
         })
       );
+    });
+  });
+  describe('routing function other parameters:', () => {
+    test('should find nearby verbs', async () => {
+      const event = makeMockApiEvent({
+        ...baseCallParams,
+        path: '/with-nearby-verbs',
+      });
+
+      const { adjacent, matched } = resolveTypeSafeApiRoute(event, routes);
+
+      expect(adjacent).toEqual(routes['with-nearby-verbs']);
+      expect(matched).toEqual(routes['with-nearby-verbs'].get);
+    });
+    test('should provide adjacent params even if no match found', async () => {
+      const event = makeMockApiEvent({
+        ...baseCallParams,
+        method: 'POST',
+        path: '/no-validator',
+      });
+
+      const { adjacent, matched } = resolveTypeSafeApiRoute(event, routes);
+
+      expect(adjacent).toEqual(routes['no-validator']);
+      expect(matched).toBeUndefined();
     });
   });
 });

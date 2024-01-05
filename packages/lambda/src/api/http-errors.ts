@@ -92,7 +92,7 @@ export class HttpError extends Error {
         this.message = m;
 
         this.headers = {
-          'retry-after': (message as number).toString(),
+          'retry-after': `${message || 30}`,
         };
         break;
       }

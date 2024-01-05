@@ -4,7 +4,11 @@ import type {
   Context,
 } from 'aws-lambda';
 
-import type { ICache, ILogger } from '../../index.js';
+import type {
+  ICache,
+  ILogger,
+  TypeSafeRouteResolverEventInfo,
+} from '../../index.js';
 import type {
   ApiHandlerReturn,
   ResponseContext,
@@ -19,7 +23,7 @@ import {
 } from '../../api/index.js';
 import { PerformanceKeys, markRouteEnd, markRouteStart } from '../../index.js';
 
-type RequestHooks = {
+type RequestHooksProps = {
   onError?: TypeSafeApiHandlerHooks['onError'];
   onRequestEnd?: TypeSafeApiHandlerHooks['onRequestEnd'];
   onRequestStart?: TypeSafeApiHandlerHooks['onRequestStart'];
@@ -28,16 +32,32 @@ type RequestHooks = {
     context: Context;
     devMode: boolean;
     event: APIGatewayProxyEventV2;
+    ignoredPathPrefixes?: string[];
     logger: ILogger;
     responseContext: ResponseContext;
     routes: TypedApiRouteConfig;
   };
 };
 export const handleRequestHooks = async (
-  props: RequestHooks
+  props: RequestHooksProps
 ): Promise<(() => APIGatewayProxyResultV2) | ApiHandlerReturn> => {
   const { onError, onRequestEnd, onRequestStart, utils } = props;
   utils.logger.trace({ msg: 'Starting request execution.' });
+
+  if (utils.ignoredPathPrefixes) {
+    let _interpretedPath = utils.event.rawPath;
+
+    for (const prefix of utils.ignoredPathPrefixes) {
+      if (_interpretedPath.startsWith(prefix)) {
+        _interpretedPath = _interpretedPath.replace(prefix, '');
+        utils.logger.debug({ msg: 'Removed ignored path prefix.', prefix });
+        break; // only remove the first prefix matched
+      }
+    }
+
+    (utils.event as TypeSafeRouteResolverEventInfo)._interpretedPath =
+      _interpretedPath;
+  }
 
   const routeLookup = resolveTypeSafeApiRoute(utils.event, utils.routes);
 
@@ -59,11 +79,11 @@ export const handleRequestHooks = async (
       if (typeof maybeReturnEarly === 'function') return maybeReturnEarly;
     }
 
-    if (!routeLookup.candidate) throw new HttpError(404);
+    if (!routeLookup.matched) throw new HttpError(404);
     markRouteStart();
 
     result = await routeLookup
-      .candidate({
+      .matched({
         ...utils,
         logger: utils.logger.child({
           hierarchicalName: 'handler-hook:route',

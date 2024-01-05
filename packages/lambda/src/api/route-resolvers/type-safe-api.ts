@@ -1,25 +1,30 @@
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 
 import type {
-  ApiHandlerReturn,
   HttpRoute,
   HttpRouteFunction,
   TypedApiRouteConfig,
 } from '../../handlers/index.js';
-import type { BaseApiRouteProps, HttpVerbs } from '../../index.js';
+import type { HttpVerbs } from '../../index.js';
 
 import { isSafeKey } from '../../index.js';
 
+export type TypeSafeRouteResolverEventInfo = APIGatewayProxyEventV2 & {
+  _interpretedPath?: string;
+};
+
 export type TypeSafeApiRouteInfo =
   | {
-      adjacent: HttpRoute;
-      candidate: HttpRouteFunction;
+      adjacent?: HttpRoute;
       formattedParams: (string | undefined)[];
+      matched: HttpRouteFunction;
       params: string[];
       path: string[];
     }
   | {
-      candidate: undefined;
+      adjacent?: HttpRoute;
+      matched: undefined;
+      path: string[];
     };
 
 /**
@@ -29,40 +34,43 @@ export type TypeSafeApiRouteInfo =
  * @returns The route handler function, or undefined if no route was found
  */
 export function resolveTypeSafeApiRoute(
-  event: APIGatewayProxyEventV2,
+  event: TypeSafeRouteResolverEventInfo,
   routes: TypedApiRouteConfig
 ): TypeSafeApiRouteInfo {
   const rawPath = event.rawPath;
-  const method = event.requestContext.http.method.toLowerCase();
-  const slugs = rawPath.split('/').filter((s) => s.length > 0);
+  const method =
+    event.requestContext.http.method.toLowerCase() as Lowercase<HttpVerbs>;
+  const pathSegments = rawPath.split('/').filter((s) => s.length > 0);
 
-  if (slugs.some((item) => !isSafeKey(item))) return { candidate: undefined };
-  if (!slugs.length) {
+  if (pathSegments.some((segment) => !isSafeKey(segment)))
+    return { matched: undefined, path: pathSegments };
+  if (!pathSegments.length) {
     // eslint-disable-next-line security/detect-object-injection
-    const route = routes[method] as HttpRouteFunction | undefined;
+    const matched = routes[method] as HttpRouteFunction | undefined;
 
-    if (!route) return { candidate: undefined };
     return {
-      adjacent: getAdjacentRoutes(routes),
-      candidate: route as HttpRouteFunction,
+      adjacent: getAdjacentVerbs(routes),
       formattedParams: [],
+      matched,
       params: [],
-      path: slugs,
+      path: pathSegments,
     };
   }
 
   const params = [] as string[];
-  slugs.push(method);
 
-  while (slugs.length) {
-    const possibleRoute = getRoute(routes, [...slugs]);
+  while (pathSegments.length) {
+    const localRoutes = getRoute(routes, [...pathSegments]);
+
+    // eslint-disable-next-line security/detect-object-injection
+    const possibleRoute = localRoutes?.[method];
 
     // If a route with typed path params is found, validate the number of params
     if (possibleRoute?.typed && possibleRoute.pathParams) {
       const { maxParams, minParams } = possibleRoute.pathParams;
 
       if (params.length > maxParams || params.length < minParams) {
-        const removed = slugs.splice(slugs.length - 2, 1)[0];
+        const removed = pathSegments.splice(pathSegments.length - 1, 1)[0];
         params.unshift(removed);
         continue;
       }
@@ -77,41 +85,56 @@ export function resolveTypeSafeApiRoute(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (event as Record<string, any>)['_interpretedPathParams'] = params;
 
-      if (typeof possibleRoute === 'function') {
-        // remove the last element of the slugs array in a copy of the array
-        const otherRoutes = slugs.slice(0, slugs.length - 1);
-        const adjacentRoutes = getRoute(
-          routes,
-          otherRoutes
-        ) as unknown as TypedApiRouteConfig;
+      // if (typeof possibleRoute === 'function') {
+      //   // remove the last element of the slugs array in a copy of the array
+      //   const otherRoutes = pathSegments.slice(0, pathSegments.length - 1);
+      //   const adjacentRoutes = getRoute(
+      //     routes,
+      //     otherRoutes
+      //   ) as unknown as TypedApiRouteConfig;
 
-        return {
-          adjacent: getAdjacentRoutes(adjacentRoutes),
-          candidate: possibleRoute,
-          formattedParams: params,
-          params: params.filter((p) => !!p),
-          path: slugs,
-        };
-      }
+      //   return {
+      //     adjacent: getAdjacentVerbs(adjacentRoutes),
+      //     candidate: possibleRoute,
+      //     formattedParams: params,
+      //     params: params.filter((p) => !!p),
+      //     path: slugs,
+      //   };
+      // }
 
-      return { candidate: undefined };
+      return {
+        adjacent: getAdjacentVerbs(localRoutes),
+        formattedParams: params,
+        matched: possibleRoute,
+        params: params.filter((p) => !!p),
+        path: pathSegments,
+      };
     }
     // Handle standard route
     else if (possibleRoute && params.length === 0) {
       return {
-        adjacent: getAdjacentRoutes(routes),
-        candidate: possibleRoute,
+        adjacent: getAdjacentVerbs(localRoutes),
         formattedParams: [],
+        matched: possibleRoute,
         params: [],
-        path: slugs,
+        path: pathSegments,
+      };
+    } else if (localRoutes && !possibleRoute) {
+      return {
+        adjacent: getAdjacentVerbs(localRoutes),
+        matched: undefined,
+        path: pathSegments,
       };
     }
 
-    const removed = slugs.splice(slugs.length - 2, 1)[0];
+    const removed = pathSegments.splice(pathSegments.length - 1, 1)[0];
     params.unshift(removed);
   }
 
-  return { candidate: undefined };
+  return {
+    matched: undefined,
+    path: pathSegments,
+  };
 }
 
 /**
@@ -119,7 +142,8 @@ export function resolveTypeSafeApiRoute(
  * @param routes The routes object to get adjacent routes from
  * @returns The surrounding verbs for the specified route
  */
-function getAdjacentRoutes(routes: TypedApiRouteConfig) {
+function getAdjacentVerbs(routes: HttpRoute | TypedApiRouteConfig | undefined) {
+  if (!routes) return {};
   return Object.entries(routes).reduce((acc, [key, value]) => {
     if (typeof value !== 'function') return acc;
     acc[key as Lowercase<HttpVerbs>] = value;
@@ -138,7 +162,7 @@ function getAdjacentRoutes(routes: TypedApiRouteConfig) {
 function getRoute(
   route: TypedApiRouteConfig | undefined,
   path: string | string[]
-): HttpRouteFunction | undefined {
+): HttpRoute | undefined {
   const _path: string[] = Array.isArray(path) ? path : path.split('/');
 
   if (route && _path.length) {
@@ -149,7 +173,5 @@ function getRoute(
   }
 
   // TODO: this cast is not exactly accurate, but it's fine for now
-  return route as unknown as (
-    params: BaseApiRouteProps
-  ) => Promise<ApiHandlerReturn>;
+  return route as HttpRoute | undefined;
 }

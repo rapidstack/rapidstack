@@ -1,1 +1,1 @@
-export * from './basic.js';
+export * from './type-safe-api.js';

@@ -123,8 +123,8 @@ export interface LoggerEvents {
  */
 export class Logger implements ILogger {
   protected customLevels = { summary: 35 };
-  protected logger: P.Logger<{ customLevels: { summary: 35 } }>;
-  protected pinoOptions: P.LoggerOptions;
+  protected logger: P.Logger<'summary'>;
+  protected pinoOptions: P.LoggerOptions<'summary'>;
 
   /**
    * @param config the optional config object for the logger
@@ -153,9 +153,7 @@ export class Logger implements ILogger {
       timestamp: () => `, "@t": ${Date.now()}`,
     };
 
-    this.logger = pino(this.pinoOptions) as P.Logger<{
-      customLevels: { summary: 35 };
-    }>;
+    this.logger = pino<'summary'>(this.pinoOptions) as P.Logger<'summary'>;
   }
 
   public child(props: ChildLoggerProperties): Logger {
@@ -174,7 +172,7 @@ export class Logger implements ILogger {
   }
 
   public debug(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.debug(str);
     this.emitter?.emit('log', 'debug', str, this.pinoOptions.base);
   }
 
@@ -183,12 +181,12 @@ export class Logger implements ILogger {
   }
 
   public error(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.error(str);
     this.emitter?.emit('log', 'error', str, this.pinoOptions.base);
   }
 
   public fatal(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.fatal(str);
     this.emitter?.emit('log', 'fatal', str, this.pinoOptions.base);
   }
 
@@ -209,7 +207,7 @@ export class Logger implements ILogger {
   }
 
   public warn(str: LogMessage): void {
-    this.logger.info(str);
+    this.logger.warn(str);
     this.emitter?.emit('log', 'warn', str, this.pinoOptions.base);
   }
 }

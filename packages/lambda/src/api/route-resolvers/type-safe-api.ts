@@ -37,7 +37,7 @@ export function resolveTypeSafeApiRoute(
   event: TypeSafeRouteResolverEventInfo,
   routes: TypedApiRouteConfig
 ): TypeSafeApiRouteInfo {
-  const rawPath = event.rawPath;
+  const rawPath = event._interpretedPath ?? event.rawPath;
   const method =
     event.requestContext.http.method.toLowerCase() as Lowercase<HttpVerbs>;
   const pathSegments = rawPath.split('/').filter((s) => s.length > 0);

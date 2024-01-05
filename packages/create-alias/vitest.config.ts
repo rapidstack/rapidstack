@@ -8,5 +8,11 @@ export default defineConfig({
     },
     name: '@rapidstack/create (alias)',
     passWithNoTests: true,
+    typecheck: {
+      checker: 'tsc',
+      enabled: true,
+      include: ['**/*.type.test.ts'],
+      tsconfig: 'tsconfig.json',
+    },
   },
 });

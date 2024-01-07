@@ -157,12 +157,13 @@ export const TypeSafeApiHandler = (
       } as Parameters<typeof logger.summary>[0];
 
       if (!isHotTrigger && !isInvalidEvent) {
-        summary.route = (event as TypeSafeRouteResolverEventInfo)
-          ._interpretedPath
-          ? `${event.requestContext.domainName}${
-              (event as TypeSafeRouteResolverEventInfo)._interpretedPath
-            } (interpreted from: ${event.rawPath})`
-          : `${event.requestContext.domainName}${event.rawPath}`;
+        const domain =
+          event.headers['x-viewer-host'] ?? event.requestContext.domainName;
+        const path =
+          (event as TypeSafeRouteResolverEventInfo)._interpretedPath ??
+          event.rawPath;
+
+        summary.route = domain + path;
       }
 
       logger.summary(summary);

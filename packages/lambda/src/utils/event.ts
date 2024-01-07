@@ -33,6 +33,7 @@ export function createRequestContext(
       ids['apiRequestId'] = gatewayEvent.requestContext.requestId;
     }
 
+    ids['route'] = gatewayEvent.rawPath;
     ids['ip'] = gatewayEvent.requestContext.http.sourceIp;
   }
 

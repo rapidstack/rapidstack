@@ -7,11 +7,12 @@
   "scripts": {
     "build": "rapidstack build-all",
     "ci:lint": "eslint . .*js --max-warnings 0 --report-unused-disable-directives -f @microsoft/eslint-formatter-sarif -o eslint.sarif",
+    "clean": "rimraf packages/*/dist && rimraf packages/*/coverage",
     "lint": "pnpm run \"/^lint:.*/\"",
     "lint:code": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
     "lint:packages": "pnpm dedupe --check",
     "lint:spelling": "cspell \"**\" \".github/**/*\"",
-    "prep": "pnpm install && pnpm --filter \"@rapidstack/cli\" build --silent",
+    "prep": "pnpm install && pnpm --filter \"@rapidstack/cli\" build:init",
     "test": "vitest"
   },
   "devDependencies": {
@@ -35,6 +36,7 @@
     "eslint-plugin-security": "2.1.0",
     "eslint-plugin-vitest": "0.3.20",
     "prettier": "3.1.1",
+    "rimraf": "5.0.5",
     "tsup": "8.0.1",
     "typescript": "5.3.3",
     "vitest": "1.1.3"

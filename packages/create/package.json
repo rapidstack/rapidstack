@@ -4,8 +4,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "vitest",
-    "build": "tsc --noEmit && tsup"
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup && tsc",
+    "test": "vitest"
   },
   "bin": {
     "create-rapidstack": "./bin/create.mjs"

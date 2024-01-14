@@ -1,6 +1,6 @@
 import type {
   APIGatewayProxyEventV2,
-  APIGatewayProxyResultV2,
+  APIGatewayProxyStructuredResultV2,
   Context,
 } from 'aws-lambda';
 
@@ -40,7 +40,7 @@ type RequestHooksProps = {
 };
 export const handleRequestHooks = async (
   props: RequestHooksProps
-): Promise<(() => APIGatewayProxyResultV2) | ApiHandlerReturn> => {
+): Promise<(() => APIGatewayProxyStructuredResultV2) | ApiHandlerReturn> => {
   const { onError, onRequestEnd, onRequestStart, utils } = props;
   utils.logger.trace({ msg: 'Starting request execution.' });
 
@@ -65,7 +65,7 @@ export const handleRequestHooks = async (
 
   // The following are handled by the onError handler (critical path)
   try {
-    let maybeReturnEarly: (() => APIGatewayProxyResultV2) | void;
+    let maybeReturnEarly: (() => APIGatewayProxyStructuredResultV2) | void;
 
     if (onRequestStart) {
       maybeReturnEarly = await onRequestStart({

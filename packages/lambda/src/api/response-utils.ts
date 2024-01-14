@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { APIGatewayProxyResultV2, Context } from 'aws-lambda';
+import type { APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 
 import type { HttpCodes, ResponseContext } from '../index.js';
 import type {
@@ -20,12 +20,12 @@ import { HttpErrorExplanations } from './constants.js';
 import { HttpError, HttpValidationError } from './http-errors.js';
 
 /**
- * Builds an APIGatewayProxyResultV2 from the result object and response context
- * object.
+ * Builds an APIGatewayProxyStructuredResultV2 from the result object and
+ * response context object.
  * @param result the result object from the route handler function
  * @param responseContext the response context object that originates from the
  * handler
- * @returns an APIGatewayProxyResultV2
+ * @returns an APIGatewayProxyStructuredResultV2
  */
 export function makeApiGatewayResponse(
   result: ApiHandlerReturn,
@@ -33,8 +33,8 @@ export function makeApiGatewayResponse(
     _conclusion: 'failure' | 'success';
     _statusCode: HttpCodes;
   }
-): APIGatewayProxyResultV2 {
-  const response: APIGatewayProxyResultV2 = {
+): APIGatewayProxyStructuredResultV2 {
+  const response: APIGatewayProxyStructuredResultV2 = {
     body: JSON.stringify(result.body),
     headers: {
       ...responseContext.headers,

@@ -1,7 +1,4 @@
-import type {
-  APIGatewayProxyResultV2,
-  APIGatewayProxyStructuredResultV2,
-} from 'aws-lambda';
+import type { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -186,7 +183,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
             method: 'GET',
             path: '/error',
           })
-        )) as APIGatewayProxyResultV2;
+        )) as APIGatewayProxyStructuredResultV2;
 
         expect(loggerEvents.emit).toHaveBeenCalledWith('end');
         expect(res).toEqual({
@@ -255,7 +252,7 @@ describe('`TypeSafeApiHandler` tests:', () => {
           ({
             body: text,
             statusCode: 201,
-          }) as APIGatewayProxyResultV2;
+          }) as APIGatewayProxyStructuredResultV2;
 
         routes['get'] = (async () => {
           exeFn();
@@ -284,7 +281,10 @@ describe('`TypeSafeApiHandler` tests:', () => {
 
         const exeFn = vi.fn().mockResolvedValue('not seen');
         const onRequestEnd = async () => () =>
-          ({ body: text, statusCode: 202 }) satisfies APIGatewayProxyResultV2;
+          ({
+            body: text,
+            statusCode: 202,
+          }) satisfies APIGatewayProxyStructuredResultV2;
 
         routes['get'] = (async () => {
           exeFn();

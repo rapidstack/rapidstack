@@ -117,7 +117,12 @@ export const TypeSafeApiHandler = (
         utils: commonUtils,
       });
 
-      if (typeof result === 'function') return result();
+      if (typeof result === 'function') {
+        const hookResult = result();
+        responseContext._statusCode = (hookResult.statusCode ||
+          200) as HttpCodes;
+        return hookResult;
+      }
 
       // Format the result for Lambda's expected API response shape
       responseContext._statusCode = result.statusCode ?? 200;

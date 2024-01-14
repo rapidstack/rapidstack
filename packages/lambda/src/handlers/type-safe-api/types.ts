@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   APIGatewayProxyEventV2,
-  APIGatewayProxyResultV2,
+  APIGatewayProxyStructuredResultV2,
   Context,
 } from 'aws-lambda';
 
@@ -111,7 +111,7 @@ export type TypeSafeApiHandlerHooks = {
    */
   onRequestEnd: (
     params: OnRequestEndHookProps
-  ) => Promise<(() => APIGatewayProxyResultV2) | undefined>;
+  ) => Promise<(() => APIGatewayProxyStructuredResultV2) | undefined>;
   /**
    * A function to run before the main lambda handler function is called. Can be
    * used to transform and/or enrich the main function's parameters by returning
@@ -133,7 +133,7 @@ export type TypeSafeApiHandlerHooks = {
    */
   onRequestStart: (
     params: CommonHookProps & { routeLookup: TypeSafeApiRouteInfo }
-  ) => Promise<(() => APIGatewayProxyResultV2) | void>;
+  ) => Promise<(() => APIGatewayProxyStructuredResultV2) | void>;
 };
 
 export type BaseApiHandlerReturn<Data> = {

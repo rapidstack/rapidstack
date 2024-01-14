@@ -4,9 +4,10 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "build:init": "tsc --noEmit -p tsconfig.build.json && tsup --silent",
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup && tsc",
     "test": "vitest",
-    "build": "tsc --noEmit && tsup",
-    "build:watch": "tsup --watch"
+    "watch": "tsc --watch"
   },
   "exports": {
     ".": {
@@ -28,6 +29,7 @@
     "rapidstack": "./bin/rapidstack-cli.mjs"
   },
   "devDependencies": {
+    "@rapidstack/test-utils": "workspace:*",
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.7",
     "@types/node": "20.11.0",
@@ -44,11 +46,11 @@
     "!**/tests/*.ts.map"
   ],
   "dependencies": {
-    "chalk": "5.3.0",
-    "commander": "11.1.0",
-    "glob": "10.3.10",
-    "inquirer": "9.2.12",
-    "node-fetch": "3.3.2",
-    "ora": "8.0.1"
+    "chalk": "~5.3.0",
+    "commander": "~11.1.0",
+    "glob": "~10.3.10",
+    "inquirer": "~9.2.12",
+    "node-fetch": "~3.3.2",
+    "ora": "~8.0.1"
   }
 }

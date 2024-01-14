@@ -10,9 +10,8 @@ export async function action(): Promise<void> {
   // Build the first group of rapidstack packages that don't depend on each
   // other first.
   const firstGroup = [
-    'cli',
+    'test-utils',
     // 'types',
-    // 'test-utils'
   ];
   const firstGroupJobs = firstGroup.map(async (pkg) => {
     await buildPackage(repoRoot, pkg);
@@ -22,9 +21,7 @@ export async function action(): Promise<void> {
   // Build the second group of rapidstack packages that depend on the first
   // group.
   const secondGroup = [
-    'create',
-    'create-alias',
-    'create-plugin',
+    'cli',
     // 'cloud',
     'lambda',
     // 'react',
@@ -33,4 +30,12 @@ export async function action(): Promise<void> {
     await buildPackage(repoRoot, pkg);
   });
   await Promise.all(secondGroupJobs);
+
+  // Build the third group of rapidstack packages that depend on the second
+  // group.
+  const thirdGroup = ['create', 'create-alias', 'create-plugin'];
+  const thirdGroupJobs = thirdGroup.map(async (pkg) => {
+    await buildPackage(repoRoot, pkg);
+  });
+  await Promise.all(thirdGroupJobs);
 }

@@ -29,11 +29,11 @@ export const versionStr = `v${PKG_VERSION} ${chalk.gray.italic(
 )}`;
 
 export const reactStr =
-  'Adds a Vite React app to the project with the specified name. \
-  Can create several React apps by passing in multiple names separated \
-  by spaces.';
+  'Adds a Vite React app to the project with the specified name. ' +
+  'Can create several React apps by passing in multiple names separated ' +
+  'by spaces.';
 
 export const reactFailure = chalk.red(
-  'The react project cannot be named "base", "core", or "root"! \
-  It would conflict with existing npm workspace names.'
+  'The react project cannot be named "base", "core", or "root"! ' +
+    'It would conflict with existing npm workspace names.'
 );

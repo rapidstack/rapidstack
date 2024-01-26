@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/aws-lambda": "8.10.131",
     "@types/node": "20.11.6",
-    "vitest": "1.2.1"
+    "vitest": "1.2.2"
   },
   "files": [
     "dist/*",

@@ -1,7 +1,5 @@
 {
-  "dictionaries": [
-    "typescript"
-  ],
+  "dictionaries": ["typescript"],
   "ignorePaths": [
     "./coverage*",
     ".github",
@@ -11,6 +9,7 @@
   ],
   "words": [
     "codespace",
+    "devcontainer",
     "jetbrains",
     "Millis",
     "npmignore",

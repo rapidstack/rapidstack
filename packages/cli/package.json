@@ -30,8 +30,8 @@
   "devDependencies": {
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.7",
-    "@types/node": "20.11.5",
-    "vitest": "1.2.1"
+    "@types/node": "20.11.10",
+    "vitest": "1.2.2"
   },
   "files": [
     "dist/*",
@@ -47,7 +47,7 @@
     "chalk": "5.3.0",
     "commander": "11.1.0",
     "glob": "10.3.10",
-    "inquirer": "9.2.12",
+    "inquirer": "9.2.13",
     "node-fetch": "3.3.2",
     "ora": "8.0.1"
   }

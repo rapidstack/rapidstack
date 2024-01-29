@@ -1,25 +1,36 @@
 version: 2
 
 updates:
-  - package-ecosystem: "github-actions"
-    target-branch: "dependabot-staging"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    target-branch: 'dependabot-staging'
+    directory: '/'
     schedule:
-      interval: "daily"
+      interval: 'daily'
     open-pull-requests-limit: 100
     commit-message:
-      prefix: "(Action Update):"
+      prefix: '(Action Update):'
     reviewers:
-      - "@rapidstack/public-code-reviewers"
+      - '@rapidstack/public-code-reviewers'
 
-  - package-ecosystem: "npm"
-    target-branch: "dependabot-staging"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    target-branch: 'dependabot-staging'
+    directory: '/'
     schedule:
-      interval: "daily"
+      interval: 'daily'
     open-pull-requests-limit: 100
     commit-message:
-      prefix: "(Dep Update):"
-      prefix-development: "(Dev Dep Update):"
+      prefix: '(Dep Update):'
+      prefix-development: '(Dev Dep Update):'
     reviewers:
-      - "@rapidstack/public-code-reviewers"
+      - '@rapidstack/public-code-reviewers'
+
+  - package-ecosystem: 'devcontainers'
+    target-branch: 'dependabot-staging'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    open-pull-requests-limit: 100
+    commit-message:
+      prefix: '(Devcontainer Update):'
+    reviewers:
+      - '@rapidstack/public-code-reviewers'

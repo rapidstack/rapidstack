@@ -36,19 +36,54 @@ export function makeApiGatewayResponse(
 ): APIGatewayProxyStructuredResultV2 {
   const response: APIGatewayProxyStructuredResultV2 = {
     body: JSON.stringify(result.body),
-    headers: {
-      ...responseContext.headers,
-      ...result.headers,
-    },
-    statusCode: responseContext._statusCode,
   };
 
-  response.cookies = buildCookiesFromObject({
-    ...responseContext.cookies,
-    ...result.cookies,
-  });
+  const mergedResponse = mergeApiGatewayResponseWithContext(
+    response,
+    responseContext
+  );
 
-  return response;
+  return mergedResponse;
+}
+
+/**
+ * Merges a response object and a response context object into a single response
+ * @param response an APIGatewayProxyStructuredResultV2 object to merge
+ * @param responseContext a response context object to merge
+ * @returns an APIGatewayProxyStructuredResultV2
+ */
+export function mergeApiGatewayResponseWithContext(
+  response: APIGatewayProxyStructuredResultV2,
+  responseContext: ResponseContext & {
+    _conclusion: 'failure' | 'success';
+    _statusCode: HttpCodes;
+  }
+): APIGatewayProxyStructuredResultV2 {
+  const mergedResponse = Object.assign(
+    {
+      statusCode: responseContext._statusCode,
+    },
+    response
+  );
+
+  const mergedHeaders = {
+    ...responseContext.headers,
+    ...response.headers,
+  };
+  if (Object.keys(mergedHeaders).length > 0) {
+    mergedResponse.headers = mergedHeaders;
+  }
+
+  const mergedCookies = [
+    ...(response.cookies ?? []),
+    ...(buildCookiesFromObject(responseContext.cookies) ?? []),
+  ];
+
+  if (mergedCookies.length > 0) {
+    mergedResponse.cookies = mergedCookies;
+  }
+
+  return mergedResponse;
 }
 
 /**

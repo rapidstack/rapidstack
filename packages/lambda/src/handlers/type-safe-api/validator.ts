@@ -49,7 +49,7 @@ export type HttpRunnerFunction<
   event: APIGatewayProxyEventV2;
   logger: ILogger;
   responseContext: ResponseContext;
-  routeLookup: TypeSafeApiRouteInfo;
+  routeInfo: TypeSafeApiRouteInfo;
   validated: ValidatedSchemaOutput<Validated>;
 }) => Promise<ApiHandlerReturn<Return>>;
 
@@ -107,6 +107,12 @@ export type HttpRouteValidator = <
   headers: Record<string, string>;
   statusCode: number;
 }>;
+
+/**
+ * A simplified type to define what is needed for the `validate` function's
+ * schema parameter.
+ */
+export type ApiValidatorSchemas = Parameters<typeof validate>[0];
 
 /**
  * Validate a HTTP request route against a set of schema validations

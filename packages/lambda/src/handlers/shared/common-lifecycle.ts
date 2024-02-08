@@ -68,9 +68,10 @@ export const handleShutdownHook = (
     try {
       child.trace({ msg: 'Starting.' });
       await hook();
-      child.trace({ msg: 'Finished.' });
     } catch (err) {
-      child.fatal({ err, msg: 'An error occurred.' });
+      child.fatal({ err, msg: 'An error occurred in the SIGTERM handler.' });
+    } finally {
+      child.trace({ msg: 'Finished.' });
     }
   });
   process.env[EnvKeys.SHUTDOWN_REGISTERED] = 'true';

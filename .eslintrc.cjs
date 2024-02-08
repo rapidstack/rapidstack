@@ -111,6 +111,14 @@ const config = {
         ecmaVersion: 'latest',
       },
     },
+    {
+      files: ['**/*.md/*.{ts,tsx}'],
+      parser: '@typescript-eslint/parser',
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'off',
+        'perfectionist/sort-objects': 'off',
+      },
+    },
     // Disable certain fs security rules for the CLI, because they are intended
     {
       files: [

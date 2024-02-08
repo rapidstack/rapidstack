@@ -6,28 +6,13 @@ import type {
 } from 'aws-lambda';
 
 import type {
+  CookiesObject,
   HttpCodes,
   HttpVerbs,
   TypeSafeApiRouteInfo,
 } from '../../api/index.js';
 import type { ICache, ILogger } from '../../index.js';
 import type { TypeSafeApiRouteProps } from './validator.js';
-
-// TODO: move
-type CookiesObject = {
-  [key: string]: {
-    options?: {
-      domain?: string;
-      expiresUnix?: number;
-      httpOnly?: boolean;
-      maxAge?: number;
-      path?: string;
-      sameSite?: 'lax' | 'none' | 'strict';
-      secure?: boolean;
-    };
-    value: string;
-  };
-};
 
 export type ResponseContext = {
   cookies: CookiesObject;
@@ -132,26 +117,13 @@ export type TypeSafeApiHandlerHooks = {
    * undefined.
    */
   onRequestStart: (
-    params: CommonHookProps & { routeLookup: TypeSafeApiRouteInfo }
+    params: CommonHookProps & { routeInfo: TypeSafeApiRouteInfo }
   ) => Promise<(() => APIGatewayProxyStructuredResultV2) | void>;
 };
 
 export type BaseApiHandlerReturn<Data> = {
   body?: Data;
-  cookies?: {
-    [key: string]: {
-      options?: {
-        domain?: string;
-        expiresUnix?: number;
-        httpOnly?: boolean;
-        maxAge?: number;
-        path?: string;
-        sameSite?: 'lax' | 'none' | 'strict';
-        secure?: boolean;
-      };
-      value: string;
-    };
-  };
+  cookies?: CookiesObject;
   headers?: Record<Lowercase<string>, string>;
   statusCode?: HttpCodes;
 };
@@ -185,7 +157,7 @@ export type BaseApiRouteProps = {
   event: APIGatewayProxyEventV2;
   logger: ILogger;
   responseContext: ResponseContext;
-  routeLookup: TypeSafeApiRouteInfo;
+  routeInfo: TypeSafeApiRouteInfo;
 };
 
 export interface BareHttpRouteFunction<Return> {

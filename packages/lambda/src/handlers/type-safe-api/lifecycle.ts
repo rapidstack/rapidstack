@@ -59,7 +59,7 @@ export const handleRequestHooks = async (
       _interpretedPath;
   }
 
-  const routeLookup = resolveTypeSafeApiRoute(utils.event, utils.routes);
+  const routeInfo = resolveTypeSafeApiRoute(utils.event, utils.routes);
 
   let result: ApiHandlerReturn<unknown> = {};
 
@@ -73,22 +73,22 @@ export const handleRequestHooks = async (
         logger: utils.logger.child({
           hierarchicalName: 'handler-hook:onRequestStart',
         }),
-        routeLookup,
+        routeInfo,
       });
 
       if (typeof maybeReturnEarly === 'function') return maybeReturnEarly;
     }
 
-    if (!routeLookup.matched) throw new HttpError(404);
+    if (!routeInfo.matched) throw new HttpError(404);
     markRouteStart();
 
-    result = await routeLookup
+    result = await routeInfo
       .matched({
         ...utils,
         logger: utils.logger.child({
           hierarchicalName: 'handler-hook:route',
         }),
-        routeLookup,
+        routeInfo,
       })
       .catch((err) => {
         performance.mark(PerformanceKeys.ROUTE_END);

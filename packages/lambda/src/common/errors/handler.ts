@@ -1,13 +1,13 @@
 /**
  * An error to be thrown if a lambda handler internally fails in execution.
- * _(to be implemented in custom handlers)_
+ * _(To be implemented in custom handlers)_
  */
 export class HandlerExecuteError extends Error {
   /**
    * @param message the message to be displayed with the error
    */
   constructor(message: string) {
-    super(`${message}`);
+    super(message);
     this.name = 'HandlerExecuteError';
   }
 }

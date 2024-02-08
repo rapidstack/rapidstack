@@ -16,6 +16,7 @@ export type TypeSafeRouteResolverEventInfo = APIGatewayProxyEventV2 & {
 export type TypeSafeApiRouteInfo =
   | {
       adjacent?: HttpRoute;
+      all: TypedApiRouteConfig;
       formattedParams: (string | undefined)[];
       matched: HttpRouteFunction;
       params: string[];
@@ -23,6 +24,7 @@ export type TypeSafeApiRouteInfo =
     }
   | {
       adjacent?: HttpRoute;
+      all: TypedApiRouteConfig;
       matched: undefined;
       path: string[];
     };
@@ -43,13 +45,14 @@ export function resolveTypeSafeApiRoute(
   const pathSegments = rawPath.split('/').filter((s) => s.length > 0);
 
   if (pathSegments.some((segment) => !isSafeKey(segment)))
-    return { matched: undefined, path: pathSegments };
+    return { all: routes, matched: undefined, path: pathSegments };
   if (!pathSegments.length) {
     // eslint-disable-next-line security/detect-object-injection
     const matched = routes[method] as HttpRouteFunction | undefined;
 
     return {
       adjacent: getAdjacentVerbs(routes),
+      all: routes,
       formattedParams: [],
       matched,
       params: [],
@@ -85,25 +88,9 @@ export function resolveTypeSafeApiRoute(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (event as Record<string, any>)['_interpretedPathParams'] = params;
 
-      // if (typeof possibleRoute === 'function') {
-      //   // remove the last element of the slugs array in a copy of the array
-      //   const otherRoutes = pathSegments.slice(0, pathSegments.length - 1);
-      //   const adjacentRoutes = getRoute(
-      //     routes,
-      //     otherRoutes
-      //   ) as unknown as TypedApiRouteConfig;
-
-      //   return {
-      //     adjacent: getAdjacentVerbs(adjacentRoutes),
-      //     candidate: possibleRoute,
-      //     formattedParams: params,
-      //     params: params.filter((p) => !!p),
-      //     path: slugs,
-      //   };
-      // }
-
       return {
         adjacent: getAdjacentVerbs(localRoutes),
+        all: routes,
         formattedParams: params,
         matched: possibleRoute,
         params: params.filter((p) => !!p),
@@ -114,6 +101,7 @@ export function resolveTypeSafeApiRoute(
     else if (possibleRoute && params.length === 0) {
       return {
         adjacent: getAdjacentVerbs(localRoutes),
+        all: routes,
         formattedParams: [],
         matched: possibleRoute,
         params: [],
@@ -122,6 +110,7 @@ export function resolveTypeSafeApiRoute(
     } else if (localRoutes && !possibleRoute) {
       return {
         adjacent: getAdjacentVerbs(localRoutes),
+        all: routes,
         matched: undefined,
         path: pathSegments,
       };
@@ -132,6 +121,7 @@ export function resolveTypeSafeApiRoute(
   }
 
   return {
+    all: routes,
     matched: undefined,
     path: pathSegments,
   };

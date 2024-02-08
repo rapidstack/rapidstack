@@ -24,7 +24,7 @@ let routes: TypedApiRouteConfig;
 let inspected: ReturnType<typeof vi.fn>;
 const fakeCallerProps = (
   event: APIGatewayProxyEventV2,
-  routeLookup: TypeSafeApiRouteInfo
+  routeInfo: TypeSafeApiRouteInfo
 ) => ({
   cache: 'cache' as unknown as ICache,
   context: MockLambdaContext,
@@ -32,7 +32,7 @@ const fakeCallerProps = (
   event,
   logger: 'logger' as unknown as ILogger,
   responseContext: 'responseContext' as unknown as ResponseContext,
-  routeLookup,
+  routeInfo,
 });
 const baseCallParams = {
   method: 'GET',
@@ -204,13 +204,13 @@ describe('type safe HTTP route resolver function tests:', () => {
         ...baseCallParams,
         path: '/with-path-params/with-validator-all-required/123/comments/456',
       });
-      const routeLookup = resolveTypeSafeApiRoute(event, routes);
-      const expectedProps = fakeCallerProps(event, routeLookup);
-      const route = routeLookup.matched!;
+      const routeInfo = resolveTypeSafeApiRoute(event, routes);
+      const expectedProps = fakeCallerProps(event, routeInfo);
+      const route = routeInfo.matched!;
 
       expect(route).toBeDefined();
 
-      await route({ ...expectedProps, routeLookup });
+      await route({ ...expectedProps, routeInfo });
       expect(inspected).toHaveBeenCalledWith({
         ...expectedProps,
         validated: {
@@ -225,13 +225,13 @@ describe('type safe HTTP route resolver function tests:', () => {
         path: '/with-path-params/with-validator-one-required/123',
       });
 
-      const routeLookup = resolveTypeSafeApiRoute(event, routes);
-      const expectedProps = fakeCallerProps(event, routeLookup);
-      const route = routeLookup.matched!;
+      const routeInfo = resolveTypeSafeApiRoute(event, routes);
+      const expectedProps = fakeCallerProps(event, routeInfo);
+      const route = routeInfo.matched!;
 
       expect(route).toBeDefined();
 
-      await route({ ...expectedProps, routeLookup });
+      await route({ ...expectedProps, routeInfo });
       expect(inspected).toHaveBeenCalledWith({
         ...expectedProps,
         validated: {

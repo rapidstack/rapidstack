@@ -25,6 +25,7 @@ import type { BaseApiRouteProps } from './types.js';
 import {
   default5xxErrorHandler,
   makeApiGatewayResponse,
+  mergeApiGatewayResponseWithContext,
 } from '../../api/index.js';
 import { HandlerExecuteError } from '../../common/index.js';
 import {
@@ -119,9 +120,7 @@ export const TypeSafeApiHandler = (
 
       if (typeof result === 'function') {
         const hookResult = result();
-        responseContext._statusCode = (hookResult.statusCode ||
-          200) as HttpCodes;
-        return hookResult;
+        return mergeApiGatewayResponseWithContext(hookResult, responseContext);
       }
 
       // Format the result for Lambda's expected API response shape

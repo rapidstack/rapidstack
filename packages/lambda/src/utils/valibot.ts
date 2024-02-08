@@ -318,17 +318,3 @@ export function isOptionalWrappedTuple(schema: ValibotSchema): boolean {
     return true;
   return false;
 }
-
-/**
- * Returns the TypeScript string representation of a schema
- * @param schema the schema (sync or async) to stringify
- * @param spaces the number of spaces to indent each line
- * @returns the string representation of a schema with each property on a new
- * line
- */
-// export async function getTsTypeString(
-//   schema: ValibotSchema,
-//   spaces = 2
-// ): Promise<string> {
-//   return JSON.stringify(schema, null, spaces);
-// }

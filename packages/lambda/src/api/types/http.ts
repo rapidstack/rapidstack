@@ -1,8 +1,7 @@
 /* eslint-disable perfectionist/sort-union-types */
 /* eslint-disable perfectionist/sort-object-types */
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
+import type { Simplify } from '../../index.js';
 
 export type Http100s = {
   Continue: 100;
@@ -131,3 +130,18 @@ export type HttpUpgradeHeaderOptions =
   | 'TLS/1.0'
   | 'HTTP/1.1'
   | string;
+
+export type CookiesObject = {
+  [key: string]: {
+    options?: {
+      domain?: string;
+      expiresUnix?: number;
+      httpOnly?: boolean;
+      maxAge?: number;
+      path?: string;
+      sameSite?: 'lax' | 'none' | 'strict';
+      secure?: boolean;
+    };
+    value: string;
+  };
+};

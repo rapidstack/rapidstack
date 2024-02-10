@@ -62,8 +62,7 @@ export function actionRunner(fn: (...args: any[]) => Promise<any>) {
 /**
  * An error to throw when the CLI encounters an error that should be handled
  * gracefully.
- * @param message The error message
- * @returns RapidstackCliError
+ * @param message The error message to display in the console
  */
 export class RapidstackCliError extends Error {
   constructor(message: string) {

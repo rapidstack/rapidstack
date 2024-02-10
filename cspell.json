@@ -1,7 +1,7 @@
 {
   "dictionaries": ["typescript"],
   "ignorePaths": [
-    "./coverage*",
+    "coverage",
     ".github",
     "dist",
     "node_modules",

@@ -10,7 +10,7 @@
     "lint": "pnpm run \"/^lint:.*/\"",
     "lint:code": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
     "lint:packages": "pnpm dedupe --check",
-    "lint:spelling": "cspell \"**\" \".github/**/*\"",
+    "lint:spelling": "cspell \"**\"",
     "prep": "pnpm install && pnpm --filter \"@rapidstack/cli\" build --silent",
     "test": "vitest"
   },

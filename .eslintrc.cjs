@@ -51,8 +51,6 @@ const config = {
     'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
     'max-depth': ['error', 4],
     'no-console': 'warn',
-    'indent': 'off',
-    'multiline-ternary': ['error', 'always-multiline'],
 
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [

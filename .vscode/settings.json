@@ -3,7 +3,7 @@
     "source.fixAll.eslint": "explicit"
   },
   "editor.tabSize": 2,
-  // "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // "editor.defaultFormatter": "esbenp.prettier-vscode", // See: https://github.com/rapidstack/rapidstack/pull/321
   "editor.formatOnSave": true,
   "editor.rulers": [
     { "column": 8, "color": "#ff000020" },

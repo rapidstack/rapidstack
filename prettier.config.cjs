@@ -264,4 +264,15 @@ module.exports = {
    * default: "false"
    */
   singleAttributePerLine: true,
+
+  /**
+   * Try prettier's new ternary formatting before it becomes the default
+   * behavior.
+   *
+   * Valid options:
+   * • true - Use curious ternaries, with the question mark after the condition.
+   * • false - Retain the default behavior of ternaries; keep question marks on
+   *   the same line as the consequent.
+   */
+  experimentalTernaries: false,
 };

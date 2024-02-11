@@ -32,8 +32,8 @@
     "@rapidstack/test-utils": "workspace:*",
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.7",
-    "@types/node": "20.11.0",
-    "vitest": "1.2.0"
+    "@types/node": "20.11.17",
+    "vitest": "1.2.2"
   },
   "files": [
     "dist/*",
@@ -47,9 +47,9 @@
   ],
   "dependencies": {
     "chalk": "~5.3.0",
-    "commander": "~11.1.0",
+    "commander": "~12.0.0",
     "glob": "~10.3.10",
-    "inquirer": "~9.2.12",
+    "inquirer": "~9.2.14",
     "node-fetch": "~3.3.2",
     "ora": "~8.0.1"
   }

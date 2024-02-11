@@ -19,9 +19,9 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "@types/aws-lambda": "8.10.131",
-    "@types/node": "20.11.0",
-    "vitest": "1.2.0"
+    "@types/aws-lambda": "8.10.133",
+    "@types/node": "20.11.17",
+    "vitest": "1.2.2"
   },
   "files": [
     "dist/*",
@@ -31,7 +31,7 @@
     "!**/tests/*.ts.map"
   ],
   "dependencies": {
-    "pino": "~8.17.2",
+    "pino": "~8.18.0",
     "valibot": "~0.24.1"
   }
 }

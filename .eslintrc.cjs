@@ -19,7 +19,6 @@ const config = {
   ],
   plugins: [
     '@typescript-eslint',
-    'prettier',
     'import',
     'perfectionist',
     'vitest',
@@ -30,13 +29,13 @@ const config = {
   ],
   extends: [
     'plugin:@typescript-eslint/recommended',
-    'plugin:prettier/recommended',
     'plugin:import/typescript',
     'plugin:perfectionist/recommended-natural',
     'plugin:vitest/recommended',
     'plugin:jsdoc/recommended-typescript',
     'plugin:regexp/recommended',
     'plugin:security/recommended-legacy',
+    'plugin:prettier/recommended',
   ],
   rules: {
     // Base ESlint Rules

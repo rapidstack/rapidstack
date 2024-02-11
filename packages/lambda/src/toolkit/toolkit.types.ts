@@ -36,27 +36,24 @@ export type Creatable<
   Return extends ICreatableReturn,
 > = ClassCreatable<Config, Return> | FunctionCreatable<Config, Return>;
 
-export type InferConfig<C extends Creatable<any, any>> = C extends Creatable<
-  infer Config,
-  any
->
-  ? Config
-  : never;
+export type InferConfig<C extends Creatable<any, any>> =
+  C extends Creatable<infer Config, any> ? Config : never;
 
 export type FactoryParams<
   Config extends ICreatableConfig,
   Return extends ICreatableReturn,
-> = Partial<InferConfig<Creatable<Config, Return>>> extends InferConfig<
-  Creatable<Config, Return>
->
-  ? [
-      tool: Creatable<Config, Return>,
-      options?: InferConfig<Creatable<Config, Return>>,
-    ]
-  : [
-      tool: Creatable<Config, Return>,
-      options: InferConfig<Creatable<Config, Return>>,
-    ];
+> =
+  Partial<InferConfig<Creatable<Config, Return>>> extends InferConfig<
+    Creatable<Config, Return>
+  >
+    ? [
+        tool: Creatable<Config, Return>,
+        options?: InferConfig<Creatable<Config, Return>>,
+      ]
+    : [
+        tool: Creatable<Config, Return>,
+        options: InferConfig<Creatable<Config, Return>>,
+      ];
 
 export type CreatableFactory = <
   Config extends ICreatableConfig,

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build:init": "tsc --noEmit -p tsconfig.build.json && tsup --silent",
+    "pre-build": "tsup",
     "build": "tsc --noEmit && tsup",
     "test": "vitest",
     "watch": "tsc --watch"

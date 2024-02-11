@@ -2,54 +2,52 @@
  * Note: This file requires a build before running.
  */
 
-import { cpSync, mkdtempSync, readFileSync, rmdirSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import {
+  mockShell,
+  setupTempDir,
+  tearDownTempDir,
+} from '@rapidstack/test-utils';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { shell } from '../../index.js';
-
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const cli = `node ${join(__dirname, '../../../bin/rapidstack-cli.mjs')}`;
 const cmd = `version-all`;
-const tempDirPathPrefix = join(tmpdir(), `version-all-e2e-${Date.now()}-`);
-const testTemplateDir = join(__dirname, 'test', 'assets');
+
+const testTemplateAssets = join(__dirname, 'test', 'assets.zip');
 let tempDir = '';
-
 beforeAll(async () => {
-  tempDir = mkdtempSync(tempDirPathPrefix);
-  cpSync(testTemplateDir, tempDir, { recursive: true });
+  tempDir = await setupTempDir(cmd, testTemplateAssets);
 });
-afterAll(async () => {
-  rmdirSync(tempDir, { recursive: true });
-});
+afterAll(async () => void tearDownTempDir(tempDir));
 
-describe(`${cmd} e2e tests:`, () => {
+describe(`${cmd} integration tests:`, () => {
   describe('fail cases', () => {
     test('should return error if no version is provided', async () => {
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd}`,
         dir: tempDir,
       });
+
       expect(stderr).toContain('error: missing required argument');
     });
     test('should return error if semver is invalid', async () => {
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} abc123`,
         dir: tempDir,
       });
+
       expect(stderr).toContain('Please use a valid semver format');
     });
   });
-
   describe('success cases', () => {
     test('should version all nested package.json `version` keys', async () => {
       const rootPkg = join(tempDir, 'package.json');
       const nested1Pkg = join(tempDir, 'nest1', 'package.json');
       const nested2Pkg = join(tempDir, 'nest1', 'nest2', 'package.json');
-
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} v1.2.3`,
         dir: tempDir,
       });
@@ -63,12 +61,10 @@ describe(`${cmd} e2e tests:`, () => {
       const rootPkg = join(tempDir, 'package.json');
       const nested1Pkg = join(tempDir, 'nest1', 'package.json');
       const nested2Pkg = join(tempDir, 'nest1', 'nest2', 'package.json');
-
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} v1.2.3`,
         dir: tempDir,
       });
-
       const output = {
         '@rapidstack/asterisk-dep': '1.2.3',
         '@rapidstack/versioned-dep': '1.2.3',
@@ -84,12 +80,10 @@ describe(`${cmd} e2e tests:`, () => {
       const rootPkg = join(tempDir, 'package.json');
       const nested1Pkg = join(tempDir, 'nest1', 'package.json');
       const nested2Pkg = join(tempDir, 'nest1', 'nest2', 'package.json');
-
-      const { stderr } = await shell({
+      const { stderr } = await mockShell({
         cmd: `${cli} ${cmd} v1.2.3`,
         dir: tempDir,
       });
-
       const output = {
         '@rapidstack/asterisk-dev': '1.2.3',
         '@rapidstack/versioned-dev': '1.2.3',

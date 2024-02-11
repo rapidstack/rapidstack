@@ -1,13 +1,13 @@
 /**
  * An error to be thrown if a lambda handler internally fails in execution.
- * _(to be implemented in custom handlers)_
+ * _(To be implemented in custom handlers)_
  */
 export class HandlerExecuteError extends Error {
   /**
    * @param message the message to be displayed with the error
    */
   constructor(message: string) {
-    super(`HandlerExecuteError: ${message}`);
+    super(message);
     this.name = 'HandlerExecuteError';
   }
 }
@@ -20,10 +20,7 @@ export class RouteNotFoundError extends Error {
    * @param route the route that was not found
    */
   constructor(route: string) {
-    super(
-      `RouteNotFoundError: A route handler matching the route [${route}] was \
-      not found.`
-    );
+    super(`A route handler matching the route [${route}] was not found.`);
     this.name = 'RouteNotFoundError';
   }
 }

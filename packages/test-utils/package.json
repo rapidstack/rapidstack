@@ -1,0 +1,36 @@
+{
+  "name": "@rapidstack/test-utils",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup && tsc",
+    "test": "vitest",
+    "watch": "tsc --watch"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "devDependencies": {
+    "@types/node": "20.10.5",
+    "@types/yauzl-promise": "2.1.4",
+    "vitest": "1.1.0",
+    "yauzl-promise": "4.0.0"
+  },
+  "files": [
+    "dist/*",
+    "bin/*",
+    "templates/*",
+    "!dist/local.*",
+    "!**/*.spec.*",
+    "!**/*.test.*",
+    "!**/tests/*.*",
+    "!**/tests/*.ts.map"
+  ]
+}

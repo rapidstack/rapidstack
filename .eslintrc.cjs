@@ -55,7 +55,7 @@ const config = {
     // Typescript ESlint Plugin Rules
     '@typescript-eslint/consistent-type-imports': [
       'error',
-      { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
     ],
     '@typescript-eslint/no-unused-vars': ['error', { caughtErrors: 'all' }],
     '@typescript-eslint/padding-line-between-statements': [
@@ -108,6 +108,14 @@ const config = {
         project: './tsconfig.common.json',
         sourceType: 'module',
         ecmaVersion: 'latest',
+      },
+    },
+    {
+      files: ['**/*.md/*.{ts,tsx}'],
+      parser: '@typescript-eslint/parser',
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'off',
+        'perfectionist/sort-objects': 'off',
       },
     },
     // Disable certain fs security rules for the CLI, because they are intended

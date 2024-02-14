@@ -11,6 +11,12 @@
 - [Lifecycle Hooks](#lifecycle-hooks)
   - [Hook List](#hook-list)
   - [Ideas/Concepts for Use](#ideasconcepts-for-use)
+- [Bells and Whistles](#bells-and-whistles)
+  - [Logging](#logging)
+  - [Development Mode](#development-mode)
+- [Future Features](#future-features)
+  - [Enhancements](#enhancements)
+  - [Standard Middleware Functions](#standard-middleware-functions)
 
 ## Overview
 
@@ -309,3 +315,38 @@ const hooks = {
   },
 };
 ```
+
+## Bells and Whistles
+
+## Future Features
+
+The base of the handler is complete and modifications will be smaller enhancements and a standard set of middleware functions to tie in with hooks.
+
+### Enhancements
+
+- The validator function would validate auth details if there are requirements for scope, user, etc.
+- Custom cookie encodings
+- Being able to pass in certain headers to cause debug actions (advanced logging, skipping internal cache, etc.)
+- A tRPC-like method for getting TypeScript definitions for the API using inferred types from the valibot schemas and handler returns:
+
+  ```ts
+  import type { MakeTypedApi } from '@rapidstack/lambda';
+
+  const routes = { /* your route definitions */ };
+  export type TypedApi = MakeTypedApi<typeof routes>;
+  //              ^ import into your frontend folder
+  ```
+
+### Standard Middleware Functions
+
+- OpenAPI route
+  - Would be added to the `onRequestStart` hook to intercept a set route, i.e.: `{base-url}/open-api` and return a webpage to:
+    - View and try API routes
+    - Download TypeScript types for each endpoint
+    - Download a postman collection of the API
+- CORS
+  - (this is handled with API Gateway, but can be configured for lambda urls)
+- Rate Limiting
+  - Would have a corresponding cloud construct to spin up a dynamo table and permissions for the lambda to access it
+- Auth handlers for Cognito, JWT, IAM, etc.
+- "API Linting" to ensure the API is following best practices. Violations would be sent to a SNS topic for further processing.

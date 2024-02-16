@@ -106,6 +106,7 @@ export function getApiHandlerPerformance(
 
   performance.clearMarks();
 
+  // TODO: wrong - should be clientUnix - gatewayUnix
   if (clientUnix) {
     result.clientLatencyDuration = +(lambdaStartTime - clientUnix).toPrecision(
       4

@@ -11,7 +11,7 @@
 - [Lifecycle Hooks](#lifecycle-hooks)
   - [Hook List](#hook-list)
   - [Ideas/Concepts for Use](#ideasconcepts-for-use)
-- [Bells and Whistles](#bells-and-whistles)
+- [Additional Features](#additional-features)
   - [Logging](#logging)
   - [Development Mode](#development-mode)
 - [Future Features](#future-features)
@@ -316,7 +316,141 @@ const hooks = {
 };
 ```
 
-## Bells and Whistles
+## Additional Features
+
+### Logging
+
+A Pino logger is integrated into the handler and is available in all lifecycle functions and the main route handler. Internally it offers a few standard logs for each request, outside of a few trace logs marking beginning and end of a request, there is a `summary` log to capture the gist of a request. This summary log level sits right above the `info` level, so for cases where you want to see all requests, but not all the details, you can set your log level to `summary` and still see the summary logs. The logs themselves look like this:
+
+```json
+{
+    "@l": "summary",
+    "@t": 1707616738922,
+    "@h": [
+        "toolkit:root",
+        "TypeSafeApiHandler (unnamed)"
+    ],
+    "@a": "app-name",
+    "@r": {
+        "lambdaRequestId": "b806ce96-46a3-45ec-bf73-583a0f1ea837",
+        "apiId": "scs3di1hl",
+        "apiRequestId": "S8t7Yhx3oAMEabQ=",
+        "route": "api/v1/hello",
+        "ip": "xx.xx.xx.xx",
+        "method": "GET",
+        "x-amzn-trace-id": "Root=1-65c829e2-5e25f0a97573c696267793db",
+        "x-amz-cf-id": "SCKbD3TaiZBscS3dI1hloMj6Cr7W75daSVZdtrekYsh7qa6A6elv8A=="
+    },
+    "@s": {
+        "conclusion": "success",
+        "statusCode": 200,
+        "serverPreprocessingDuration": 15.83,
+        "routeHandlerDuration": 1.745,
+        "serverPostprocessingDuration": 0.4158,
+        "duration": 17.99,
+        "gatewayLatencyDuration": 705,
+        "url": "example.com/v1/hello"
+    }
+}
+```
+
+Note that all keys to the logs begin with the `@` sigil. This serves as an identifier between standard log properties and properties you may log out yourself. Here is a breakdown of the log properties:
+
+- `@l`: The log level. This can be `trace`, `debug`, `info`, `summary`, `warn`, `error`, or `fatal`.
+- `@t`: UNIX timestamp of log event.
+- `@h`: The hierarchy of the logger. This is useful for debugging and can serve as a pseudo-stack that gets pushed to when a child logger is created.
+- `@a`: The application name. This is either set in the toolkit or is pulled from the env and is used to identify the application in the logs.
+- `@r`: The request context. This field will get populated with common tracing IDs from your event to aid in tracing requests that flow to your other services. Possible fields include:
+  - `lambdaRequestId`: The AWS Lambda request ID.
+  - `apiId`: The API Gateway ID*.
+  - `apiRequestId`: The API Gateway request ID*.
+  - `route`: The route that was hit.
+  - `ip`: The IP of the requester.
+  - `method`: The HTTP method of the request (with optional overrides applied with `x-http-method-override`).
+  - `x-amzn-trace-id`: The AWS trace ID.
+  - `x-request-id`: An optional source request ID passed from the client.
+  - `x-amz-cf-id`: An optional CloudFront request ID passed from the client, if running behind CloudFront.
+- `@s`: The run summary:
+  - `conclusion`: The conclusion of the request. This is always `success` if the handler was able to fulfill a request, no matter the status code. If an uncaught error occurs, this will be `error`. In such cases, status 500 will be sent back to the client.
+  - `statusCode`: The status code of the response.
+  - `url`: The interpreted URL of the request. Factoring in any path prefixes to ignore.
+  - `duration`: The duration from request received to response sent. Typically varies from the reported billed duration by an additional 1-3ms. (Standard property between all handler shape summary logs)
+  - API segment durations, provided to help identify sources of latency in your API. The key names are explained below.
+
+*Note: The `apiId` and `apiRequestId` exist for Lambda URLs as well, but are omitted as they aren't tied to any visible AWS infrastructure to trace back to.
+
+#### Summary Duration Breakdown
+
+A request lifecycle is broken down into these segments:
+
+1. Client sends request to server
+2. Gateway receives request from client
+3. Lambda receives request from gateway
+4. Handler processes route lookup and `onRequestStart` hook
+5. Handler processes route handler function
+6. Handler processes `onRequestEnd` and `onError` hooks
+7. Lambda sends response back to gateway
+8. Gateway sends response back to client
+9. Client receives response from server
+
+These segments are named in the logs as follows and are reported in milliseconds:
+
+- `clientLatencyDuration`*: The time difference between the client sending the request and the gateway receiving it. (Time difference between #1 - #2).
+- `gatewayLatencyDuration`: The time difference between API Gateway receiving the event (from its provided UNIX timestamp) to when the lambda started processing. (Time difference between #2 - #3)
+- `serverPreprocessingDuration`: The duration from when the lambda starts processing to when the route handler function is called. (Time encompassing #4)
+- `routeHandlerDuration`*: The duration from when the route handler function is called to when it returns. (Time encompassing #5)
+- `serverPostprocessingDuration`: The duration from when the route handler function returns to when the lambda starts sending the response. (Time encompassing #6)
+- `duration`: Total Lambda duration. (Time between #3 - #7)
+- `clientPerceivedDuration`*: The duration from the `x-debug-unix` to when the lambda sends back a response. (Time between #1 - #7)
+
+*Note: The `clientLatencyDuration` and `clientPerceivedDuration` are only available if the `x-debug-unix` header is present in the client request.
+
+### Development Mode
+
+While developing and testing API handlers, it can be useful to get immediate feedback on what server error occurred rather than having the API handler swallow the underlying issue to return a 5xx. To get the underlying error information, you can set a flag when creating the handler to enable "development mode" to alter the response of the `error` shape:
+
+```ts
+import { TypeSafeApiHandler } from '@rapidstack/lambda';
+
+import { toolkit } from './toolkit.js';
+
+const createHandler = toolkit.create(TypeSafeApiHandler, {
+  devMode: true,
+});
+
+const routes = {
+  errors: {
+    500: async () => {
+      throw new HttpError(500);
+    },
+  }
+};
+
+export const handler = createHandler(routes);
+```
+
+Now error responses received by the client will look like the following:
+
+```json
+{
+    "data": {
+        "description": "The server has encountered a situation it does not know how to handle.",
+        "requestId": "1951aa3b-51f3-444f-a8a8-ee402eaa1eb1",
+        "title": "Internal Server Error",
+        "devMode": true,
+        "error": {
+            "message": "The server has encountered a situation it does not know how to handle.",
+            "stackTrace": "HTTPError: The server has encountered a situation it does not know how to handle.\n    at Object.get [as matched] (file:///var/task/backend/src/entry-points/api.mjs:117:3470985)\n    at handleRequestHooks (file:///var/task/backend/src/entry-points/api.mjs:103:3197)\n    at async Runtime.handler (file:///var/task/backend/src/entry-points/api.mjs:103:4512)"
+        },
+        "logs": "https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Faws$252Flambda$252Fnonprod-rapid-examples-app-stack-api-fn/log-events/2024$252F02$252F16$252F$255B$2524LATEST$255Db0e7784f0875418faffc66800e071d2c$3Fstart$3D2024-02-16T16$253A02$253A20.297Z$26filterPattern$3D-START+-END"
+    },
+    "status": "error"
+}
+```
+
+With this response, you get detailed info on the error, the stacktrace to aid in debugging, and a deep link to the CloudWatch logs of that execution.
+
+**Note**: It is recommended to only use this in development and testing environments, as it can expose sensitive information about your application to the client.
 
 ## Future Features
 
@@ -326,6 +460,7 @@ The base of the handler is complete and modifications will be smaller enhancemen
 
 - The validator function would validate auth details if there are requirements for scope, user, etc.
 - Custom cookie encodings
+- Customize internal logs with redaction, etc.
 - Being able to pass in certain headers to cause debug actions (advanced logging, skipping internal cache, etc.)
 - A tRPC-like method for getting TypeScript definitions for the API using inferred types from the valibot schemas and handler returns:
 

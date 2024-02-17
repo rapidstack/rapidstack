@@ -14,6 +14,7 @@
 - [Additional Features](#additional-features)
   - [Logging](#logging)
   - [Development Mode](#development-mode)
+  - [Ignored Path Prefixes](#ignored-path-prefixes)
 - [Future Features](#future-features)
   - [Enhancements](#enhancements)
   - [Standard Middleware Functions](#standard-middleware-functions)
@@ -89,12 +90,12 @@ that is supplied to the underlying `validate` function. It also simplifies the i
 Here is an example of a simple validator that requires a query string parameter for the `GET /hello` route. If the `name` parameter is not present, the request will be rejected with a 400 Bad Request error automatically and will include helpful error details.
 
 ```ts
-import type { ApiValidatorSchemas } from '@rapidstack/lambda';
+import type { TypedApiValidationSchema } from '@rapidstack/lambda';
 
 import { validate } from '@rapidstack/lambda';
 import { object, string } from 'valibot';
 
-const HelloValidator: ApiValidatorSchemas = {
+const HelloValidator: TypedApiValidationSchema = {
   qsp: object({
     name: string(
       'The query string parameter `name` is required for this request!'
@@ -138,7 +139,7 @@ Using the above example, the response for the `GET /hello` route will look like 
 ```
 
 ```json
-// failure: {domain}/hello?bad=key
+// invalid: {domain}/hello?bad=key
 {
   "data": {
     "description": "The server could not understand the request due to invalid syntax.",
@@ -157,7 +158,7 @@ Using the above example, the response for the `GET /hello` route will look like 
 And let's say we had that endpoint fail with a 403 for all users that aren't "Bob":
 
 ```json
-// failure: {domain}/hello?name=Jake
+// fail: {domain}/hello?name=Jake
 {
   "data": {
     "description": "The request or action is prohibited or you do not have necessary permissions with your current credentials.",
@@ -165,6 +166,21 @@ And let's say we had that endpoint fail with a 403 for all users that aren't "Bo
   },
   "status": "fail"
 }
+```
+
+In the case of a server error occurring, either through throwing a 5xx `HttpError` or a different uncaught error type, the response would reflect the appropriate status:
+
+```json
+// error: {domain}/example-errors/500
+{
+    "data": {
+        "description": "The server has encountered a situation it does not know how to handle.",
+        "requestId": "4e081b96-cc1b-4933-a34a-b1623bad52db",
+        "title": "Internal Server Error"
+    },
+    "status": "error"
+}
+
 ```
 
 ### Sending HTTP Errors
@@ -286,7 +302,7 @@ const hooks = {
     }
 
     // Set a header for all responses
-    params.responseContext.headers['X-Xss-Protection'] = '0';
+    params.responseContext.headers['x-xss-protection'] = '0';
   },
   onError: async ({ error, ...params }) => {
     params.logger.error({ msg: 'error info', error });
@@ -354,11 +370,11 @@ A Pino logger is integrated into the handler and is available in all lifecycle f
 }
 ```
 
-Note that all keys to the logs begin with the `@` sigil. This serves as an identifier between standard log properties and properties you may log out yourself. Here is a breakdown of the log properties:
+Note that all standard keys in the logs begin with the `@` sigil. This serves as an identifier between the standard log properties and properties you may log out yourself. Here is a breakdown of the log properties:
 
 - `@l`: The log level. This can be `trace`, `debug`, `info`, `summary`, `warn`, `error`, or `fatal`.
 - `@t`: UNIX timestamp of log event.
-- `@h`: The hierarchy of the logger. This is useful for debugging and can serve as a pseudo-stack that gets pushed to when a child logger is created.
+- `@h`: Where in a hierarchy this log event was broadcast from. Useful for debugging and can serve as a pseudo-stack that gets pushed to when a child logger is created.
 - `@a`: The application name. This is either set in the toolkit or is pulled from the env and is used to identify the application in the logs.
 - `@r`: The request context. This field will get populated with common tracing IDs from your event to aid in tracing requests that flow to your other services. Possible fields include:
   - `lambdaRequestId`: The AWS Lambda request ID.
@@ -395,7 +411,7 @@ A request lifecycle is broken down into these segments:
 
 These segments are named in the logs as follows and are reported in milliseconds:
 
-- `clientLatencyDuration`*: The time difference between the client sending the request and the gateway receiving it. (Time difference between #1 - #2).
+- `clientLatencyDuration`*: The time difference between the client sending the request (from its provided `x-debug-unix` header) to when the lambda started processing the it. (Time difference between #1 - #3).
 - `gatewayLatencyDuration`: The time difference between API Gateway receiving the event (from its provided UNIX timestamp) to when the lambda started processing. (Time difference between #2 - #3)
 - `serverPreprocessingDuration`: The duration from when the lambda starts processing to when the route handler function is called. (Time encompassing #4)
 - `routeHandlerDuration`*: The duration from when the route handler function is called to when it returns. (Time encompassing #5)
@@ -451,6 +467,41 @@ Now error responses received by the client will look like the following:
 With this response, you get detailed info on the error, the stacktrace to aid in debugging, and a deep link to the CloudWatch logs of that execution.
 
 **Note**: It is recommended to only use this in development and testing environments, as it can expose sensitive information about your application to the client.
+
+### Ignored Path Prefixes
+
+When using your API in conjunction with a CDN like CloudFront, you may have a path prefix that is not part of your API. This can be a problem when routing the URL of the request, as access through the CDN will include the path prefix, but a dedicated API URL may not. To ignore this prefix, you can set the `ignoredPathPrefixes` option when creating the handler:
+
+```ts
+import { TypeSafeApiHandler } from '@rapidstack/lambda';
+
+import { toolkit } from './toolkit.js';
+
+const createHandler = toolkit.create(TypeSafeApiHandler, {
+  ignoredPathPrefixes: ['/api'],
+});
+```
+
+Now, when a request comes in with a path prefix of `/api`, it will be stripped from the URL before the route is matched. This allows you to use the same handler for both the CDN and the dedicated API URL:
+
+```ts
+const routes = {
+  hello: {
+    get: async () => { // GET on /hello and /api/hello will match this route
+      return {
+        body: {
+          response: 'Hello, world!',
+        },
+        statusCode: 200,
+      };
+    },
+  },
+};
+
+export const handler = createHandler(routes);
+```
+
+Only the first matched ignore prefix will be removed from the URL. If you have multiple prefixes to ignore, you can do some advanced handling in the `onRequestStart` hook.
 
 ## Future Features
 

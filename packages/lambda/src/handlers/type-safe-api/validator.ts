@@ -112,7 +112,7 @@ export type HttpRouteValidator = <
  * A simplified type to define what is needed for the `validate` function's
  * schema parameter.
  */
-export type ApiValidatorSchemas = Parameters<typeof validate>[0];
+export type TypedApiValidationSchema = Parameters<typeof validate>[0];
 
 /**
  * Validate a HTTP request route against a set of schema validations

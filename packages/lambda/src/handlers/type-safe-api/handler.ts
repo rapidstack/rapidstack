@@ -167,7 +167,7 @@ export const TypeSafeApiHandler = (
           (event as TypeSafeRouteResolverEventInfo)._interpretedPath ??
           event.rawPath;
 
-        summary.route = domain + path;
+        summary.url = domain + path;
       }
 
       logger.summary(summary);

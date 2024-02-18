@@ -11,6 +11,13 @@
 - [Lifecycle Hooks](#lifecycle-hooks)
   - [Hook List](#hook-list)
   - [Ideas/Concepts for Use](#ideasconcepts-for-use)
+- [Additional Features](#additional-features)
+  - [Logging](#logging)
+  - [Development Mode](#development-mode)
+  - [Ignored Path Prefixes](#ignored-path-prefixes)
+- [Future Features](#future-features)
+  - [Enhancements](#enhancements)
+  - [Standard Middleware Functions](#standard-middleware-functions)
 
 ## Overview
 
@@ -83,12 +90,12 @@ that is supplied to the underlying `validate` function. It also simplifies the i
 Here is an example of a simple validator that requires a query string parameter for the `GET /hello` route. If the `name` parameter is not present, the request will be rejected with a 400 Bad Request error automatically and will include helpful error details.
 
 ```ts
-import type { ApiValidatorSchemas } from '@rapidstack/lambda';
+import type { TypedApiValidationSchema } from '@rapidstack/lambda';
 
 import { validate } from '@rapidstack/lambda';
 import { object, string } from 'valibot';
 
-const HelloValidator: ApiValidatorSchemas = {
+const HelloValidator: TypedApiValidationSchema = {
   qsp: object({
     name: string(
       'The query string parameter `name` is required for this request!'
@@ -132,7 +139,7 @@ Using the above example, the response for the `GET /hello` route will look like 
 ```
 
 ```json
-// failure: {domain}/hello?bad=key
+// invalid: {domain}/hello?bad=key
 {
   "data": {
     "description": "The server could not understand the request due to invalid syntax.",
@@ -151,7 +158,7 @@ Using the above example, the response for the `GET /hello` route will look like 
 And let's say we had that endpoint fail with a 403 for all users that aren't "Bob":
 
 ```json
-// failure: {domain}/hello?name=Jake
+// fail: {domain}/hello?name=Jake
 {
   "data": {
     "description": "The request or action is prohibited or you do not have necessary permissions with your current credentials.",
@@ -159,6 +166,21 @@ And let's say we had that endpoint fail with a 403 for all users that aren't "Bo
   },
   "status": "fail"
 }
+```
+
+In the case of a server error occurring, either through throwing a 5xx `HttpError` or a different uncaught error type, the response would reflect the appropriate status:
+
+```json
+// error: {domain}/example-errors/500
+{
+    "data": {
+        "description": "The server has encountered a situation it does not know how to handle.",
+        "requestId": "4e081b96-cc1b-4933-a34a-b1623bad52db",
+        "title": "Internal Server Error"
+    },
+    "status": "error"
+}
+
 ```
 
 ### Sending HTTP Errors
@@ -280,7 +302,7 @@ const hooks = {
     }
 
     // Set a header for all responses
-    params.responseContext.headers['X-Xss-Protection'] = '0';
+    params.responseContext.headers['x-xss-protection'] = '0';
   },
   onError: async ({ error, ...params }) => {
     params.logger.error({ msg: 'error info', error });
@@ -309,3 +331,208 @@ const hooks = {
   },
 };
 ```
+
+## Additional Features
+
+### Logging
+
+A Pino logger is integrated into the handler and is available in all lifecycle functions and the main route handler. Internally it offers a few standard logs for each request, outside of a few trace logs marking beginning and end of a request, there is a `summary` log to capture the gist of a request. This summary log level sits right above the `info` level, so for cases where you want to see all requests, but not all the details, you can set your log level to `summary` and still see the summary logs. The logs themselves look like this:
+
+```json
+{
+    "@l": "summary",
+    "@t": 1707616738922,
+    "@h": [
+        "toolkit:root",
+        "TypeSafeApiHandler (unnamed)"
+    ],
+    "@a": "app-name",
+    "@r": {
+        "lambdaRequestId": "b806ce96-46a3-45ec-bf73-583a0f1ea837",
+        "apiId": "scs3di1hl",
+        "apiRequestId": "S8t7Yhx3oAMEabQ=",
+        "route": "api/v1/hello",
+        "ip": "xx.xx.xx.xx",
+        "method": "GET",
+        "x-amzn-trace-id": "Root=1-65c829e2-5e25f0a97573c696267793db",
+        "x-amz-cf-id": "SCKbD3TaiZBscS3dI1hloMj6Cr7W75daSVZdtrekYsh7qa6A6elv8A=="
+    },
+    "@s": {
+        "conclusion": "success",
+        "statusCode": 200,
+        "serverPreprocessingDuration": 15.83,
+        "routeHandlerDuration": 1.745,
+        "serverPostprocessingDuration": 0.4158,
+        "duration": 17.99,
+        "gatewayLatencyDuration": 705,
+        "url": "example.com/v1/hello"
+    }
+}
+```
+
+Note that all standard keys in the logs begin with the `@` sigil. This serves as an identifier between the standard log properties and properties you may log out yourself. Here is a breakdown of the log properties:
+
+- `@l`: The log level. This can be `trace`, `debug`, `info`, `summary`, `warn`, `error`, or `fatal`.
+- `@t`: UNIX timestamp of log event.
+- `@h`: Where in a hierarchy this log event was broadcast from. Useful for debugging and can serve as a pseudo-stack that gets pushed to when a child logger is created.
+- `@a`: The application name. This is either set in the toolkit or is pulled from the env and is used to identify the application in the logs.
+- `@r`: The request context. This field will get populated with common tracing IDs from your event to aid in tracing requests that flow to your other services. Possible fields include:
+  - `lambdaRequestId`: The AWS Lambda request ID.
+  - `apiId`: The API Gateway ID*.
+  - `apiRequestId`: The API Gateway request ID*.
+  - `route`: The route that was hit.
+  - `ip`: The IP of the requester.
+  - `method`: The HTTP method of the request (with optional overrides applied with `x-http-method-override`).
+  - `x-amzn-trace-id`: The AWS trace ID.
+  - `x-request-id`: An optional source request ID passed from the client.
+  - `x-amz-cf-id`: An optional CloudFront request ID passed from the client, if running behind CloudFront.
+- `@s`: The run summary:
+  - `conclusion`: The conclusion of the request. This is always `success` if the handler was able to fulfill a request, no matter the status code. If an uncaught error occurs, this will be `error`. In such cases, status 500 will be sent back to the client.
+  - `statusCode`: The status code of the response.
+  - `url`: The interpreted URL of the request. Factoring in any path prefixes to ignore.
+  - `duration`: The duration from request received to response sent. Typically varies from the reported billed duration by an additional 1-3ms. (Standard property between all handler shape summary logs)
+  - API segment durations, provided to help identify sources of latency in your API. The key names are explained below.
+
+*Note: The `apiId` and `apiRequestId` exist for Lambda URLs as well, but are omitted as they aren't tied to any visible AWS infrastructure to trace back to.
+
+#### Summary Duration Breakdown
+
+A request lifecycle is broken down into these segments:
+
+1. Client sends request to server
+2. Gateway receives request from client
+3. Lambda receives request from gateway
+4. Handler processes route lookup and `onRequestStart` hook
+5. Handler processes route handler function
+6. Handler processes `onRequestEnd` and `onError` hooks
+7. Lambda sends response back to gateway
+8. Gateway sends response back to client
+9. Client receives response from server
+
+These segments are named in the logs as follows and are reported in milliseconds:
+
+- `clientLatencyDuration`*: The time difference between the client sending the request (from its provided `x-debug-unix` header) to when the lambda started processing the it. (Time difference between #1 - #3).
+- `gatewayLatencyDuration`: The time difference between API Gateway receiving the event (from its provided UNIX timestamp) to when the lambda started processing. (Time difference between #2 - #3)
+- `serverPreprocessingDuration`: The duration from when the lambda starts processing to when the route handler function is called. (Time encompassing #4)
+- `routeHandlerDuration`*: The duration from when the route handler function is called to when it returns. (Time encompassing #5)
+- `serverPostprocessingDuration`: The duration from when the route handler function returns to when the lambda starts sending the response. (Time encompassing #6)
+- `duration`: Total Lambda duration. (Time between #3 - #7)
+- `clientPerceivedDuration`*: The duration from the `x-debug-unix` to when the lambda sends back a response. (Time between #1 - #7)
+
+*Note: The `clientLatencyDuration` and `clientPerceivedDuration` are only available if the `x-debug-unix` header is present in the client request.
+
+### Development Mode
+
+While developing and testing API handlers, it can be useful to get immediate feedback on what server error occurred rather than having the API handler swallow the underlying issue to return a 5xx. To get the underlying error information, you can set a flag when creating the handler to enable "development mode" to alter the response of the `error` shape:
+
+```ts
+import { TypeSafeApiHandler } from '@rapidstack/lambda';
+
+import { toolkit } from './toolkit.js';
+
+const createHandler = toolkit.create(TypeSafeApiHandler, {
+  devMode: true,
+});
+
+const routes = {
+  errors: {
+    500: async () => {
+      throw new HttpError(500);
+    },
+  }
+};
+
+export const handler = createHandler(routes);
+```
+
+Now error responses received by the client will look like the following:
+
+```json
+{
+    "data": {
+        "description": "The server has encountered a situation it does not know how to handle.",
+        "requestId": "1951aa3b-51f3-444f-a8a8-ee402eaa1eb1",
+        "title": "Internal Server Error",
+        "devMode": true,
+        "error": {
+            "message": "The server has encountered a situation it does not know how to handle.",
+            "stackTrace": "HTTPError: The server has encountered a situation it does not know how to handle.\n    at Object.get [as matched] (file:///var/task/backend/src/entry-points/api.mjs:117:3470985)\n    at handleRequestHooks (file:///var/task/backend/src/entry-points/api.mjs:103:3197)\n    at async Runtime.handler (file:///var/task/backend/src/entry-points/api.mjs:103:4512)"
+        },
+        "logs": "https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Faws$252Flambda$252Fnonprod-rapid-examples-app-stack-api-fn/log-events/2024$252F02$252F16$252F$255B$2524LATEST$255Db0e7784f0875418faffc66800e071d2c$3Fstart$3D2024-02-16T16$253A02$253A20.297Z$26filterPattern$3D-START+-END"
+    },
+    "status": "error"
+}
+```
+
+With this response, you get detailed info on the error, the stacktrace to aid in debugging, and a deep link to the CloudWatch logs of that execution.
+
+**Note**: It is recommended to only use this in development and testing environments, as it can expose sensitive information about your application to the client.
+
+### Ignored Path Prefixes
+
+When using your API in conjunction with a CDN like CloudFront, you may have a path prefix that is not part of your API. This can be a problem when routing the URL of the request, as access through the CDN will include the path prefix, but a dedicated API URL may not. To ignore this prefix, you can set the `ignoredPathPrefixes` option when creating the handler:
+
+```ts
+import { TypeSafeApiHandler } from '@rapidstack/lambda';
+
+import { toolkit } from './toolkit.js';
+
+const createHandler = toolkit.create(TypeSafeApiHandler, {
+  ignoredPathPrefixes: ['/api'],
+});
+```
+
+Now, when a request comes in with a path prefix of `/api`, it will be stripped from the URL before the route is matched. This allows you to use the same handler for both the CDN and the dedicated API URL:
+
+```ts
+const routes = {
+  hello: {
+    get: async () => { // GET on /hello and /api/hello will match this route
+      return {
+        body: {
+          response: 'Hello, world!',
+        },
+        statusCode: 200,
+      };
+    },
+  },
+};
+
+export const handler = createHandler(routes);
+```
+
+Only the first matched ignore prefix will be removed from the URL. If you have multiple prefixes to ignore, you can do some advanced handling in the `onRequestStart` hook.
+
+## Future Features
+
+The base of the handler is complete and modifications will be smaller enhancements and a standard set of middleware functions to tie in with hooks.
+
+### Enhancements
+
+- The validator function would validate auth details if there are requirements for scope, user, etc.
+- Custom cookie encodings
+- Customize internal logs with redaction, etc.
+- Being able to pass in certain headers to cause debug actions (advanced logging, skipping internal cache, etc.)
+- A tRPC-like method for getting TypeScript definitions for the API using inferred types from the valibot schemas and handler returns:
+
+  ```ts
+  import type { MakeTypedApi } from '@rapidstack/lambda';
+
+  const routes = { /* your route definitions */ };
+  export type TypedApi = MakeTypedApi<typeof routes>;
+  //              ^ import into your frontend folder
+  ```
+
+### Standard Middleware Functions
+
+- OpenAPI route
+  - Would be added to the `onRequestStart` hook to intercept a set route, i.e.: `{base-url}/open-api` and return a webpage to:
+    - View and try API routes
+    - Download TypeScript types for each endpoint
+    - Download a postman collection of the API
+- CORS
+  - (this is handled with API Gateway, but can be configured for lambda urls)
+- Rate Limiting
+  - Would have a corresponding cloud construct to spin up a dynamo table and permissions for the lambda to access it
+- Auth handlers for Cognito, JWT, IAM, etc.
+- "API Linting" to ensure the API is following best practices. Violations would be sent to a SNS topic for further processing.

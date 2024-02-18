@@ -243,7 +243,7 @@ export function makeValidationIssueBody(
       if (!hasInput) messages.push(`No input was provided for ${category}.`);
 
       for (const issue of err.issues) {
-        if (issue.message === 'Invalid type') continue;
+        if (issue.message.startsWith('Invalid type')) continue;
         messages.push(issue.message);
       }
 

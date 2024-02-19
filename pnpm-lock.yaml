@@ -93,8 +93,8 @@ importers:
         specifier: ~10.3.10
         version: 10.3.10
       inquirer:
-        specifier: ~9.2.14
-        version: 9.2.14
+        specifier: ~9.2.15
+        version: 9.2.15
       node-fetch:
         specifier: ~3.3.2
         version: 3.3.2
@@ -3083,8 +3083,8 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dev: true
 
-  /inquirer@9.2.14:
-    resolution: {integrity: sha512-4ByIMt677Iz5AvjyKrDpzaepIyMewNvDcvwpVVRZNmy9dLakVoVgdCHZXbK1SlVJra1db0JZ6XkJyHsanpdrdQ==}
+  /inquirer@9.2.15:
+    resolution: {integrity: sha512-vI2w4zl/mDluHt9YEQ/543VTCwPKWiHzKtm9dM2V0NdFcqEexDAjUHzO1oA60HRNaVifGXXM1tRRNluLVHa0Kg==}
     engines: {node: '>=18'}
     dependencies:
       '@ljharb/through': 2.3.12

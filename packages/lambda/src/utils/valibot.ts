@@ -18,6 +18,7 @@ type AnyValibotSchema =
   | v.EnumSchema<any>               // done
   | v.InstanceSchema<any>
   | v.IntersectSchema<any>
+  | v.LazySchema<any>
   | v.LiteralSchema<any>            // done
   | v.MapSchema<any, any>
   | v.NanSchema                     // done
@@ -33,7 +34,6 @@ type AnyValibotSchema =
   | v.OptionalSchema<v.BaseSchema>  // done
   | v.PicklistSchema<any>
   | v.RecordSchema<any, any>
-  | v.RecursiveSchema<any>
   | v.SetSchema<any>
   | v.SpecialSchema<any>
   | v.StringSchema                  // done

@@ -33,5 +33,8 @@
   "dependencies": {
     "pino": "~8.19.0",
     "valibot": "~0.29.0"
+  },
+  "peerDependencies": {
+    "valibot": "^0.29.0"
   }
 }

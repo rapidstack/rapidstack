@@ -33,7 +33,7 @@
     "@rapidstack/test-utils": "workspace:*",
     "@types/glob": "8.1.0",
     "@types/inquirer": "9.0.7",
-    "@types/node": "20.11.28",
+    "@types/node": "20.11.30",
     "vitest": "1.4.0"
   },
   "files": [

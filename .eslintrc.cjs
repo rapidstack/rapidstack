@@ -66,6 +66,8 @@ const config = {
 
     // Import Plugin Rules
     'import/extensions': ['error', 'ignorePackages'],
+
+    // Perfectionist Plugin Rules
     'perfectionist/sort-objects': [
       'error',
       {
@@ -74,6 +76,8 @@ const config = {
         'type': 'natural',
       },
     ],
+    'perfectionist/sort-intersection-types': 'off',
+    'perfectionist/sort-exports': 'off', // esm has export ordering requirements
 
     // JSDoc Plugin Rules
     'jsdoc/informative-docs': 'error',

@@ -31,7 +31,7 @@ const config = {
     'plugin:@typescript-eslint/recommended',
     'plugin:import/typescript',
     'plugin:perfectionist/recommended-natural',
-    'plugin:vitest/recommended',
+    'plugin:vitest/legacy-recommended',
     'plugin:jsdoc/recommended-typescript',
     'plugin:regexp/recommended',
     'plugin:security/recommended-legacy',
@@ -66,6 +66,8 @@ const config = {
 
     // Import Plugin Rules
     'import/extensions': ['error', 'ignorePackages'],
+
+    // Perfectionist Plugin Rules
     'perfectionist/sort-objects': [
       'error',
       {
@@ -74,6 +76,8 @@ const config = {
         'type': 'natural',
       },
     ],
+    'perfectionist/sort-intersection-types': 'off',
+    'perfectionist/sort-exports': 'off', // esm has export ordering requirements
 
     // JSDoc Plugin Rules
     'jsdoc/informative-docs': 'error',

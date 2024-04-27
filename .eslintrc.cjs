@@ -31,7 +31,7 @@ const config = {
     'plugin:@typescript-eslint/recommended',
     'plugin:import/typescript',
     'plugin:perfectionist/recommended-natural',
-    'plugin:vitest/recommended',
+    'plugin:vitest/legacy-recommended',
     'plugin:jsdoc/recommended-typescript',
     'plugin:regexp/recommended',
     'plugin:security/recommended-legacy',

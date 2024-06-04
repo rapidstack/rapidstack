@@ -161,8 +161,8 @@ importers:
         specifier: 20.14.0
         version: 20.14.0
       '@types/yauzl-promise':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.0.1
+        version: 4.0.1
       vitest:
         specifier: 1.5.3
         version: 1.5.3(@types/node@20.14.0)
@@ -1424,8 +1424,8 @@ packages:
     resolution: {integrity: sha512-cputDpIbFgLUaGQn6Vqg3/YsJwxUwHLO13v3i5ouxT4lat0khip9AEWxtERujXV9wxIB1EyF97BSJFt6vpdI8g==}
     dev: true
 
-  /@types/yauzl-promise@4.0.0:
-    resolution: {integrity: sha512-0ZUmYerNiqTWGOKEkU5sBlSthzJV5EwUezOaL6a7ZD2bGG9uRmjkpNaS4DyMzKHkQkvVKYXnVuUXtWAfRj3iPw==}
+  /@types/yauzl-promise@4.0.1:
+    resolution: {integrity: sha512-qYEC3rJwqiJpdQ9b+bPNeuSY0c3JUM8vIuDy08qfuVN7xHm3ZDsHn2kGphUIB0ruEXrPGNXZ64nMUcu4fDjViQ==}
     dependencies:
       '@types/node': 20.14.0
     dev: true

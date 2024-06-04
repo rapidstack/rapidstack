@@ -43,7 +43,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           version: 8
@@ -91,7 +91,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
@@ -113,7 +113,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.5
+        uses: rapidstack/pr-label-semver-action@v1.3.6
         id: semver
         with:
           label-prefix: 'sv:'
@@ -193,7 +193,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
@@ -215,7 +215,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.5
+        uses: rapidstack/pr-label-semver-action@v1.3.6
         id: semver
         with:
           label-prefix: 'sv:'
@@ -292,7 +292,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
@@ -314,7 +314,7 @@ jobs:
         run: pnpm prep
 
       - name: Version Packages
-        uses: rapidstack/pr-label-semver-action@v1.3.5
+        uses: rapidstack/pr-label-semver-action@v1.3.6
         id: semver
         with:
           label-prefix: 'sv:'

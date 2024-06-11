@@ -31,7 +31,7 @@
     "!**/tests/*.ts.map"
   ],
   "dependencies": {
-    "pino": "~9.1.0",
+    "pino": "~9.2.0",
     "valibot": "~0.30.0"
   },
   "peerDependencies": {

@@ -146,8 +146,8 @@ importers:
         version: 0.30.0
     devDependencies:
       '@types/aws-lambda':
-        specifier: 8.10.138
-        version: 8.10.138
+        specifier: 8.10.139
+        version: 8.10.139
       '@types/node':
         specifier: 20.14.2
         version: 20.14.2
@@ -1362,8 +1362,8 @@ packages:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
     dev: true
 
-  /@types/aws-lambda@8.10.138:
-    resolution: {integrity: sha512-71EHMl70TPWIAsFuHd85NHq6S6T2OOjiisPTrH7RgcjzpJpPh4RQJv7PvVvIxc6PIp8CLV7F9B+TdjcAES5vcA==}
+  /@types/aws-lambda@8.10.139:
+    resolution: {integrity: sha512-n+RhGv0ONxnelVLw1J301bwaqxVDP2SWzHocLHxfAbI3lsvji1SXvFR+mB9ttfg7x3kLM6EWe5FnmIEoZNwpRw==}
     dev: true
 
   /@types/eslint@8.56.7:

@@ -20,7 +20,7 @@
   "devDependencies": {
     "@types/node": "20.14.2",
     "@types/yauzl-promise": "4.0.1",
-    "vitest": "1.6.0",
+    "vitest": "2.0.3",
     "yauzl-promise": "4.0.0"
   },
   "files": [

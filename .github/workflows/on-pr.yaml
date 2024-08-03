@@ -373,5 +373,5 @@ jobs:
               name: `v${CURR}`,
               body: body,
               prerelease: false,
-              tag_name: `v${CURR}`
+              tag_name: `v${CURR}`,
             })

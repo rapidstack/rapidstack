@@ -38,7 +38,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Setup Project
+      - name: Setup Project for ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}

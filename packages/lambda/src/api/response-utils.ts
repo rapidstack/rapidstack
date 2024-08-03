@@ -114,7 +114,7 @@ export function buildCookiesFromObject(
         sameSite,
         secure,
         // eslint-disable-next-line security/detect-object-injection
-      } = cookieObject[cookie].options || {};
+      } = cookieObject[cookie].options;
 
       if (domain) cookieString += `; Domain=${domain}`;
       if (expiresUnix)

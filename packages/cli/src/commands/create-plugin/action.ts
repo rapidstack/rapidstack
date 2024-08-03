@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { input } from '@inquirer/prompts';
 import { cp, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -26,19 +26,12 @@ export async function action(pluginName?: string): Promise<void> {
   }
 
   // Get or create app name:
-  let name = pluginName as string;
-  if (!name) {
-    const answers = await inquirer.prompt([
-      {
-        default: 'my-plugin',
-        message: 'Plugin Name',
-        name: 'name',
-        type: 'input',
-        when: !pluginName,
-      },
-    ]);
-    name = answers.name;
-  }
+  const name =
+    pluginName ??
+    (await input({
+      default: 'my-plugin',
+      message: 'Plugin Name',
+    }));
 
   // Copy the package.json file to the destination (as a proof of concept)
   const templateParamsFile = join(templateDir, 'package.json');

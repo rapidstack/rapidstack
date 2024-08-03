@@ -1,4 +1,4 @@
-import inquirer from 'inquirer';
+import { input } from '@inquirer/prompts';
 import { cp, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -26,19 +26,12 @@ export async function action(appName?: string): Promise<void> {
   }
 
   // Get or create app name:
-  let name = appName as string;
-  if (!name) {
-    const answers = await inquirer.prompt([
-      {
-        default: 'my-rapidstack-app',
-        message: 'Project Name',
-        name: 'name',
-        type: 'input',
-        when: !appName,
-      },
-    ]);
-    name = answers.name;
-  }
+  const name =
+    appName ??
+    (await input({
+      default: 'my-rapidstack-app',
+      message: 'Project Name',
+    }));
 
   // Copy the package.json file to the destination (as a proof of concept)
   const templateParamsFile = join(templateDir, 'package.json');

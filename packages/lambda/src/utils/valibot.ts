@@ -43,7 +43,7 @@ type AnyValibotSchema =
   | v.UnionSchema<any>
   | v.UnknownSchema                 // done
   | v.VariantSchema<any, any>
-  | v.VoidSchema; //                   done
+  | v.VoidSchema; //                // done
 
 const printPrimitive = (
   path: string,

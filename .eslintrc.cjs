@@ -30,7 +30,7 @@ const config = {
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:import/typescript',
-    'plugin:perfectionist/recommended-natural',
+    'plugin:perfectionist/recommended-natural-legacy',
     'plugin:vitest/legacy-recommended',
     'plugin:jsdoc/recommended-typescript',
     'plugin:regexp/recommended',
@@ -71,13 +71,15 @@ const config = {
     'perfectionist/sort-objects': [
       'error',
       {
-        'order': 'asc',
-        'partition-by-comment': true,
-        'type': 'natural',
+        order: 'asc',
+        partitionByComment: true,
+        type: 'natural',
       },
     ],
     'perfectionist/sort-intersection-types': 'off',
-    'perfectionist/sort-exports': 'off', // esm has export ordering requirements
+    'perfectionist/sort-exports': 'off',
+    'perfectionist/sort-enums': 'off',
+    'perfectionist/sort-union-types': 'off',
 
     // JSDoc Plugin Rules
     'jsdoc/informative-docs': 'error',

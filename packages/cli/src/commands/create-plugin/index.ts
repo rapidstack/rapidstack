@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 
 import {
-  DEBUG_FLAG_REGEX,
   actionRunner,
+  DEBUG_FLAG_REGEX,
   handleExit,
   log,
 } from '../../utils/index.js';

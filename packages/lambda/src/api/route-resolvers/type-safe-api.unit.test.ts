@@ -10,7 +10,7 @@ import type {
 } from '../../handlers/type-safe-api/types.js';
 import type { ICache, ILogger, TypeSafeApiRouteInfo } from '../../index.js';
 
-import { MockLambdaContext, makeMockApiEvent, validate } from '../../index.js';
+import { makeMockApiEvent, MockLambdaContext, validate } from '../../index.js';
 import { resolveTypeSafeApiRoute } from './type-safe-api.js';
 
 type Params = Parameters<HttpRouteFunction>[0];

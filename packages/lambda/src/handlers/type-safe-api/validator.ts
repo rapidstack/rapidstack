@@ -2,7 +2,7 @@
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import type { Output } from 'valibot';
 
-import { ValiError, parse, parseAsync } from 'valibot';
+import { parse, parseAsync, ValiError } from 'valibot';
 
 import type {
   ICache,

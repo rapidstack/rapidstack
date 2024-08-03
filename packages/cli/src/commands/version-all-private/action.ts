@@ -4,7 +4,7 @@ import { glob } from 'glob';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { ORG_NAME, log } from '../../index.js';
+import { log, ORG_NAME } from '../../index.js';
 import { updateOrgPackageDependencies, validateVersion } from './tasks.js';
 
 /**

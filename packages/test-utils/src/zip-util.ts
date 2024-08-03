@@ -2,7 +2,7 @@ import { createWriteStream } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { type ZipFile, open } from 'yauzl-promise';
+import { open, type ZipFile } from 'yauzl-promise';
 
 // The types for yauzl-promise are wrong as of writing this...
 type FixedZipFile = ZipFile & {

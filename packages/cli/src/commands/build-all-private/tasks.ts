@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import ora from 'ora';
 
-import { ORG_NAME, RapidstackCliError, log, shell } from '../../index.js';
+import { log, ORG_NAME, RapidstackCliError, shell } from '../../index.js';
 
 /**
  * Recursively search for the root of the repo, looking in each package.json

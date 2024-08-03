@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [18, 20]
+        node: [20, 22]
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Checkout Code
@@ -46,7 +46,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory
@@ -86,14 +86,14 @@ jobs:
       - name: Setup Project
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           scope: '@rapidstack'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory
@@ -188,14 +188,14 @@ jobs:
       - name: Setup Project
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           scope: '@rapidstack'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory
@@ -287,14 +287,14 @@ jobs:
       - name: Setup Project
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           scope: '@rapidstack'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory

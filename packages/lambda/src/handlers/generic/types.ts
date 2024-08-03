@@ -14,7 +14,7 @@ type CommonHookProps<Event> = {
 } & CommonHookUtils;
 
 type AmbiguousEventHookProps<Event> = {
-  event: Partial<Event> | null | undefined;
+  event: null | Partial<Event> | undefined;
 } & CommonHookUtils;
 
 type OnErrorHookProps<Event> = {

@@ -17,8 +17,8 @@ import type { LambdaEntryPoint } from '../index.js';
 import type {
   ApiHandlerReturn,
   ResponseContext,
-  TypeSafeApiHandlerHooks,
   TypedApiRouteConfig,
+  TypeSafeApiHandlerHooks,
 } from './types.js';
 import type { BaseApiRouteProps } from './types.js';
 

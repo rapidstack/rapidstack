@@ -2,7 +2,7 @@ import inquirer from 'inquirer';
 import { cp, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { DEFAULT_TEMPLATE_DIR, RapidstackCliError, log } from '../../index.js';
+import { DEFAULT_TEMPLATE_DIR, log, RapidstackCliError } from '../../index.js';
 
 /**
  * Creates a new rapidstack project. The action to be run whenever the following

@@ -12,16 +12,16 @@ import type {
 import type {
   ApiHandlerReturn,
   ResponseContext,
-  TypeSafeApiHandlerHooks,
   TypedApiRouteConfig,
+  TypeSafeApiHandlerHooks,
 } from './types.js';
 
 import {
-  HttpError,
   default4xxErrorHandler,
+  HttpError,
   resolveTypeSafeApiRoute,
 } from '../../api/index.js';
-import { PerformanceKeys, markRouteEnd, markRouteStart } from '../../index.js';
+import { markRouteEnd, markRouteStart, PerformanceKeys } from '../../index.js';
 
 type RequestHooksProps = {
   onError?: TypeSafeApiHandlerHooks['onError'];

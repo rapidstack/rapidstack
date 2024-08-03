@@ -1,4 +1,3 @@
-/* eslint-disable perfectionist/sort-union-types */
 /* eslint-disable perfectionist/sort-object-types */
 
 import type { Simplify } from '../../index.js';

@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 
-import { RapidstackCliError, SEMVER_REGEX, log } from '../../index.js';
+import { log, RapidstackCliError, SEMVER_REGEX } from '../../index.js';
 
 /**
  * Scans the dependencies or devDependencies object from a package.json for

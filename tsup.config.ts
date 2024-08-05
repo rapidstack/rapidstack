@@ -5,8 +5,7 @@ import { spawn } from 'node:child_process';
 export const sharedTsupConfig = {
   bundle: false,
   clean: true,
-  // dts: true,
-  entry: ['src/**/*.ts', '!src/**/*.test.*', '!dist/**/*'],
+  entry: ['src/**/*.{ts,tsx}', '!src/**/*.test.*', '!dist/**/*'],
   format: ['esm', 'cjs'],
   onSuccess: async () => {
     return new Promise((resolve, reject) => {

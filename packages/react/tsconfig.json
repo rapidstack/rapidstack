@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@utils/testing": ["./src/.meta-utils/test.ts"],
+      "@utils/stories": ["./src/.meta-utils/stories.ts"]
+    }
+  },
+  "exclude": ["dist"],
+  "include": ["src", ".ladle/**/*"]
+}

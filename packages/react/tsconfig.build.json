@@ -1,0 +1,28 @@
+{ 
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "./dist",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@utils/testing": ["./src/.meta-utils/test.ts"],
+      "@utils/stories": ["./src/.meta-utils/stories.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "**/tests/*.*",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "./dist/**",
+    "**/.meta-utils/**/*.ts",
+    "**/*.stories.tsx",
+    "**/stories/**/*.tsx",
+    "**/stories/**/*.ts",
+    "**/stories/**/*.mdx",
+    "**/stories/**/*.md"
+  ],
+}

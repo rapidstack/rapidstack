@@ -19,7 +19,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "@types/aws-lambda": "8.10.142",
+    "@types/aws-lambda": "8.10.143",
     "@types/node": "22.1.0"
   },
   "files": [

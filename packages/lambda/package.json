@@ -20,7 +20,7 @@
   "types": "./dist/index.d.ts",
   "devDependencies": {
     "@types/aws-lambda": "8.10.142",
-    "@types/node": "22.1.0"
+    "@types/node": "22.2.0"
   },
   "files": [
     "dist/*",

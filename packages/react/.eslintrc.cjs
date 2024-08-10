@@ -52,6 +52,9 @@ const config = {
 
     // perfectionist
     'perfectionist/sort-union-types': 'off',
+
+    // deprecation - currently crashing
+    'deprecation/deprecation': 'off',
   },
   // for tsx files, don't require return types on components
   overrides: [
@@ -60,6 +63,12 @@ const config = {
       rules: {
         '@typescript-eslint/explicit-module-boundary-types': 'off',
         'func-style': 'off',
+      },
+    },
+    {
+      files: ['**/*.*js*'],
+      rules: {
+        'jsdoc/check-tag-names': 'off',
       },
     },
   ],

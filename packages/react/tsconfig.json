@@ -4,8 +4,10 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react-jsx",
     "paths": {
-      "@utils/testing": ["./src/.meta-utils/test.ts"],
-      "@utils/stories": ["./src/.meta-utils/stories.ts"]
+      "@internal/testing": ["./src/internal/test.ts"],
+      "@internal/stories": ["./src/internal/stories.tsx"],
+      "@internal/styled": ["./src/internal/styled.ts"],
+      "@unstyled": ["./src/components/unstyled/index.ts"],
     }
   },
   "exclude": ["dist"],

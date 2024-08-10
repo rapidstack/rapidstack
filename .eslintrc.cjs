@@ -143,6 +143,14 @@ const config = {
         'security/detect-object-injection': 'off',
       },
     },
+    // Disable certain rules for config files
+    {
+      files: ['*.config.ts'],
+      rules: {
+        'security/detect-object-injection': 'off',
+        'security/detect-non-literal-regexp': 'off',
+      },
+    },
     // Lambda-specific package rules
     {
       files: ['packages/lambda/src/**/*.ts'],

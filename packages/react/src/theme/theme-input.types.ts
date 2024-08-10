@@ -3,6 +3,7 @@
 
 import type { HexColor } from '../utils/colors.js';
 import type { ColorThemeType, FullThemeColor } from './theme.types.js';
+import type { CSSVariable, MakeThemeOutput } from './theme-output.types.js';
 
 type WebFonts =
   | 'Andale Mono'
@@ -94,10 +95,40 @@ export type ColorThemeInput<
   ? { [key in CustomColorKeys]: ThemeColorInput }
   : {});
 
+export type CustomUtilityFunctionInput<T extends AppThemeInput<any, any>> = (
+  colorVariable: CSSVariable,
+  theme: MakeThemeOutput<T>
+) => string;
+
+export type CustomUtilityFunctionsObject<T extends AppThemeInput<any, any>> = {
+  [key: string]: CustomUtilityFunctionInput<T>;
+};
+
+export type ExpectedUtilityFunctionKeys =
+  | 'computeHoverColor'
+  | 'computeActiveColor'
+  | 'computeContrastText';
+
+export type ThemeUtilityFunctions<
+  T extends AppThemeInput<any, any>,
+  CustomFunctions extends CustomUtilityFunctionsObject<T> | undefined = {},
+> = {
+  [key in ExpectedUtilityFunctionKeys]: CustomUtilityFunctionInput<T>;
+} & {
+  [key in keyof CustomFunctions]: CustomUtilityFunctionInput<T>;
+};
+
 export type AppThemeInput<
   CustomColorKeys extends string | undefined = undefined,
   // CustomFontKeys extends string | undefined = undefined,
+  CustomUtilityFunctions extends
+    | CustomUtilityFunctionsObject<AppThemeInput<CustomColorKeys, any>>
+    | undefined = undefined,
 > = {
   type: ColorThemeType;
   colors: ColorThemeInput<CustomColorKeys>;
+  utils?: ThemeUtilityFunctions<
+    AppThemeInput<CustomColorKeys>,
+    CustomUtilityFunctions
+  >;
 };

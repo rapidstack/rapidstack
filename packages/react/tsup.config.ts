@@ -1,6 +1,10 @@
 import { defineConfig } from 'tsup';
 
-import { sharedTsupConfig } from '../../tsup.config.js';
+import {
+  sharedTsupConfig,
+  tsPathAliasResolverPlugin,
+} from '../../tsup.config.js';
+import tsconfig from './tsconfig.build.json';
 
 export default defineConfig({
   ...sharedTsupConfig,
@@ -8,4 +12,5 @@ export default defineConfig({
   minify: true,
   minifySyntax: true,
   minifyWhitespace: true,
+  plugins: [tsPathAliasResolverPlugin(tsconfig)],
 });

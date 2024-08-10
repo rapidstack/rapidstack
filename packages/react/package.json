@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc --noEmit -p tsconfig.build.json && tsup && tsc",
     "test": "vitest",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "stories": "ladle serve"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -15,16 +16,18 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "jsdom": "^24.1.1",
+    "magic-string": "^0.30.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "styled-components": "^6.1.12"
+    "styled-components": "^6.1.12",
+    "vite": "^5.3.4"
   },
   "exports": {
     "./*": {
       "import": "./dist/*"
     },
     "./styled-utils": {
-      "import": "./dist/utils/styled-components.js"
+      "import": "./dist/styled-utils/index.js"
     },
     "./components": {
       "import": "./dist/components/themed/index.js"

@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { styled, ThemeProvider, useTheme } from 'styled-components';
-
-import type { AppThemeInput } from '../theme/theme-input.types.js';
-import type { MakeThemeOutput } from '../theme/theme-output.types.js';
-
 /**
  * This file is a copy of the styled-components @types/pkg file, with some
  * modifications to make it work with the desired behavior of this library.
@@ -61,7 +56,7 @@ type ThemedOuterStyledProps<P, T> = {
   theme?: T | undefined;
 } & P;
 
-interface StyledComponentClass<P, T, O = P>
+export interface StyledComponentClass<P, T, O = P>
   extends React.ComponentClass<ThemedOuterStyledProps<O, T>> {
   extend: ThemedStyledFunction<P, T, O>;
 
@@ -119,38 +114,6 @@ export interface ThemedBaseStyledInterface<T>
   ): ThemedStyledFunction<P, T, WithOptionalTheme<P, T>>;
 }
 
-type ThemedStyledInterface<T> = ThemedBaseStyledInterface<
+export type ThemedStyledInterface<T> = ThemedBaseStyledInterface<
   Extract<keyof T, string> extends never ? any : T
 >;
-
-/**
- *
- * @param styledInstance
- */
-export function makeThemedStyled<T extends AppThemeInput>(
-  styledInstance: typeof styled
-): ThemedStyledInterface<MakeThemeOutput<T>> {
-  return styledInstance as unknown as ThemedStyledInterface<MakeThemeOutput<T>>;
-}
-
-/**
- *
- * @param baseUseTheme
- */
-export function makeThemedHook<T extends AppThemeInput>(
-  baseUseTheme: typeof useTheme
-): () => MakeThemeOutput<T> {
-  return baseUseTheme as () => MakeThemeOutput<T>;
-}
-
-/**
- *
- * @param baseProvider
- */
-export function makeThemedProvider<T extends AppThemeInput>(
-  baseProvider: typeof ThemeProvider
-): React.ComponentType<React.PropsWithChildren<{ theme: MakeThemeOutput<T> }>> {
-  return baseProvider as React.ComponentType<
-    React.PropsWithChildren<{ theme: MakeThemeOutput<T> }>
-  >;
-}

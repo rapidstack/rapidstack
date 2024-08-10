@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "checkJs": true
+  },
+  "extends": "./tsconfig.json",
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".ladle/**/*",
+    "**/.eslintrc.cjs",
+    "**/prettier.config.cjs",
+    "**/tsup.config.ts"
+  ]
+}

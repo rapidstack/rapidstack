@@ -9,14 +9,20 @@
     "testing.ts"
   ],
   "words": [
+    "andale",
     "codespace",
     "devcontainer",
     "gistcomment",
     "jetbrains",
     "KHTML",
+    "lrgb",
+    "Lucida",
+    "Luminari",
     "Millis",
     "npmignore",
+    "oklab",
     "OWASP",
+    "Palatino",
     "Picklist",
     "pino",
     "PROPFIND",
@@ -25,10 +31,12 @@
     "rapidstack",
     "sarif",
     "SHTTP",
+    "Tahoma",
     "tsup",
     "typecheck",
     "Vali",
     "valibot",
+    "Verdana",
     "vitest",
     "wontfix"
   ]

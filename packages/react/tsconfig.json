@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@internal/testing": ["./src/internal/test.ts"],
+      "@internal/stories": ["./src/internal/stories.tsx"],
+      "@internal/styled": ["./src/internal/styled.ts"],
+      "@unstyled": ["./src/components/unstyled/index.ts"],
+    }
+  },
+  "exclude": ["dist"],
+  "include": ["src", ".ladle/**/*"]
+}

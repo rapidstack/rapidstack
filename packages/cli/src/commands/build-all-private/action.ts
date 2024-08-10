@@ -24,7 +24,7 @@ export async function action(): Promise<void> {
     'cli',
     // 'cloud',
     'lambda',
-    // 'react',
+    'react',
   ];
   const secondGroupJobs = secondGroup.map(async (pkg) => {
     await buildPackage(repoRoot, pkg);

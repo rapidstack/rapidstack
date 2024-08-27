@@ -140,8 +140,8 @@ importers:
         version: 0.30.0
     devDependencies:
       '@types/aws-lambda':
-        specifier: 8.10.143
-        version: 8.10.143
+        specifier: 8.10.144
+        version: 8.10.144
       '@types/node':
         specifier: 22.4.1
         version: 22.4.1
@@ -992,8 +992,8 @@ packages:
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
 
-  '@types/aws-lambda@8.10.143':
-    resolution: {integrity: sha512-u5vzlcR14ge/4pMTTMDQr3MF0wEe38B2F9o84uC4F43vN5DGTy63npRrB6jQhyt+C0lGv4ZfiRcRkqJoZuPnmg==}
+  '@types/aws-lambda@8.10.144':
+    resolution: {integrity: sha512-zRN25EUlALZsDlFfFCFEkQYXWj2WWu69pDBTycrsoFE+cS0XEs8vpFlSrq/L8OoJsrMW12LZtpvDHIGwGkQ2yg==}
 
   '@types/eslint@8.56.7':
     resolution: {integrity: sha512-SjDvI/x3zsZnOkYZ3lCt9lOZWZLB2jIlNKz+LBgCtDurK0JZcwucxYHn1w2BJkD34dgX9Tjnak0txtq4WTggEA==}
@@ -3726,7 +3726,7 @@ snapshots:
       tslib: 2.6.3
     optional: true
 
-  '@types/aws-lambda@8.10.143': {}
+  '@types/aws-lambda@8.10.144': {}
 
   '@types/eslint@8.56.7':
     dependencies:

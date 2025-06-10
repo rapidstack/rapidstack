@@ -210,7 +210,7 @@ jobs:
 
       - name: Commit Auto-fixable Changes (if failed check)
         if: ${{ github.event_name == 'pull_request' && steps.packages-check.outcome == 'failure' }}
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Dedupe package dependencies
           file_pattern: 'pnpm-lock.yaml'
